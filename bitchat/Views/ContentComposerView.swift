@@ -64,85 +64,97 @@ struct ContentComposerView: View {
                 recordingIndicator
             }
 
-            HStack(alignment: .center, spacing: 4) {
-                TextField(
-                    "",
-                    text: $messageText,
-                    prompt: Text(placeholderText)
-                        .foregroundColor(palette.secondary.opacity(0.6))
-                )
-                .textFieldStyle(.plain)
-                .bitchatFont(size: 15)
-                .foregroundColor(palette.primary)
-                .focused(isTextFieldFocused)
-                .autocorrectionDisabled(true)
-                #if os(iOS)
-                .textInputAutocapitalization(.sentences)
-                #endif
-                .submitLabel(.send)
-                .modifier(AutocompleteKeyboardNavigationModifier(
-                    isActive: { conversationUIModel.showAutocomplete
-                        && !conversationUIModel.autocompleteSuggestions.isEmpty },
-                    onMove: { delta in
-                        conversationUIModel.moveAutocompleteSelection(by: delta)
-                    },
-                    onAccept: {
-                        conversationUIModel.completeSelectedSuggestion(in: &messageText)
-                    },
-                    onDismiss: {
-                        conversationUIModel.dismissAutocomplete()
-                    }
-                ))
-                // Return while the mention panel is open completes the
-                // highlight instead of sending — matches command suggestions
-                // (#1504) and keeps Tab/Return/Escape on one convention.
-                .onSubmit {
-                    if conversationUIModel.showAutocomplete,
-                       !conversationUIModel.autocompleteSuggestions.isEmpty,
-                       conversationUIModel.completeSelectedSuggestion(in: &messageText) {
-                        return
-                    }
-                    onSendMessage()
-                    // Only the return-key path: it steals focus on iOS, so
-                    // every message would cost a tap to reopen the keyboard.
-                    // The send button must not reopen a deliberately
-                    // dismissed keyboard, so it stays out of this.
-                    isTextFieldFocused.wrappedValue = true
-                }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 6)
-                .modifier(FocusEffectDisabledModifier())
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onChange(of: messageText) { newValue in
-                    autocompleteDebounceTimer?.invalidate()
-                    autocompleteDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: false) { _ in
-                        let cursorPosition = newValue.count
-                        Task { @MainActor in
-                            conversationUIModel.updateAutocomplete(for: newValue, cursorPosition: cursorPosition)
-                        }
-                    }
+            // Messages-style row: the attachment button floats in its own
+            // glass circle beside the input capsule, not inside it.
+            HStack(alignment: .bottom, spacing: 8) {
+                if conversationUIModel.canSendMediaInCurrentContext {
+                    attachmentButton
                 }
 
-                HStack(alignment: .center, spacing: 4) {
-                    if showsNearbyOnlyToggle {
-                        nearbyOnlyToggle
-                    }
-
-                    if conversationUIModel.canSendMediaInCurrentContext {
-                        attachmentButton
-                    }
-
-                    sendOrMicButton
-                }
+                inputCapsule
             }
         }
-        .padding(.horizontal, 6)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
-        .themedChromePanel(edge: .bottom)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .onDisappear {
             autocompleteDebounceTimer?.invalidate()
         }
+    }
+}
+
+private extension ContentComposerView {
+    /// Text field plus the trailing scope toggle and send/mic button, on one
+    /// glass surface.
+    var inputCapsule: some View {
+        HStack(alignment: .center, spacing: 4) {
+            TextField(
+                "",
+                text: $messageText,
+                prompt: Text(placeholderText)
+                    .foregroundColor(palette.secondary.opacity(0.6))
+            )
+            .textFieldStyle(.plain)
+            .bitchatFont(size: 15)
+            .foregroundColor(palette.primary)
+            .focused(isTextFieldFocused)
+            .autocorrectionDisabled(true)
+            #if os(iOS)
+            .textInputAutocapitalization(.sentences)
+            #endif
+            .submitLabel(.send)
+            .modifier(AutocompleteKeyboardNavigationModifier(
+                isActive: { conversationUIModel.showAutocomplete
+                    && !conversationUIModel.autocompleteSuggestions.isEmpty },
+                onMove: { delta in
+                    conversationUIModel.moveAutocompleteSelection(by: delta)
+                },
+                onAccept: {
+                    conversationUIModel.completeSelectedSuggestion(in: &messageText)
+                },
+                onDismiss: {
+                    conversationUIModel.dismissAutocomplete()
+                }
+            ))
+            // Return while the mention panel is open completes the
+            // highlight instead of sending — matches command suggestions
+            // (#1504) and keeps Tab/Return/Escape on one convention.
+            .onSubmit {
+                if conversationUIModel.showAutocomplete,
+                   !conversationUIModel.autocompleteSuggestions.isEmpty,
+                   conversationUIModel.completeSelectedSuggestion(in: &messageText) {
+                    return
+                }
+                onSendMessage()
+                // Only the return-key path: it steals focus on iOS, so
+                // every message would cost a tap to reopen the keyboard.
+                // The send button must not reopen a deliberately
+                // dismissed keyboard, so it stays out of this.
+                isTextFieldFocused.wrappedValue = true
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 6)
+            .modifier(FocusEffectDisabledModifier())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onChange(of: messageText) { newValue in
+                autocompleteDebounceTimer?.invalidate()
+                autocompleteDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: false) { _ in
+                    let cursorPosition = newValue.count
+                    Task { @MainActor in
+                        conversationUIModel.updateAutocomplete(for: newValue, cursorPosition: cursorPosition)
+                    }
+                }
+            }
+
+            if showsNearbyOnlyToggle {
+                nearbyOnlyToggle
+            }
+
+            sendOrMicButton
+        }
+        .padding(.leading, 8)
+        .padding(.trailing, 2)
+        .padding(.vertical, 2)
+        .glassSurface(in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 
@@ -256,10 +268,11 @@ private extension ContentComposerView {
 
     var attachmentButton: some View {
         #if os(iOS)
-        Image(systemName: "camera.circle.fill")
-            .font(.bitchatSystem(size: 24))
+        Image(systemName: "camera")
+            .font(.bitchatSystem(size: 17, weight: .medium))
             .foregroundColor(composerAccentColor)
-            .frame(width: 36, height: 36)
+            .frame(width: 40, height: 40)
+            .glassSurface(in: Circle())
             .contentShape(Circle())
             .onTapGesture {
                 imagePickerSourceType = .photoLibrary
@@ -284,10 +297,12 @@ private extension ContentComposerView {
             }
         #else
         Button(action: { showMacImagePicker = true }) {
-            Image(systemName: "photo.circle.fill")
-                .font(.bitchatSystem(size: 24))
+            Image(systemName: "photo")
+                .font(.bitchatSystem(size: 17, weight: .medium))
                 .foregroundColor(composerAccentColor)
-                .frame(width: 36, height: 36)
+                .frame(width: 40, height: 40)
+                .glassSurface(in: Circle())
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(

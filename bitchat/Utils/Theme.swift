@@ -143,6 +143,12 @@ extension View {
             .padding(edge == .top ? .top : .bottom, 4)
     }
 
+    /// Liquid Glass in an arbitrary shape, for standalone controls such as
+    /// the composer's input capsule and attachment button.
+    func glassSurface<S: Shape>(in shape: S) -> some View {
+        modifier(GlassPanel(shape: shape))
+    }
+
     /// Floating surface for popover-style boxes (autocomplete, command
     /// suggestions).
     func themedOverlayPanel() -> some View {
