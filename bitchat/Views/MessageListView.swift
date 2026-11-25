@@ -51,6 +51,24 @@ private struct TimelineSignature: Equatable {
     }
 }
 
+private struct MessageReactionProjection {
+    let hiddenIDs: Set<String>
+    let countsByTarget: [String: [String: Int]]
+
+    init(messages: [BitchatMessage]) {
+        let events = MessageReaction.resolvedEvents(in: messages)
+        hiddenIDs = Set(events.map { $0.message.id })
+        var owners: [String: [String: Set<String>]] = [:]
+        for item in events {
+            let owner = item.message.senderPeerID?.id ?? item.message.sender
+            var emojiOwners = owners[item.event.targetID, default: [:]][item.event.emoji, default: []]
+            if item.event.removes { emojiOwners.remove(owner) } else { emojiOwners.insert(owner) }
+            owners[item.event.targetID, default: [:]][item.event.emoji] = emojiOwners
+        }
+        countsByTarget = owners.mapValues { $0.mapValues(\.count) }
+    }
+}
+
 struct MessageListView: View {
     @EnvironmentObject private var publicChatModel: PublicChatModel
     @EnvironmentObject private var privateInboxModel: PrivateInboxModel
@@ -110,6 +128,7 @@ struct MessageListView: View {
         let currentWindowCount = windowCount(for: privatePeer)
 
         let messages = conversationMessages(for: privatePeer)
+        let reactionProjection = MessageReactionProjection(messages: messages)
         let contextKey = timelineContextKey(for: privatePeer)
         // While the reader is scrolled up, messages landing below the
         // window's first row widen the window in this same render instead of
@@ -125,7 +144,7 @@ struct MessageListView: View {
             )
         let windowedMessages = Array(messages.suffix(renderedWindowCount))
 
-        let messageItems = displayItems(for: windowedMessages, of: messages, contextKey: contextKey)
+        let messageItems = displayItems(for: windowedMessages, of: messages, hiddenReactionIDs: reactionProjection.hiddenIDs, contextKey: contextKey)
         // Top edge of the rendered window (whitespace-only messages get no
         // row, so they could never report reaching it).
         let firstRowID = messageItems.first?.id
@@ -157,7 +176,8 @@ struct MessageListView: View {
                             showsSenderName: item.startsRun && showsSender,
                             avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
                             maxBubbleWidth: maxBubbleWidth,
-                            endsRun: item.endsRun
+                            endsRun: item.endsRun,
+                            reactionCounts: reactionProjection.countsByTarget[message.id] ?? [:]
                         )
                             .onAppear {
                                 // Callbacks lag a timeline switch: the new
@@ -206,6 +226,18 @@ struct MessageListView: View {
                             // side of the row.
                             .contentShape(Rectangle())
                             .contextMenu {
+                                if message.sender != "system" {
+                                    Section {
+                                        ForEach(MessageReaction.emojis, id: \.self) { emoji in
+                                            Button(emoji) {
+                                                let ownEvents = MessageReaction.resolvedEvents(in: conversationMessages(for: privatePeer))
+                                                    .filter { $0.event.targetID == message.id && conversationUIModel.isSentByCurrentUser($0.message) }
+                                                let active = ownEvents.last(where: { $0.event.emoji == emoji })?.event.removes == false
+                                                conversationUIModel.sendMessage(MessageReaction.format(emoji: emoji, target: message, removes: active))
+                                            }
+                                        }
+                                    }
+                                }
                                 // The exact time, which no longer sits beside
                                 // each bubble.
                                 Section {
@@ -669,6 +701,7 @@ private extension MessageListView {
     func displayItems(
         for windowedMessages: [BitchatMessage],
         of messages: [BitchatMessage],
+        hiddenReactionIDs: Set<String> = [],
         contextKey: String
     ) -> [MessageDisplayItem] {
         let firstIndex = messages.count - windowedMessages.count
@@ -676,7 +709,7 @@ private extension MessageListView {
         var items: [MessageDisplayItem] = []
         items.reserveCapacity(windowedMessages.count)
         // Whitespace-only messages get no row.
-        for message in windowedMessages where !message.content.trimmed.isEmpty {
+        for message in windowedMessages where !message.content.trimmed.isEmpty && !hiddenReactionIDs.contains(message.id) {
             let startsRun = MessageRunPolicy.startsRun(message, after: previous)
             if !items.isEmpty {
                 items[items.count - 1].endsRun = startsRun
@@ -710,17 +743,18 @@ private extension MessageListView {
         showsSenderName: Bool,
         avatar: AvatarSlot,
         maxBubbleWidth: CGFloat,
-        endsRun: Bool
+        endsRun: Bool,
+        reactionCounts: [String: Int] = [:]
     ) -> some View {
         Group {
             if avatar == .absent {
-                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun)
+                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts)
             } else {
                 // The avatar lines up with the bottom of the bubble, as in
                 // Messages, not with anything below it (payment chips).
                 HStack(alignment: .messageBubbleBottom, spacing: MessageBubbleStyle.avatarSpacing) {
                     senderAvatar(for: message, isShown: avatar == .shown)
-                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun)
+                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts)
                 }
             }
         }
@@ -737,7 +771,8 @@ private extension MessageListView {
         isSelf: Bool,
         showsSenderName: Bool,
         maxBubbleWidth: CGFloat,
-        endsRun: Bool
+        endsRun: Bool,
+        reactionCounts: [String: Int] = [:]
     ) -> some View {
         if message.sender == "system" {
             systemMessageRow(message)
@@ -758,6 +793,19 @@ private extension MessageListView {
                 maxBubbleWidth: maxBubbleWidth,
                 hasTail: endsRun
             )
+        }
+        if !reactionCounts.isEmpty {
+            HStack(spacing: 4) {
+                ForEach(reactionCounts.keys.sorted(), id: \.self) { emoji in
+                    Text("\(emoji) \(reactionCounts[emoji] ?? 0)")
+                        .font(.caption2)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(.thinMaterial, in: Capsule())
+                        .accessibilityLabel("\(reactionCounts[emoji] ?? 0) people reacted with \(emoji)")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: isSelf ? .trailing : .leading)
         }
     }
 
