@@ -668,7 +668,10 @@ struct ContentView: View {
                 }
             }
             .floatingBar(edge: .bottom) {
-                composerView
+                VStack(spacing: 0) {
+                    LocationPoWMiningBar(onSendNow: conversationUIModel.sendPendingLocationMessagesNow)
+                    composerView
+                }
             }
             // macOS: drop an image anywhere on the chat to send it.
             .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in

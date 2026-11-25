@@ -1318,6 +1318,12 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         outgoingCoordinator.sendMessage(content)
     }
 
+    /// Sends any location message still doing its proof of work right away,
+    /// with the work done so far (the "send now" button while mining).
+    func expeditePendingGeohashMining() {
+        outgoingCoordinator.expeditePendingGeohashMining()
+    }
+
     /// Sends a 👋 to the mesh channel regardless of the active channel.
     @MainActor
     func sendMeshWave() {

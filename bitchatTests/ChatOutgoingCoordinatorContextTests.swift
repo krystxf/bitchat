@@ -258,6 +258,52 @@ struct ChatOutgoingCoordinatorContextTests {
     }
 
     @Test @MainActor
+    func sendMessage_onLocationChannel_reportsMiningUntilTheEventIsSigned() async {
+        let context = MockChatOutgoingContext()
+        let status = LocationPoWMiningStatus()
+        var target = 8
+        let coordinator = ChatOutgoingCoordinator(context: context, powTargetBits: { target }, miningStatus: status)
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        // The send is pending from the moment it is sent, so the composer's
+        // strip can time it, and stops once the message is out.
+        coordinator.sendMessage("mined")
+        #expect(status.isMining)
+        await coordinator.geohashMiningTask?.value
+        #expect(!status.isMining)
+        #expect(context.sentGeohashContexts.count == 1)
+
+        // With proof of work off there is nothing to wait for or show.
+        target = 0
+        coordinator.sendMessage("not mined")
+        #expect(!status.isMining)
+        await coordinator.geohashMiningTask?.value
+        #expect(!status.isMining)
+        #expect(context.sentGeohashContexts.count == 2)
+    }
+
+    @Test @MainActor
+    func expeditingASlowSendStillSendsItWithAnHonestLowerCommitment() async throws {
+        let context = MockChatOutgoingContext()
+        let status = LocationPoWMiningStatus()
+        // 40 bits is out of reach, so only expediting ("send now") ends it.
+        let coordinator = ChatOutgoingCoordinator(context: context, powTargetBits: { 40 }, miningStatus: status)
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        coordinator.sendMessage("send it now")
+        #expect(status.isMining)
+        coordinator.expeditePendingGeohashMining()
+        await coordinator.geohashMiningTask?.value
+
+        #expect(!status.isMining)
+        let event = try #require(context.sentGeohashContexts.first?.event)
+        let nonceTag = try #require(event.tags.first { $0.first == "nonce" })
+        let committed = try #require(Int(nonceTag[2]))
+        #expect(committed < 40)
+        #expect(NostrPoW.validatedDifficulty(idHex: event.id, tags: event.tags) == committed)
+    }
+
+    @Test @MainActor
     func sendMessage_onLocationChannel_serializesRapidSendsInSendOrder() async {
         let context = MockChatOutgoingContext()
         let coordinator = ChatOutgoingCoordinator(context: context)

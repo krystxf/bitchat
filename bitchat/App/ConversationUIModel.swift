@@ -58,6 +58,12 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.sendMessage(message)
     }
 
+    /// "send now" on the mining strip: location messages still doing their
+    /// proof of work go out with the work done so far.
+    func sendPendingLocationMessagesNow() {
+        chatViewModel.expeditePendingGeohashMining()
+    }
+
     /// Resends a failed private message through the normal send path,
     /// removing the failed original so the re-submission replaces it
     /// instead of stacking a duplicate under the red bubble.

@@ -89,12 +89,17 @@ final class ChatOutgoingCoordinator {
     /// tests do not depend on the shared preferences.
     private let powTargetBits: () -> Int
 
+    /// Feeds the composer's "mining…" strip while geohash sends mine.
+    private let miningStatus: LocationPoWMiningStatus
+
     init(
         context: any ChatOutgoingContext,
-        powTargetBits: @escaping () -> Int = { LocationProofOfWorkSettings.sendTargetBits() }
+        powTargetBits: @escaping () -> Int = { LocationProofOfWorkSettings.sendTargetBits() },
+        miningStatus: LocationPoWMiningStatus? = nil
     ) {
         self.context = context
         self.powTargetBits = powTargetBits
+        self.miningStatus = miningStatus ?? .shared
     }
 
     /// Finish any in-flight geohash PoW mining early (the pending message
@@ -186,6 +191,11 @@ private extension ChatOutgoingCoordinator {
         let teleported = context.isTeleported
         let nickname = context.nickname
         let powTargetBits = self.powTargetBits()
+        // Shown as "mining…" above the composer if it takes long enough to
+        // notice; ends once the event is signed (or failed), also while this
+        // send only waits for an earlier one.
+        let miningStatus = self.miningStatus
+        let miningID = powTargetBits > 0 ? miningStatus.beginMining() : nil
 
         // Serialize geohash sends: each send awaits the previous send's task
         // before it appends + relays, so user-visible order always matches
@@ -198,6 +208,9 @@ private extension ChatOutgoingCoordinator {
         previousSend?.cancel()
         geohashMiningTask = Task { @MainActor [weak context = self.context] in
             await previousSend?.value
+            defer {
+                if let miningID { miningStatus.endMining(miningID) }
+            }
 
             let event: NostrEvent
             do {
