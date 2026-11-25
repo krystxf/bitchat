@@ -323,6 +323,10 @@ struct MessageListView: View {
                     }
                 }
                 .padding(.vertical, 6)
+                // A loaded GIF opens in the same preview as an image.
+                .environment(\.openMediaPreview) { url in
+                    imagePreviewURL = url
+                }
 
                 // Only carried history on screen: the ambient layer (radar,
                 // sightings, live hints) stays visible below it instead of

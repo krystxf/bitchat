@@ -17,10 +17,16 @@ import UIKit
 /// Full-size image viewer: the image fills the sheet and zooms with pinch,
 /// double-tap/double-click and (on macOS) the trackpad. Close sits top right
 /// and save floats at the bottom as a tinted glass button.
+///
+/// A file from the GIF cache plays instead, looping and muted, without zoom.
 struct ImagePreviewView: View {
     let url: URL
+    /// Set when the file is a cached Giphy or Tenor GIF.
+    private let gifAsset: GifAsset?
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var playsDespiteReduceMotion = false
     #if os(iOS)
     @State private var showExporter = false
     @State private var platformImage: UIImage?
@@ -28,9 +34,16 @@ struct ImagePreviewView: View {
     @State private var platformImage: NSImage?
     #endif
 
+    init(url: URL) {
+        self.url = url
+        self.gifAsset = GifMediaStore.shared.asset(forFileURL: url)
+    }
+
     var body: some View {
         ZStack {
-            if let image = platformImage {
+            if let gifAsset {
+                gifPlayer(gifAsset)
+            } else if let image = platformImage {
                 ZoomableImage(image: image)
                     .ignoresSafeArea()
             } else {
@@ -84,10 +97,35 @@ struct ImagePreviewView: View {
         .glassButtonStyle(prominent: true)
         .controlSize(.large)
         .tint(.blue)
-        .disabled(platformImage == nil)
+        .disabled(platformImage == nil && gifAsset == nil)
+    }
+
+    /// The GIF at its own shape, fitted to the sheet. Under Reduce Motion it
+    /// holds the first frame until the play button is pressed.
+    private func gifPlayer(_ asset: GifAsset) -> some View {
+        GifPlaybackView(asset: asset, isPlaying: !reduceMotion || playsDespiteReduceMotion)
+            .aspectRatio(GifMessageView.displayAspectRatio(asset.aspectRatio), contentMode: .fit)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.vertical, 64)
+            .overlay {
+                if reduceMotion && !playsDespiteReduceMotion {
+                    Button {
+                        playsDespiteReduceMotion = true
+                    } label: {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .frame(width: 32, height: 32)
+                    }
+                    .glassButtonStyle()
+                    .circularButtonShape()
+                    .controlSize(.large)
+                    .accessibilityLabel(Text(verbatim: String(localized: "media.gif.accessibility.play", comment: "Button that plays a GIF held still by Reduce Motion")))
+                }
+            }
     }
 
     private func loadImage() {
+        guard gifAsset == nil else { return }
         DispatchQueue.global(qos: .userInitiated).async {
             #if os(iOS)
             guard let image = UIImage(contentsOfFile: url.path) else { return }
@@ -107,7 +145,8 @@ struct ImagePreviewView: View {
         Task { @MainActor in
             let panel = NSSavePanel()
             panel.canCreateDirectories = true
-            panel.nameFieldStringValue = url.lastPathComponent
+            // Cached GIFs are named by a hash; offer a readable name.
+            panel.nameFieldStringValue = gifAsset.map { "GIF.\($0.format.fileExtension)" } ?? url.lastPathComponent
             panel.prompt = "save"
             if panel.runModal() == .OK, let destination = panel.url {
                 do {
