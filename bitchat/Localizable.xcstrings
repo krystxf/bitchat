@@ -94955,191 +94955,7 @@
         }
       }
     },
-    "verification.my_qr.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "امسح للتحقق مني"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "আমাকে যাচাই করতে স্ক্যান করুন"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scanne, Um Mich Zu Verifizieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scan to Verify Me"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escanea Para Verificarme"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "برای تأیید من اسکن کنید"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I-Scan Para I-Verify Ako"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scanne Pour Me Vérifier"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "סרוק כדי לאמת"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "मुझे सत्यापित करने के लिए स्कैन करें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pindai Untuk Verifikasi"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scansiona Per Verificarmi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スキャンして確認"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "스캔해서 인증하세요"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pindai Untuk Verifikasi"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "मलाई प्रमाणित गर्न स्क्यान गर"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scan Om Mij Te Verifiëren"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeskanuj, Aby Mnie Zweryfikować"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Digitaliza Para Me Verificares"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escaneie Para Me Verificar"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отсканируй, Чтобы Подтвердить Меня"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skanna För Att Verifiera Mig"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "என்னைச் சரிபார்க்க ஸ்கேன் செய்யவும்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "สแกนเพื่อยืนยันตัวฉัน"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beni DoğRulamak Için Tara"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скануй, Щоб Підтвердити Мене"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مجھے تصدیق کرنے کیلئے اسکین کریں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quét Để Xác Minh Tôi"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "扫描验证我"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "掃描驗證我"
-          }
-        }
-      }
-    },
+
     "verification.my_qr.unavailable" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -95323,6 +95139,746 @@
             "value" : "QR 不可用"
           }
         }
+      }
+    },
+    "verification.sheet.my_code" : {
+      "extractionState" : "manual",
+      "localizations" : {
+              "ar": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "رمزي"
+                      }
+              },
+              "bn": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "আমার কোড"
+                      }
+              },
+              "de": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Mein Code"
+                      }
+              },
+              "en": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "My Code"
+                      }
+              },
+              "es": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Mi código"
+                      }
+              },
+              "fa": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "کد من"
+                      }
+              },
+              "fil": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Code ko"
+                      }
+              },
+              "fr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Mon code"
+                      }
+              },
+              "he": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "הקוד שלי"
+                      }
+              },
+              "hi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "मेरा कोड"
+                      }
+              },
+              "id": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Kode saya"
+                      }
+              },
+              "it": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Il mio codice"
+                      }
+              },
+              "ja": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "自分のコード"
+                      }
+              },
+              "ko": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "내 코드"
+                      }
+              },
+              "ms": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Kod saya"
+                      }
+              },
+              "ne": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "मेरो कोड"
+                      }
+              },
+              "nl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Mijn code"
+                      }
+              },
+              "pl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Mój kod"
+                      }
+              },
+              "pt": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Meu código"
+                      }
+              },
+              "pt-BR": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Meu código"
+                      }
+              },
+              "ru": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Мой код"
+                      }
+              },
+              "sv": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Min kod"
+                      }
+              },
+              "ta": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "என் குறியீடு"
+                      }
+              },
+              "th": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "รหัสของฉัน"
+                      }
+              },
+              "tr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Kodum"
+                      }
+              },
+              "uk": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Мій код"
+                      }
+              },
+              "ur": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "میرا کوڈ"
+                      }
+              },
+              "vi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Mã của tôi"
+                      }
+              },
+              "zh-Hans": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "我的代码"
+                      }
+              },
+              "zh-Hant": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "我的代碼"
+                      }
+              }
+      }
+    },
+    "verification.sheet.scan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+              "ar": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "مسح"
+                      }
+              },
+              "bn": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "স্ক্যান"
+                      }
+              },
+              "de": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Scannen"
+                      }
+              },
+              "en": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Scan"
+                      }
+              },
+              "es": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Escanear"
+                      }
+              },
+              "fa": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "اسکن"
+                      }
+              },
+              "fil": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "I-scan"
+                      }
+              },
+              "fr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Scanner"
+                      }
+              },
+              "he": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "סריקה"
+                      }
+              },
+              "hi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "स्कैन"
+                      }
+              },
+              "id": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Pindai"
+                      }
+              },
+              "it": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Scansiona"
+                      }
+              },
+              "ja": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "スキャン"
+                      }
+              },
+              "ko": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "스캔"
+                      }
+              },
+              "ms": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Imbas"
+                      }
+              },
+              "ne": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "स्क्यान"
+                      }
+              },
+              "nl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Scannen"
+                      }
+              },
+              "pl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Skanuj"
+                      }
+              },
+              "pt": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Digitalizar"
+                      }
+              },
+              "pt-BR": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Digitalizar"
+                      }
+              },
+              "ru": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Сканировать"
+                      }
+              },
+              "sv": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Skanna"
+                      }
+              },
+              "ta": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "ஸ்கேன்"
+                      }
+              },
+              "th": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "สแกน"
+                      }
+              },
+              "tr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Tara"
+                      }
+              },
+              "uk": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Сканувати"
+                      }
+              },
+              "ur": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "اسکین"
+                      }
+              },
+              "vi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Quét"
+                      }
+              },
+              "zh-Hans": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "扫描"
+                      }
+              },
+              "zh-Hant": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "掃描"
+                      }
+              }
+      }
+    },
+    "verification.copy.copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+              "ar": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "تم النسخ"
+                      }
+              },
+              "bn": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "কপি হয়েছে"
+                      }
+              },
+              "de": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Kopiert"
+                      }
+              },
+              "en": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Copied"
+                      }
+              },
+              "es": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Copiado"
+                      }
+              },
+              "fa": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "کپی شد"
+                      }
+              },
+              "fil": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Nakopya"
+                      }
+              },
+              "fr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Copié"
+                      }
+              },
+              "he": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "הועתק"
+                      }
+              },
+              "hi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "कॉपी किया गया"
+                      }
+              },
+              "id": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Disalin"
+                      }
+              },
+              "it": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Copiato"
+                      }
+              },
+              "ja": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "コピーしました"
+                      }
+              },
+              "ko": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "복사됨"
+                      }
+              },
+              "ms": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Disalin"
+                      }
+              },
+              "ne": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "प्रतिलिपि भयो"
+                      }
+              },
+              "nl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Gekopieerd"
+                      }
+              },
+              "pl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Skopiowano"
+                      }
+              },
+              "pt": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Copiado"
+                      }
+              },
+              "pt-BR": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Copiado"
+                      }
+              },
+              "ru": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Скопировано"
+                      }
+              },
+              "sv": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Kopierat"
+                      }
+              },
+              "ta": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "நகலெடுக்கப்பட்டது"
+                      }
+              },
+              "th": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "คัดลอกแล้ว"
+                      }
+              },
+              "tr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Kopyalandı"
+                      }
+              },
+              "uk": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Скопійовано"
+                      }
+              },
+              "ur": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "کاپی ہو گیا"
+                      }
+              },
+              "vi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Đã sao chép"
+                      }
+              },
+              "zh-Hans": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "已复制"
+                      }
+              },
+              "zh-Hant": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "已複製"
+                      }
+              }
+      }
+    },
+    "verification.share.action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+              "ar": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "مشاركة رمز التحقق"
+                      }
+              },
+              "bn": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "শেয়ার যাচাইকরণ কোড"
+                      }
+              },
+              "de": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Verifizierungscode teilen"
+                      }
+              },
+              "en": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Share Verification Code"
+                      }
+              },
+              "es": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Compartir código de verificación"
+                      }
+              },
+              "fa": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "اشتراک‌گذاری کد تأیید"
+                      }
+              },
+              "fil": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Ibahagi ang verification code"
+                      }
+              },
+              "fr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Partager le code de vérification"
+                      }
+              },
+              "he": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "שתף קוד אימות"
+                      }
+              },
+              "hi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "सत्यापन कोड साझा करें"
+                      }
+              },
+              "id": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Bagikan kode verifikasi"
+                      }
+              },
+              "it": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Condividi codice di verifica"
+                      }
+              },
+              "ja": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "確認コードを共有"
+                      }
+              },
+              "ko": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "인증 코드 공유"
+                      }
+              },
+              "ms": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Kongsi kod pengesahan"
+                      }
+              },
+              "ne": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "प्रमाणीकरण कोड साझा गर्नुहोस्"
+                      }
+              },
+              "nl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Verificatiecode delen"
+                      }
+              },
+              "pl": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Udostępnij kod weryfikacyjny"
+                      }
+              },
+              "pt": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Partilhar código de verificação"
+                      }
+              },
+              "pt-BR": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Compartilhar código de verificação"
+                      }
+              },
+              "ru": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Поделиться кодом проверки"
+                      }
+              },
+              "sv": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Dela verifieringskod"
+                      }
+              },
+              "ta": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "சரிபார்ப்புக் குறியீட்டைப் பகிரவும்"
+                      }
+              },
+              "th": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "แชร์รหัสยืนยัน"
+                      }
+              },
+              "tr": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Doğrulama kodunu paylaş"
+                      }
+              },
+              "uk": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Поділитися кодом підтвердження"
+                      }
+              },
+              "ur": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "تصدیقی کوڈ شیئر کریں"
+                      }
+              },
+              "vi": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "Chia sẻ mã xác minh"
+                      }
+              },
+              "zh-Hans": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "分享验证代码"
+                      }
+              },
+              "zh-Hant": {
+                      "stringUnit": {
+                              "state": "translated",
+                              "value": "分享驗證碼"
+                      }
+              }
       }
     },
     "verification.scan.camera_unavailable" : {

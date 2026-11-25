@@ -11,41 +11,67 @@ import AppKit
 /// Placeholder view to display the user's verification QR payload as text.
 struct MyQRView: View {
     let qrString: String
-    @Environment(\.colorScheme) var colorScheme
+    @State private var copied = false
+    @State private var copyResetTask: Task<Void, Never>?
     @ThemedPalette private var palette
-    // Palette-tinted, so the box follows the sheet in light and dark mode.
-    private var boxColor: Color { palette.secondary.opacity(0.1) }
 
     private enum Strings {
-        static let title: LocalizedStringKey = "verification.my_qr.title"
         static let accessibilityLabel = String(localized: "verification.my_qr.accessibility_label", comment: "Accessibility label describing the verification QR code")
+        static let copied: String = String(localized: "verification.copy.copied", comment: "Confirmation shown after copying a verification URL")
+        static let copy: LocalizedStringKey = "common.copy"
+        static let share: LocalizedStringKey = "verification.share.action"
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text(Strings.title)
-                .bitchatFont(size: 16, weight: .bold)
-
-            VStack(spacing: 10) {
-                QRCodeImage(data: qrString, size: 240)
+        VStack(spacing: 16) {
+            GeometryReader { proxy in
+                QRCodeImage(data: qrString, size: min(proxy.size.width, 680))
                     .accessibilityLabel(Strings.accessibilityLabel)
-
-                // Non-scrolling, fully visible URL (wraps across lines)
-                Text(qrString)
-                    .bitchatFont(size: 11)
-                    .textSelection(.enabled)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(8)
-                    .background(boxColor)
-                    .cornerRadius(8)
+                    .frame(width: min(proxy.size.width, 680), height: min(proxy.size.width, 680))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(boxColor)
-            .cornerRadius(8)
+            .aspectRatio(1, contentMode: .fit)
+            .padding(.horizontal, 12)
+
+            Button(action: copyURL) {
+                HStack(alignment: .top, spacing: 8) {
+                    Text(copied ? Strings.copied : qrString)
+                        .font(.callout)
+                        .multilineTextAlignment(.center)
+                        .textSelection(.enabled)
+                    if !copied { Image(systemName: "doc.on.doc") }
+                }
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(copied ? Text(Strings.copied) : Text(Strings.copy))
+            .accessibilityHint(Text(qrString))
+
+            ShareLink(item: qrString) {
+                Label(Strings.share, systemImage: "square.and.arrow.up")
+            }
+            .buttonStyle(.bordered)
         }
-        .padding()
+        .padding(.vertical, 8)
+        .onDisappear { copyResetTask?.cancel() }
+    }
+
+    private func copyURL() {
+        #if os(iOS)
+        UIPasteboard.general.string = qrString
+        UIAccessibility.post(notification: .announcement, argument: Strings.copied)
+        #else
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(qrString, forType: .string)
+        NSAccessibility.post(element: NSApplication.shared, notification: .announcementRequested, userInfo: [.announcement: Strings.copied])
+        #endif
+        copied = true
+        copyResetTask?.cancel()
+        copyResetTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            copied = false
+        }
     }
 }
 
@@ -66,6 +92,8 @@ struct QRCodeImage: View {
         Group {
             if let image = generateImage() {
                 ImageWrapper(image: image)
+                    .padding(12) // Preserve a white quiet zone around the QR modules.
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
                     .frame(width: size, height: size)
             } else {
                 RoundedRectangle(cornerRadius: 8)
@@ -85,7 +113,7 @@ struct QRCodeImage: View {
         filter.message = inputData
         filter.correctionLevel = "M"
         guard let outputImage = filter.outputImage else { return nil }
-        let scale = max(1, Int(size / 32))
+        let scale = max(1, Int(size / max(outputImage.extent.width, outputImage.extent.height)))
         let transformed = outputImage.transformed(by: CGAffineTransform(scaleX: CGFloat(scale), y: CGFloat(scale)))
         return context.createCGImage(transformed, from: transformed.extent)
     }
@@ -228,6 +256,10 @@ struct CameraScannerView: UIViewRepresentable {
         context.coordinator.setActive(isActive)
     }
 
+    static func dismantleUIView(_ uiView: PreviewView, coordinator: CameraScannerCoordinator) {
+        coordinator.setActive(false)
+    }
+
     func makeCoordinator() -> CameraScannerCoordinator { CameraScannerCoordinator() }
 
     final class PreviewView: UIView {
@@ -260,6 +292,10 @@ struct CameraScannerView: NSViewRepresentable {
 
     func updateNSView(_ nsView: PreviewView, context: Context) {
         context.coordinator.setActive(isActive)
+    }
+
+    static func dismantleNSView(_ nsView: PreviewView, coordinator: CameraScannerCoordinator) {
+        coordinator.setActive(false)
     }
 
     func makeCoordinator() -> CameraScannerCoordinator { CameraScannerCoordinator() }
@@ -400,15 +436,12 @@ final class CameraScannerCoordinator: NSObject, AVCaptureMetadataOutputObjectsDe
     }
 }
 
-// Combined sheet: shows my QR by default with a button to scan instead
+// Combined sheet: switch inline between the personal QR code and scanner.
 struct VerificationSheetView: View {
     @EnvironmentObject private var verificationModel: VerificationModel
     @Binding var isPresented: Bool
     @State private var showingScanner = false
-    @ThemedPalette private var palette
-
-    private var accentColor: Color { palette.accent }
-    private var boxColor: Color { palette.secondary.opacity(0.1) }
+    private enum Page: Hashable { case myCode, scan }
 
     var body: some View {
         sheetContent
@@ -418,6 +451,9 @@ struct VerificationSheetView: View {
                 isPresented = false
             })
             .onDisappear { showingScanner = false }
+            #if os(macOS)
+            .frame(minWidth: 700, minHeight: 850)
+            #endif
     }
 
     /// Sheet title supplied with standard capitalization by the catalog.
@@ -426,64 +462,44 @@ struct VerificationSheetView: View {
     }
 
     private var sheetContent: some View {
-        VStack(spacing: 0) {
-            // Content area
+        VStack(spacing: 12) {
+            Picker("verification.sheet.title", selection: Binding(
+                get: { showingScanner ? Page.scan : Page.myCode },
+                set: { showingScanner = $0 == .scan }
+            )) {
+                Text("verification.sheet.my_code").tag(Page.myCode)
+                Text("verification.sheet.scan").tag(Page.scan)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .accessibilityLabel(Text("verification.sheet.title"))
+
             Group {
                 if showingScanner {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(spacing: 8) {
                         Text("verification.scan.prompt_friend")
-                            .bitchatFont(size: 16, weight: .bold)
-                            .frame(maxWidth: .infinity)
+                            .font(.headline)
                             .multilineTextAlignment(.center)
-                            .foregroundColor(accentColor)
                         QRScanView(isActive: showingScanner, onSuccess: {
                             showingScanner = false
                         })
-                            .environmentObject(verificationModel)
-                            .frame(minHeight: 280)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .environmentObject(verificationModel)
+                        .frame(minHeight: 280)
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(boxColor)
-                    .cornerRadius(8)
                 } else {
                     MyQRView(qrString: verificationModel.myQRString())
                 }
             }
-            .padding(16)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            // Centered controls moved up
-            VStack(spacing: 10) {
-                if showingScanner {
-                    Button(action: { showingScanner = false }) {
-                        Label("show my qr", systemImage: "qrcode")
-                            .bitchatFont(size: 13)
-                    }
-                    .buttonStyle(.bordered)
-                } else {
-                    Button(action: { showingScanner = true }) {
-                        Label("scan someone else's qr", systemImage: "camera.viewfinder")
-                            .bitchatFont(size: 13, weight: .medium)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.gray)
+            if let peerID = verificationModel.selectedPeerID,
+               verificationModel.isVerified(peerID: peerID) {
+                Button(action: { verificationModel.unverifyFingerprint(for: peerID) }) {
+                    Label("remove verification", systemImage: "minus.circle")
                 }
-
-                // Optional: Remove verification for selected peer (if verified)
-                if let peerID = verificationModel.selectedPeerID,
-                   verificationModel.isVerified(peerID: peerID) {
-                    Button(action: { verificationModel.unverifyFingerprint(for: peerID) }) {
-                        Label("remove verification", systemImage: "minus.circle")
-                            .bitchatFont(size: 12)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.gray)
-                }
+                .buttonStyle(.bordered)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
         }
+        .padding(.vertical, 12)
     }
 }
