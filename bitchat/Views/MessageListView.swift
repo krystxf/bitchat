@@ -581,9 +581,11 @@ private extension MessageListView {
         Button {
             scrollToBottom(on: proxy, privatePeer: privatePeer)
         } label: {
-            HStack(spacing: 4) {
+            // Same size as the composer's image button: a 40pt glass circle,
+            // stretching into a capsule when it also shows the new count.
+            HStack(spacing: 6) {
                 Image(systemName: "arrow.down")
-                    .font(.bitchatSystem(size: 11, weight: .semibold))
+                    .font(.bitchatSystem(size: 17, weight: .semibold))
                 if unseenCount > 0 {
                     Text(
                         String(
@@ -592,16 +594,16 @@ private extension MessageListView {
                             unseenCount
                         )
                     )
-                    .bitchatFont(size: 12, weight: .medium)
+                    .bitchatFont(size: 14, weight: .medium)
                 }
             }
             .foregroundColor(palette.primary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .contentShape(Rectangle())
+            .padding(.horizontal, unseenCount > 0 ? 14 : 0)
+            .frame(minWidth: 40, minHeight: 40)
+            .glassSurface(in: Capsule())
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .themedOverlayPanel()
         .padding(.trailing, 12)
         .padding(.bottom, 10)
         .accessibilityLabel(jumpToLatestAccessibilityLabel)
