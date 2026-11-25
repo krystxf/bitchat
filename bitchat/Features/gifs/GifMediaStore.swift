@@ -126,8 +126,10 @@ final class GifMediaStore: @unchecked Sendable {
     func load(_ link: GifLink) async throws -> GifAsset {
         if let asset = cachedAsset(for: link) { return asset }
         let key = link.cacheKey
-        let (id, task): (UUID, Task<GifAsset, Error>) = lock.withLock {
-            if let running = inFlight[key] { return running }
+        let found: (asset: GifAsset?, id: UUID, task: Task<GifAsset, Error>?) = lock.withLock {
+            // Another load may have finished since the lookup above.
+            if let asset = assets[key] { return (asset, UUID(), nil) }
+            if let running = inFlight[key] { return (nil, running.id, running.task) }
             let generation = self.generation
             let id = UUID()
             let task = Task { [resolver] in
@@ -135,8 +137,11 @@ final class GifMediaStore: @unchecked Sendable {
                 return try await self.store(media, key: key, generation: generation)
             }
             inFlight[key] = (id, task)
-            return (id, task)
+            return (nil, id, task)
         }
+        if let asset = found.asset { return asset }
+        guard let task = found.task else { throw GifLoadError.noMedia }
+        let id = found.id
         defer {
             lock.withLock {
                 if inFlight[key]?.id == id { inFlight[key] = nil }
