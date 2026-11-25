@@ -726,6 +726,98 @@ struct ChatViewModelFormattingTests {
     }
 
     @Test @MainActor
+    func formatMessageBody_isTheTextAloneColoredForItsSide() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let message = BitchatMessage(
+            id: "fmt-body-1",
+            sender: "Alice#a1b2",
+            content: "hi @bob see https://example.com #mesh",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: PeerID(str: "00000000000000b5")
+        )
+
+        let theirs = viewModel.formatMessageBody(message, isSelf: false, colorScheme: .light)
+        let mine = viewModel.formatMessageBody(message, isSelf: true, colorScheme: .light)
+
+        // No sender and no timestamp: the bubble row shows both beside it.
+        #expect(String(theirs.characters) == message.content)
+        #expect(String(mine.characters) == message.content)
+        #expect(theirs.runs.first?.swiftUI.foregroundColor == .primary)
+        #expect(mine.runs.first?.swiftUI.foregroundColor == .white)
+        #expect(theirs.runs.contains { $0.link == URL(string: "https://example.com") })
+    }
+
+    @Test @MainActor
+    func formatMessageBody_isCachedApartFromTheOtherFormats() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let message = BitchatMessage(
+            id: "fmt-body-2",
+            sender: "Alice#a1b2",
+            content: "hello",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: PeerID(str: "00000000000000b6")
+        )
+
+        let fullText = viewModel.formatMessageAsText(message, colorScheme: .dark)
+        let header = viewModel.formatMessageHeader(message, colorScheme: .dark)
+        let body = viewModel.formatMessageBody(message, isSelf: false, colorScheme: .dark)
+        let name = viewModel.formatSenderName(message, colorScheme: .dark)
+
+        #expect(String(body.characters) == "hello")
+        #expect(String(name.characters) == "Alice#a1b2")
+        #expect(
+            message.getCachedFormattedText(
+                isDark: true,
+                isSelf: false,
+                variant: ChatMessageFormatter.bodyCacheNamespace
+            ) == body
+        )
+        #expect(viewModel.formatMessageAsText(message, colorScheme: .dark) == fullText)
+        #expect(viewModel.formatMessageHeader(message, colorScheme: .dark) == header)
+        #expect(viewModel.formatMessageBody(message, isSelf: false, colorScheme: .dark) == body)
+        #expect(viewModel.formatSenderName(message, colorScheme: .dark) == name)
+    }
+
+    @Test @MainActor
+    func formatMessageBody_isEmptyForAMessageOfPaymentTokensOnly() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let message = BitchatMessage(
+            id: "fmt-body-3",
+            sender: "Alice#a1b2",
+            content: "cashuA" + String(repeating: "a", count: 40),
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: PeerID(str: "00000000000000b7")
+        )
+
+        // The token renders as a chip; an empty body lets the row skip the
+        // bubble instead of drawing one around a blank space.
+        #expect(viewModel.formatMessageBody(message, isSelf: false, colorScheme: .light).characters.isEmpty)
+    }
+
+    @Test @MainActor
+    func formatSenderName_linksToTheSendersActions() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let senderPeerID = PeerID(str: "00000000000000b8")
+        let message = BitchatMessage(
+            id: "fmt-name-1",
+            sender: "Alice#a1b2",
+            content: "hello",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: senderPeerID
+        )
+
+        let name = viewModel.formatSenderName(message, colorScheme: .light)
+
+        // The same link the name in the full text carries, so a tap still
+        // opens the sender's action sheet.
+        #expect(name.runs.allSatisfy { $0.link == URL(string: "bitchat://user/\(senderPeerID.id)") })
+    }
+
+    @Test @MainActor
     func isSelfMessage_judgesBySenderIDNotNickname() async {
         let (viewModel, transport) = makeTestableViewModel()
         viewModel.nickname = "alice"

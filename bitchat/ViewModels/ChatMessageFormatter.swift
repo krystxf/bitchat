@@ -68,254 +68,19 @@ final class ChatMessageFormatter {
             }
             result.append(AttributedString("> ").mergingAttributes(senderStyle))
 
-            let content = message.content
-            let nsContent = content as NSString
-            let nsLen = nsContent.length
-
-            if content.isOversizedForRichFormatting() {
-                var plainStyle = AttributeContainer()
-                plainStyle.foregroundColor = baseColor
-                plainStyle.font = isSelf
-                    ? .bitchatSystem(size: 14, weight: .bold, design: design)
-                    : .bitchatSystem(size: 14, design: design)
-                result.append(AttributedString(content).mergingAttributes(plainStyle))
-            } else {
-                let hashtagRegex = Patterns.hashtag
-                let mentionRegex = Patterns.mention
-                let cashuRegex = Patterns.cashu
-                let bolt11Regex = Patterns.bolt11
-                let lnurlRegex = Patterns.lnurl
-                let lightningSchemeRegex = Patterns.lightningScheme
-                let detector = Patterns.linkDetector
-                let hasMentionsHint = content.contains("@")
-                let hasHashtagsHint = content.contains("#")
-                let hasURLHint = content.contains("://") || content.contains("www.") || content.contains("http")
-                let hasLightningHint = content.lowercased().contains("ln") || content.lowercased().contains("lightning:")
-                let hasCashuHint = content.lowercased().contains("cashu")
-
-                let hashtagMatches = hasHashtagsHint
-                    ? hashtagRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
-                    : []
-                let mentionMatches = hasMentionsHint
-                    ? mentionRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
-                    : []
-                let urlMatches = hasURLHint
-                    ? (detector?.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen)) ?? [])
-                    : []
-                let cashuMatches = hasCashuHint
-                    ? cashuRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
-                    : []
-                let lightningMatches = hasLightningHint
-                    ? lightningSchemeRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
-                    : []
-                let bolt11Matches = hasLightningHint
-                    ? bolt11Regex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
-                    : []
-                let lnurlMatches = hasLightningHint
-                    ? lnurlRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
-                    : []
-
-                let mentionRanges = mentionMatches.map { $0.range(at: 0) }
-                func overlapsMention(_ range: NSRange) -> Bool {
-                    for mentionRange in mentionRanges where NSIntersectionRange(range, mentionRange).length > 0 {
-                        return true
-                    }
-                    return false
-                }
-
-                func attachedToMention(_ range: NSRange) -> Bool {
-                    if let swiftRange = Range(range, in: content), swiftRange.lowerBound > content.startIndex {
-                        var index = content.index(before: swiftRange.lowerBound)
-                        while true {
-                            let character = content[index]
-                            if character.isWhitespace || character.isNewline { break }
-                            if character == "@" { return true }
-                            if index == content.startIndex { break }
-                            index = content.index(before: index)
-                        }
-                    }
-                    return false
-                }
-
-                func isStandaloneHashtag(_ range: NSRange) -> Bool {
-                    guard let swiftRange = Range(range, in: content) else { return false }
-                    if swiftRange.lowerBound == content.startIndex { return true }
-                    let previous = content.index(before: swiftRange.lowerBound)
-                    return content[previous].isWhitespace || content[previous].isNewline
-                }
-
-                var allMatches: [(range: NSRange, type: String)] = []
-                for match in hashtagMatches
-                where !overlapsMention(match.range(at: 0))
-                    && !attachedToMention(match.range(at: 0))
-                    && isStandaloneHashtag(match.range(at: 0)) {
-                    allMatches.append((match.range(at: 0), "hashtag"))
-                }
-                for match in mentionMatches {
-                    allMatches.append((match.range(at: 0), "mention"))
-                }
-                for match in urlMatches where !overlapsMention(match.range) {
-                    allMatches.append((match.range, "url"))
-                }
-                for match in cashuMatches where !overlapsMention(match.range(at: 0)) {
-                    allMatches.append((match.range(at: 0), "cashu"))
-                }
-                for match in lightningMatches where !overlapsMention(match.range(at: 0)) {
-                    allMatches.append((match.range(at: 0), "lightning"))
-                }
-
-                let occupied = urlMatches.map(\.range) + lightningMatches.map { $0.range(at: 0) }
-                func overlapsOccupied(_ range: NSRange) -> Bool {
-                    for occupiedRange in occupied where NSIntersectionRange(range, occupiedRange).length > 0 {
-                        return true
-                    }
-                    return false
-                }
-
-                for match in bolt11Matches
-                where !overlapsMention(match.range(at: 0)) && !overlapsOccupied(match.range(at: 0)) {
-                    allMatches.append((match.range(at: 0), "bolt11"))
-                }
-                for match in lnurlMatches
-                where !overlapsMention(match.range(at: 0)) && !overlapsOccupied(match.range(at: 0)) {
-                    allMatches.append((match.range(at: 0), "lnurl"))
-                }
-                allMatches.sort { $0.range.location < $1.range.location }
-
-                var lastEnd = content.startIndex
-                let myNickname = viewModel.nickname.normalizedNickname
-                let isMentioned = message.mentions?.contains { $0.normalizedNickname == myNickname } ?? false
-
-                for (range, type) in allMatches {
-                    guard let swiftRange = Range(range, in: content) else { continue }
-
-                    if lastEnd < swiftRange.lowerBound {
-                        let beforeText = String(content[lastEnd..<swiftRange.lowerBound])
-                        if !beforeText.isEmpty {
-                            var beforeStyle = AttributeContainer()
-                            beforeStyle.foregroundColor = baseColor
-                            beforeStyle.font = isSelf
-                                ? .bitchatSystem(size: 14, weight: .bold, design: design)
-                                : .bitchatSystem(size: 14, design: design)
-                            if isMentioned {
-                                beforeStyle.font = beforeStyle.font?.bold()
-                            }
-                            result.append(AttributedString(beforeText).mergingAttributes(beforeStyle))
-                        }
-                    }
-
-                    let matchText = String(content[swiftRange])
-                    if type == "mention" {
-                        let (mentionBase, mentionSuffix) = matchText.splitSuffix()
-                        let mySuffix: String? = {
-                            if case .location(let channel) = viewModel.activeChannel,
-                               let identity = try? viewModel.idBridge.deriveIdentity(forGeohash: channel.geohash) {
-                                return String(identity.publicKeyHex.suffix(4))
-                            }
-                            return String(viewModel.meshService.myPeerID.id.prefix(4))
-                        }()
-                        let isMentionToMe: Bool = {
-                            if mentionBase == viewModel.nickname {
-                                if let mySuffix, !mentionSuffix.isEmpty {
-                                    return mentionSuffix == "#\(mySuffix)"
-                                }
-                                return mentionSuffix.isEmpty
-                            }
-                            return false
-                        }()
-
-                        var mentionStyle = AttributeContainer()
-                        mentionStyle.font = .bitchatSystem(
-                            size: 14,
-                            weight: isSelf ? .bold : .semibold,
-                            design: design
-                        )
-                        let mentionColor: Color = isMentionToMe ? .orange : baseColor
-                        mentionStyle.foregroundColor = mentionColor
-                        let at = "@"
-                        result.append(AttributedString("\(at)").mergingAttributes(mentionStyle))
-                        result.append(AttributedString(mentionBase).mergingAttributes(mentionStyle))
-                        if !mentionSuffix.isEmpty {
-                            var lightStyle = mentionStyle
-                            lightStyle.foregroundColor = mentionColor.opacity(0.6)
-                            result.append(AttributedString(mentionSuffix).mergingAttributes(lightStyle))
-                        }
-                    } else if type == "hashtag" {
-                        let token = String(matchText.dropFirst()).lowercased()
-                        let allowed = Set("0123456789bcdefghjkmnpqrstuvwxyz")
-                        let isGeohash = (2...12).contains(token.count) && token.allSatisfy { allowed.contains($0) }
-                        let attachedToMentionToken: Bool = {
-                            if swiftRange.lowerBound > content.startIndex {
-                                var index = content.index(before: swiftRange.lowerBound)
-                                while true {
-                                    let character = content[index]
-                                    if character.isWhitespace || character.isNewline { break }
-                                    if character == "@" { return true }
-                                    if index == content.startIndex { break }
-                                    index = content.index(before: index)
-                                }
-                            }
-                            return false
-                        }()
-                        let standalone: Bool = {
-                            if swiftRange.lowerBound == content.startIndex { return true }
-                            let previous = content.index(before: swiftRange.lowerBound)
-                            return content[previous].isWhitespace || content[previous].isNewline
-                        }()
-
-                        var tagStyle = AttributeContainer()
-                        tagStyle.font = isSelf
-                            ? .bitchatSystem(size: 14, weight: .bold, design: design)
-                            : .bitchatSystem(size: 14, design: design)
-                        tagStyle.foregroundColor = baseColor
-                        if isGeohash && !attachedToMentionToken && standalone,
-                           let url = URL(string: "bitchat://geohash/\(token)") {
-                            tagStyle.link = url
-                            tagStyle.underlineStyle = .single
-                        }
-                        result.append(AttributedString(matchText).mergingAttributes(tagStyle))
-                    } else if type == "cashu" || type == "lightning" || type == "bolt11" || type == "lnurl" {
-                        var spacer = AttributeContainer()
-                        spacer.foregroundColor = baseColor
-                        spacer.font = isSelf
-                            ? .bitchatSystem(size: 14, weight: .bold, design: design)
-                            : .bitchatSystem(size: 14, design: design)
-                        result.append(AttributedString(" ").mergingAttributes(spacer))
-                    } else {
-                        var matchStyle = AttributeContainer()
-                        matchStyle.font = .bitchatSystem(
-                            size: 14,
-                            weight: isSelf ? .bold : .semibold,
-                            design: design
-                        )
-                        if type == "url" {
-                            matchStyle.foregroundColor = isSelf ? .orange : .blue
-                            matchStyle.underlineStyle = .single
-                            if let url = URL(string: matchText) {
-                                matchStyle.link = url
-                            }
-                        }
-                        result.append(AttributedString(matchText).mergingAttributes(matchStyle))
-                    }
-
-                    if lastEnd < swiftRange.upperBound {
-                        lastEnd = swiftRange.upperBound
-                    }
-                }
-
-                if lastEnd < content.endIndex {
-                    let remainingText = String(content[lastEnd...])
-                    var remainingStyle = AttributeContainer()
-                    remainingStyle.foregroundColor = baseColor
-                    remainingStyle.font = isSelf
+            appendContent(
+                of: message,
+                to: &result,
+                style: ContentStyle(
+                    textFont: isSelf
                         ? .bitchatSystem(size: 14, weight: .bold, design: design)
-                        : .bitchatSystem(size: 14, design: design)
-                    if isMentioned {
-                        remainingStyle.font = remainingStyle.font?.bold()
-                    }
-                    result.append(AttributedString(remainingText).mergingAttributes(remainingStyle))
-                }
-            }
+                        : .bitchatSystem(size: 14, design: design),
+                    emphasisFont: .bitchatSystem(size: 14, weight: isSelf ? .bold : .semibold, design: design),
+                    textColor: baseColor,
+                    linkColor: isSelf ? .orange : .blue,
+                    mentionOfMeColor: .orange
+                )
+            )
 
             let timestamp = AttributedString(" [\(message.formattedTimestamp)]")
             var timestampStyle = AttributeContainer()
@@ -393,6 +158,82 @@ final class ChatMessageFormatter {
         return result
     }
 
+    /// Prefix of the bubble body's formatted-text cache variants. No other
+    /// variant starts with it, so the caches can't collide.
+    static let bodyCacheNamespace = "body:"
+
+    /// Prefix of the sender name's formatted-text cache variants.
+    static let senderNameCacheNamespace = "name:"
+
+    /// The message text alone, styled to sit inside a chat bubble: no
+    /// sender and no timestamp, which the bubble row shows around it.
+    /// Mentions, links, hashtags and payment tokens are picked out as in
+    /// the full text. `isSelf` is the side the row put the bubble on, so the
+    /// text colors always match the bubble's fill: white on my accent
+    /// bubbles, the primary color on everyone else's neutral ones.
+    ///
+    /// A body with no visible text (a message that is only payment tokens,
+    /// which render as chips) comes back empty, so the row can skip the
+    /// bubble.
+    func formatMessageBody(_ message: BitchatMessage, isSelf: Bool, colorScheme: ColorScheme) -> AttributedString {
+        let isDark = colorScheme == .dark
+        if let cachedBody = message.getCachedFormattedText(isDark: isDark, isSelf: isSelf, variant: Self.bodyCacheNamespace) {
+            return cachedBody
+        }
+
+        var result = AttributedString()
+        appendContent(
+            of: message,
+            to: &result,
+            style: ContentStyle(
+                textFont: .bitchatSystem(size: 15),
+                emphasisFont: .bitchatSystem(size: 15, weight: .semibold),
+                textColor: isSelf ? .white : .primary,
+                linkColor: isSelf ? .white : .blue,
+                mentionOfMeColor: isSelf ? .white : .orange
+            )
+        )
+        if String(result.characters).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            result = AttributedString()
+        }
+        message.setCachedFormattedText(result, isDark: isDark, isSelf: isSelf, variant: Self.bodyCacheNamespace)
+        return result
+    }
+
+    /// The sender's name for the label above someone else's bubble: in the
+    /// sender's color, with the verified mark on public rows, and linked to
+    /// the same `bitchat://user/` action as the name in the full text.
+    func formatSenderName(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        let isDark = colorScheme == .dark
+        let isVerifiedSender = isVerifiedSender(of: message)
+        let cacheVariant = Self.senderNameCacheNamespace + (isVerifiedSender ? "-vf" : "")
+        if let cachedName = message.getCachedFormattedText(isDark: isDark, isSelf: false, variant: cacheVariant) {
+            return cachedName
+        }
+
+        let baseColor = peerColor(for: message, isDark: isDark)
+        let (baseName, suffix) = message.sender.splitSuffix()
+        var nameStyle = AttributeContainer()
+        nameStyle.foregroundColor = baseColor
+        nameStyle.font = .bitchatSystem(size: 12, weight: .semibold)
+        if let spid = message.senderPeerID, let url = peerURL(for: spid) {
+            nameStyle.link = url
+        }
+
+        var result = AttributedString(baseName).mergingAttributes(nameStyle)
+        if !suffix.isEmpty {
+            var suffixStyle = nameStyle
+            suffixStyle.foregroundColor = baseColor.opacity(0.6)
+            result.append(AttributedString(suffix).mergingAttributes(suffixStyle))
+        }
+        // Private rows show the filled seal beside the time instead.
+        if isVerifiedSender, !message.isPrivate {
+            appendVerifiedSeal(to: &result, baseColor: baseColor, design: .default)
+        }
+        message.setCachedFormattedText(result, isDark: isDark, isSelf: false, variant: cacheVariant)
+        return result
+    }
+
     /// Whether this device wrote the row: the one rule behind every
     /// formatted variant. It is `BitchatMessage.isOwn`, the rule
     /// `ConversationUIModel.isSentByCurrentUser` applies too, so a row is
@@ -423,6 +264,255 @@ final class ChatMessageFormatter {
 }
 
 private extension ChatMessageFormatter {
+    /// How the runs of a message's text are styled. The full text and the
+    /// bubble body pick out the same tokens and differ only in these.
+    struct ContentStyle {
+        /// Plain text, hashtags, and the spacers left by payment tokens.
+        let textFont: Font
+        /// Mentions and links.
+        let emphasisFont: Font
+        let textColor: Color
+        let linkColor: Color
+        /// A mention of me.
+        let mentionOfMeColor: Color
+    }
+
+    /// Appends the message's text with its mentions, hashtags and links
+    /// picked out, and its payment tokens left as spacers (the row shows
+    /// them as chips). Oversized content stays plain.
+    func appendContent(of message: BitchatMessage, to result: inout AttributedString, style: ContentStyle) {
+        let content = message.content
+        let nsContent = content as NSString
+        let nsLen = nsContent.length
+
+        if content.isOversizedForRichFormatting() {
+            var plainStyle = AttributeContainer()
+            plainStyle.foregroundColor = style.textColor
+            plainStyle.font = style.textFont
+            result.append(AttributedString(content).mergingAttributes(plainStyle))
+        } else {
+            let hashtagRegex = Patterns.hashtag
+            let mentionRegex = Patterns.mention
+            let cashuRegex = Patterns.cashu
+            let bolt11Regex = Patterns.bolt11
+            let lnurlRegex = Patterns.lnurl
+            let lightningSchemeRegex = Patterns.lightningScheme
+            let detector = Patterns.linkDetector
+            let hasMentionsHint = content.contains("@")
+            let hasHashtagsHint = content.contains("#")
+            let hasURLHint = content.contains("://") || content.contains("www.") || content.contains("http")
+            let hasLightningHint = content.lowercased().contains("ln") || content.lowercased().contains("lightning:")
+            let hasCashuHint = content.lowercased().contains("cashu")
+
+            let hashtagMatches = hasHashtagsHint
+                ? hashtagRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
+                : []
+            let mentionMatches = hasMentionsHint
+                ? mentionRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
+                : []
+            let urlMatches = hasURLHint
+                ? (detector?.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen)) ?? [])
+                : []
+            let cashuMatches = hasCashuHint
+                ? cashuRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
+                : []
+            let lightningMatches = hasLightningHint
+                ? lightningSchemeRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
+                : []
+            let bolt11Matches = hasLightningHint
+                ? bolt11Regex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
+                : []
+            let lnurlMatches = hasLightningHint
+                ? lnurlRegex.matches(in: content, options: [], range: NSRange(location: 0, length: nsLen))
+                : []
+
+            let mentionRanges = mentionMatches.map { $0.range(at: 0) }
+            func overlapsMention(_ range: NSRange) -> Bool {
+                for mentionRange in mentionRanges where NSIntersectionRange(range, mentionRange).length > 0 {
+                    return true
+                }
+                return false
+            }
+
+            func attachedToMention(_ range: NSRange) -> Bool {
+                if let swiftRange = Range(range, in: content), swiftRange.lowerBound > content.startIndex {
+                    var index = content.index(before: swiftRange.lowerBound)
+                    while true {
+                        let character = content[index]
+                        if character.isWhitespace || character.isNewline { break }
+                        if character == "@" { return true }
+                        if index == content.startIndex { break }
+                        index = content.index(before: index)
+                    }
+                }
+                return false
+            }
+
+            func isStandaloneHashtag(_ range: NSRange) -> Bool {
+                guard let swiftRange = Range(range, in: content) else { return false }
+                if swiftRange.lowerBound == content.startIndex { return true }
+                let previous = content.index(before: swiftRange.lowerBound)
+                return content[previous].isWhitespace || content[previous].isNewline
+            }
+
+            var allMatches: [(range: NSRange, type: String)] = []
+            for match in hashtagMatches
+            where !overlapsMention(match.range(at: 0))
+                && !attachedToMention(match.range(at: 0))
+                && isStandaloneHashtag(match.range(at: 0)) {
+                allMatches.append((match.range(at: 0), "hashtag"))
+            }
+            for match in mentionMatches {
+                allMatches.append((match.range(at: 0), "mention"))
+            }
+            for match in urlMatches where !overlapsMention(match.range) {
+                allMatches.append((match.range, "url"))
+            }
+            for match in cashuMatches where !overlapsMention(match.range(at: 0)) {
+                allMatches.append((match.range(at: 0), "cashu"))
+            }
+            for match in lightningMatches where !overlapsMention(match.range(at: 0)) {
+                allMatches.append((match.range(at: 0), "lightning"))
+            }
+
+            let occupied = urlMatches.map(\.range) + lightningMatches.map { $0.range(at: 0) }
+            func overlapsOccupied(_ range: NSRange) -> Bool {
+                for occupiedRange in occupied where NSIntersectionRange(range, occupiedRange).length > 0 {
+                    return true
+                }
+                return false
+            }
+
+            for match in bolt11Matches
+            where !overlapsMention(match.range(at: 0)) && !overlapsOccupied(match.range(at: 0)) {
+                allMatches.append((match.range(at: 0), "bolt11"))
+            }
+            for match in lnurlMatches
+            where !overlapsMention(match.range(at: 0)) && !overlapsOccupied(match.range(at: 0)) {
+                allMatches.append((match.range(at: 0), "lnurl"))
+            }
+            allMatches.sort { $0.range.location < $1.range.location }
+
+            var lastEnd = content.startIndex
+            let myNickname = viewModel.nickname.normalizedNickname
+            let isMentioned = message.mentions?.contains { $0.normalizedNickname == myNickname } ?? false
+
+            for (range, type) in allMatches {
+                guard let swiftRange = Range(range, in: content) else { continue }
+
+                if lastEnd < swiftRange.lowerBound {
+                    let beforeText = String(content[lastEnd..<swiftRange.lowerBound])
+                    if !beforeText.isEmpty {
+                        var beforeStyle = AttributeContainer()
+                        beforeStyle.foregroundColor = style.textColor
+                        beforeStyle.font = style.textFont
+                        if isMentioned {
+                            beforeStyle.font = beforeStyle.font?.bold()
+                        }
+                        result.append(AttributedString(beforeText).mergingAttributes(beforeStyle))
+                    }
+                }
+
+                let matchText = String(content[swiftRange])
+                if type == "mention" {
+                    let (mentionBase, mentionSuffix) = matchText.splitSuffix()
+                    let mySuffix: String? = {
+                        if case .location(let channel) = viewModel.activeChannel,
+                           let identity = try? viewModel.idBridge.deriveIdentity(forGeohash: channel.geohash) {
+                            return String(identity.publicKeyHex.suffix(4))
+                        }
+                        return String(viewModel.meshService.myPeerID.id.prefix(4))
+                    }()
+                    let isMentionToMe: Bool = {
+                        if mentionBase == viewModel.nickname {
+                            if let mySuffix, !mentionSuffix.isEmpty {
+                                return mentionSuffix == "#\(mySuffix)"
+                            }
+                            return mentionSuffix.isEmpty
+                        }
+                        return false
+                    }()
+
+                    var mentionStyle = AttributeContainer()
+                    mentionStyle.font = style.emphasisFont
+                    let mentionColor: Color = isMentionToMe ? style.mentionOfMeColor : style.textColor
+                    mentionStyle.foregroundColor = mentionColor
+                    let at = "@"
+                    result.append(AttributedString("\(at)").mergingAttributes(mentionStyle))
+                    result.append(AttributedString(mentionBase).mergingAttributes(mentionStyle))
+                    if !mentionSuffix.isEmpty {
+                        var lightStyle = mentionStyle
+                        lightStyle.foregroundColor = mentionColor.opacity(0.6)
+                        result.append(AttributedString(mentionSuffix).mergingAttributes(lightStyle))
+                    }
+                } else if type == "hashtag" {
+                    let token = String(matchText.dropFirst()).lowercased()
+                    let allowed = Set("0123456789bcdefghjkmnpqrstuvwxyz")
+                    let isGeohash = (2...12).contains(token.count) && token.allSatisfy { allowed.contains($0) }
+                    let attachedToMentionToken: Bool = {
+                        if swiftRange.lowerBound > content.startIndex {
+                            var index = content.index(before: swiftRange.lowerBound)
+                            while true {
+                                let character = content[index]
+                                if character.isWhitespace || character.isNewline { break }
+                                if character == "@" { return true }
+                                if index == content.startIndex { break }
+                                index = content.index(before: index)
+                            }
+                        }
+                        return false
+                    }()
+                    let standalone: Bool = {
+                        if swiftRange.lowerBound == content.startIndex { return true }
+                        let previous = content.index(before: swiftRange.lowerBound)
+                        return content[previous].isWhitespace || content[previous].isNewline
+                    }()
+
+                    var tagStyle = AttributeContainer()
+                    tagStyle.font = style.textFont
+                    tagStyle.foregroundColor = style.textColor
+                    if isGeohash && !attachedToMentionToken && standalone,
+                       let url = URL(string: "bitchat://geohash/\(token)") {
+                        tagStyle.link = url
+                        tagStyle.underlineStyle = .single
+                    }
+                    result.append(AttributedString(matchText).mergingAttributes(tagStyle))
+                } else if type == "cashu" || type == "lightning" || type == "bolt11" || type == "lnurl" {
+                    var spacer = AttributeContainer()
+                    spacer.foregroundColor = style.textColor
+                    spacer.font = style.textFont
+                    result.append(AttributedString(" ").mergingAttributes(spacer))
+                } else {
+                    var matchStyle = AttributeContainer()
+                    matchStyle.font = style.emphasisFont
+                    if type == "url" {
+                        matchStyle.foregroundColor = style.linkColor
+                        matchStyle.underlineStyle = .single
+                        if let url = URL(string: matchText) {
+                            matchStyle.link = url
+                        }
+                    }
+                    result.append(AttributedString(matchText).mergingAttributes(matchStyle))
+                }
+
+                if lastEnd < swiftRange.upperBound {
+                    lastEnd = swiftRange.upperBound
+                }
+            }
+
+            if lastEnd < content.endIndex {
+                let remainingText = String(content[lastEnd...])
+                var remainingStyle = AttributeContainer()
+                remainingStyle.foregroundColor = style.textColor
+                remainingStyle.font = style.textFont
+                if isMentioned {
+                    remainingStyle.font = remainingStyle.font?.bold()
+                }
+                result.append(AttributedString(remainingText).mergingAttributes(remainingStyle))
+            }
+        }
+    }
+
     /// My geochat sender ID in the location channel on screen (nil on
     /// #mesh), from the identity slot the view model caches.
     func myGeoChatPeerID() -> PeerID? {

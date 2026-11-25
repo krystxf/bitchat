@@ -1839,6 +1839,16 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         messageFormatter.formatMessageHeader(message, colorScheme: colorScheme)
     }
 
+    @MainActor
+    func formatMessageBody(_ message: BitchatMessage, isSelf: Bool, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatMessageBody(message, isSelf: isSelf, colorScheme: colorScheme)
+    }
+
+    @MainActor
+    func formatSenderName(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatSenderName(message, colorScheme: colorScheme)
+    }
+
     // MARK: - Noise Protocol Support
 
     @MainActor
