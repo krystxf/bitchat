@@ -24,13 +24,28 @@ final class GifNetworkFetcher: GifHTTPFetching {
 
     func fetch(_ url: URL, maxBytes: Int, stopMarker: Data?) async throws -> GifHTTPResponse {
         guard GifHostPolicy.isAllowed(url) else { throw GifLoadError.notAllowed }
-        let proxy = try await Self.torProxyIfEnabled()
+        let configuration = try await GifNetworkRoute.sessionConfiguration()
         var request = URLRequest(url: url)
+        GifNetworkRoute.applyHeaders(to: &request)
+        let task = GifFetchTask(maxBytes: maxBytes, stopMarker: stopMarker)
+        return try await task.run(request, configuration: configuration)
+    }
+}
+
+/// The route every GIF request takes, for media downloads and for GIF
+/// search alike: Tor's SOCKS proxy when Tor is switched on (failing closed
+/// while it is not connected), direct otherwise. The session keeps no
+/// cookies, cache or credentials.
+enum GifNetworkRoute {
+    static func sessionConfiguration() async throws -> URLSessionConfiguration {
+        configuration(proxy: try await torProxyIfEnabled())
+    }
+
+    /// Generic headers that name neither the app nor the device's language.
+    static func applyHeaders(to request: inout URLRequest) {
         request.httpShouldHandleCookies = false
         request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
         request.setValue("en", forHTTPHeaderField: "Accept-Language")
-        let task = GifFetchTask(maxBytes: maxBytes, stopMarker: stopMarker)
-        return try await task.run(request, configuration: Self.configuration(proxy: proxy))
     }
 
     /// Tor's SOCKS proxy settings when Tor is switched on, nil when it is off.
