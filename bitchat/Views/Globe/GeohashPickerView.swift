@@ -64,33 +64,28 @@ struct GeohashPickerView: View {
     }
 
     var body: some View {
-        // A navigation bar over the full-bleed globe: the globe runs under a
-        // clear bar, and the bar holds the title and the native close button.
-        NavigationStack {
-            ZStack {
-                if let world {
-                    GlobeView(state: state, colors: globeColors, world: world)
-                        .ignoresSafeArea()
-                }
+        // The sheet top bar over the full-bleed globe: the globe runs under
+        // it, and the bar holds the title and the glass close button.
+        ZStack {
+            if let world {
+                GlobeView(state: state, colors: globeColors, world: world)
+                    .ignoresSafeArea()
+            }
 
-                VStack(spacing: 0) {
-                    instructionPanel
-                    Spacer(minLength: 0)
-                    bottomControls
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 20)
+            VStack(spacing: 0) {
+                instructionPanel
+                Spacer(minLength: 0)
+                bottomControls
             }
-            .navigationTitle(Text(Strings.title))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            #endif
-            .toolbar {
-                SheetCloseToolbarItem(action: onCancel)
-            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
+        #if os(iOS)
+        // Inside the chrome's NavigationStack: keeps the bar clear.
+        .toolbarBackground(.hidden, for: .navigationBar)
+        #endif
+        .sheetChrome(title: Text(Strings.title), onClose: onCancel)
         #if os(macOS)
         .frame(minWidth: 560, minHeight: 640)
         #endif
