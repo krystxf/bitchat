@@ -267,21 +267,24 @@ struct NostrProtocol {
     /// committed difficulty still met, and if mining is impossible it ships
     /// unmined — sending is never blocked. A target of 0 or less (proof of
     /// work switched off in settings) skips mining: no nonce tag at all.
+    /// `createdAt` (default: now) lets a pending bubble shown before mining
+    /// carry the same timestamp as the event it becomes.
     static func createMinedEphemeralGeohashEvent(
         content: String,
         geohash: String,
         senderIdentity: NostrIdentity,
         nickname: String? = nil,
         teleported: Bool = false,
+        createdAt: Date? = nil,
         powTargetBits: Int = NostrPoW.targetBits
     ) async throws -> NostrEvent {
         var tags = ephemeralGeohashTags(geohash: geohash, nickname: nickname, teleported: teleported)
         // Fix created_at up front: the mined nonce commits to the full
         // serialized event, so the signed event must reuse the exact value.
-        let createdAt = Int(Date().timeIntervalSince1970)
+        let createdAtSeconds = Int((createdAt ?? Date()).timeIntervalSince1970)
         if powTargetBits > 0, let nonceTag = await NostrPoW.mineNonceTag(
             pubkey: senderIdentity.publicKeyHex,
-            createdAt: createdAt,
+            createdAt: createdAtSeconds,
             kind: EventKind.ephemeralEvent.rawValue,
             tags: tags,
             content: content,
@@ -291,7 +294,7 @@ struct NostrProtocol {
         }
         let event = NostrEvent(
             pubkey: senderIdentity.publicKeyHex,
-            createdAt: Date(timeIntervalSince1970: TimeInterval(createdAt)),
+            createdAt: Date(timeIntervalSince1970: TimeInterval(createdAtSeconds)),
             kind: .ephemeralEvent,
             tags: tags,
             content: content

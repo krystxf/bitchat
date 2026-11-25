@@ -55,7 +55,14 @@ struct TextMessageView: View {
         let scan = message.contentScan
         let text = conversationUIModel.formatMessageBody(message, isSelf: isSelf, colorScheme: colorScheme)
         let hasChips = !scan.lightningLinks.isEmpty || !scan.cashuLinks.isEmpty
-        let showsDeliveryStatus = isSelf && message.isPrivate && deliveryStatus != .notSentYet
+        // A location message of mine that never went out (it was still
+        // mining when I left the channel, or signing failed) shows the
+        // failed state a private message does.
+        let isFailedLocationSend: Bool = {
+            guard case .failed = deliveryStatus else { return false }
+            return !message.isPrivate && message.senderPeerID?.isGeoChat == true
+        }()
+        let showsDeliveryStatus = isSelf && deliveryStatus != .notSentYet && (message.isPrivate || isFailedLocationSend)
         // A Giphy or Tenor link plays as a GIF, on every transport: it
         // travels as plain text, so there is nothing else to tell it apart.
         let gif = GifMessageDetector.content(in: message.content)

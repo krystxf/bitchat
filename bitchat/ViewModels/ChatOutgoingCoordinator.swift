@@ -29,6 +29,12 @@ protocol ChatOutgoingContext: AnyObject {
     /// (immediate: the local echo must render without batching).
     @discardableResult
     func appendPublicMessage(_ message: BitchatMessage, to conversationID: ConversationID) -> Bool
+    /// Swaps a pending bubble for the sent message it stood for, in place.
+    /// Returns `false` when the bubble is gone (cleared, wiped).
+    @discardableResult
+    func replacePublicMessage(withID messageID: String, by message: BitchatMessage, in conversationID: ConversationID) -> Bool
+    /// Marks a pending bubble's outcome (`.failed` when it never went out).
+    func setPublicMessageDeliveryStatus(_ status: DeliveryStatus, forMessageID messageID: String, in conversationID: ConversationID)
     func addSystemMessage(_ content: String)
 
     // MARK: Content dedup
@@ -69,6 +75,15 @@ extension ChatViewModel: ChatOutgoingContext {
         lastPublicActivityAt[key] = Date()
     }
 
+    @discardableResult
+    func replacePublicMessage(withID messageID: String, by message: BitchatMessage, in conversationID: ConversationID) -> Bool {
+        conversations.replaceMessage(withID: messageID, by: message, in: conversationID)
+    }
+
+    func setPublicMessageDeliveryStatus(_ status: DeliveryStatus, forMessageID messageID: String, in conversationID: ConversationID) {
+        conversations.setDeliveryStatus(status, forMessageID: messageID, in: conversationID)
+    }
+
     func bridgeOutgoingPublicMessage(_ content: String, senderPeerID: PeerID, timestamp: Date) {
         BridgeService.shared.bridgeOutgoing(content: content, senderPeerID: senderPeerID, timestamp: timestamp)
     }
@@ -79,32 +94,67 @@ final class ChatOutgoingCoordinator {
     private unowned let context: any ChatOutgoingContext
 
     /// In-flight NIP-13 mining for the most recent geohash send. A newer send
-    /// (or leaving the channel) cancels it, which only expedites the mining —
-    /// the message still goes out at the difficulty already reached.
+    /// cancels it, which only expedites the mining — the message still goes
+    /// out at the difficulty already reached. Leaving the channel drops it
+    /// instead (`abandonPendingGeohashSends()`).
     /// (Read access is internal so tests can await the send's completion.)
     private(set) var geohashMiningTask: Task<Void, Never>?
+
+    /// Pending bubbles of geohash sends still mining, by message ID, with
+    /// whether leaving the channel dropped them.
+    private var pendingGeohashSends: [String: Bool] = [:]
+
+    /// Prefix of a pending bubble's temporary message ID, used until the
+    /// signed event (whose ID the sent message takes) exists.
+    static let pendingMessageIDPrefix = "pow-pending-"
+
+    /// Why a pending bubble ended failed.
+    static var sendErrorReason: String {
+        String(localized: "content.delivery.reason.send_error", comment: "Failure reason shown when a send failed with an error")
+    }
+
+    static var leftChannelReason: String {
+        String(localized: "content.delivery.reason.left_channel", defaultValue: "You left the channel before it was sent", comment: "Failure reason under a location message that was still doing its proof of work when the person left the channel, so it was not sent")
+    }
 
     /// The NIP-13 target for the next geohash send, read when the message is
     /// sent (0 = proof of work off: no mining, no nonce tag). Injected so
     /// tests do not depend on the shared preferences.
     private let powTargetBits: () -> Int
 
-    /// Feeds the composer's "mining…" strip while geohash sends mine.
+    /// What pending bubbles show while their geohash sends mine.
     private let miningStatus: LocationPoWMiningStatus
+
+    /// How long a bubble that showed its progress keeps it after the event
+    /// went out. Injected so tests need not wait for animations.
+    private let finishAnimationDuration: TimeInterval
 
     init(
         context: any ChatOutgoingContext,
         powTargetBits: @escaping () -> Int = { LocationProofOfWorkSettings.sendTargetBits() },
-        miningStatus: LocationPoWMiningStatus? = nil
+        miningStatus: LocationPoWMiningStatus? = nil,
+        finishAnimationDuration: TimeInterval = PoWSendProgress.finishDuration
     ) {
         self.context = context
         self.powTargetBits = powTargetBits
         self.miningStatus = miningStatus ?? .shared
+        self.finishAnimationDuration = finishAnimationDuration
     }
 
     /// Finish any in-flight geohash PoW mining early (the pending message
     /// still sends, at whatever committed difficulty it reached).
     func expeditePendingGeohashMining() {
+        geohashMiningTask?.cancel()
+    }
+
+    /// Leaving the channel: messages still mining are not sent. Mining is
+    /// cut short and their bubbles end failed, saying why, so a message
+    /// never lands in a channel the person already left.
+    func abandonPendingGeohashSends() {
+        guard !pendingGeohashSends.isEmpty else { return }
+        for messageID in pendingGeohashSends.keys {
+            pendingGeohashSends[messageID] = true
+        }
         geohashMiningTask?.cancel()
     }
 
@@ -191,11 +241,35 @@ private extension ChatOutgoingCoordinator {
         let teleported = context.isTeleported
         let nickname = context.nickname
         let powTargetBits = self.powTargetBits()
-        // Shown as "mining…" above the composer if it takes long enough to
-        // notice; ends once the event is signed (or failed), also while this
-        // send only waits for an earlier one.
+        let conversationID = ConversationID(channelID: .location(channel))
         let miningStatus = self.miningStatus
-        let miningID = powTargetBits > 0 ? miningStatus.beginMining() : nil
+
+        // A message that mines gets its bubble right away, under a temporary
+        // ID, and keeps its place: the signed event reuses the bubble's
+        // timestamp (whole seconds, as created_at carries), and the sent
+        // message replaces the bubble in place. With proof of work off,
+        // signing is instant and the sent message is appended as before.
+        let createdAt = Date(timeIntervalSince1970: Date().timeIntervalSince1970.rounded(.down))
+        var pendingID: String?
+        if powTargetBits > 0 {
+            let id = Self.pendingMessageIDPrefix + UUID().uuidString
+            context.appendPublicMessage(
+                BitchatMessage(
+                    id: id,
+                    sender: displaySender,
+                    content: trimmed,
+                    timestamp: createdAt,
+                    isRelay: false,
+                    senderPeerID: senderPeerID,
+                    mentions: mentions.isEmpty ? nil : mentions,
+                    deliveryStatus: .sending
+                ),
+                to: conversationID
+            )
+            miningStatus.begin(messageID: id, targetBits: powTargetBits)
+            pendingGeohashSends[id] = false
+            pendingID = id
+        }
 
         // Serialize geohash sends: each send awaits the previous send's task
         // before it appends + relays, so user-visible order always matches
@@ -206,11 +280,8 @@ private extension ChatOutgoingCoordinator {
         // delays or blocks a send beyond its own mining time cap.
         let previousSend = geohashMiningTask
         previousSend?.cancel()
-        geohashMiningTask = Task { @MainActor [weak context = self.context] in
+        geohashMiningTask = Task { @MainActor [weak self, weak context = self.context] in
             await previousSend?.value
-            defer {
-                if let miningID { miningStatus.endMining(miningID) }
-            }
 
             let event: NostrEvent
             do {
@@ -220,16 +291,25 @@ private extension ChatOutgoingCoordinator {
                     senderIdentity: identity,
                     nickname: nickname,
                     teleported: teleported,
+                    createdAt: createdAt,
                     powTargetBits: powTargetBits
                 )
             } catch {
                 SecureLogger.error("❌ Failed to prepare geohash message: \(error)", category: .session)
-                context?.addSystemMessage(
-                    String(localized: "system.location.send_failed", comment: "System message when a location channel send fails")
-                )
+                if let pendingID {
+                    self?.failPendingGeohashSend(pendingID, in: conversationID, reason: Self.sendErrorReason)
+                } else {
+                    context?.addSystemMessage(
+                        String(localized: "system.location.send_failed", comment: "System message when a location channel send fails")
+                    )
+                }
                 return
             }
             guard let context else { return }
+            if let pendingID, self?.pendingGeohashSends[pendingID] == true {
+                self?.failPendingGeohashSend(pendingID, in: conversationID, reason: Self.leftChannelReason)
+                return
+            }
 
             let message = BitchatMessage(
                 id: event.id,
@@ -241,7 +321,12 @@ private extension ChatOutgoingCoordinator {
                 mentions: mentions.isEmpty ? nil : mentions
             )
 
-            context.appendPublicMessage(message, to: ConversationID(channelID: .location(channel)))
+            if let pendingID {
+                self?.pendingGeohashSends.removeValue(forKey: pendingID)
+                self?.completePendingGeohashSend(pendingID, with: message, in: conversationID)
+            } else {
+                context.appendPublicMessage(message, to: conversationID)
+            }
             let contentKey = context.normalizedContentKey(message.content)
             context.recordContentKey(contentKey, timestamp: message.timestamp)
 
@@ -253,6 +338,35 @@ private extension ChatOutgoingCoordinator {
                 teleported: teleported
             ))
         }
+    }
+
+    /// The event went out: the pending bubble becomes the sent message. A
+    /// bubble that showed its progress first lets it fill and fade
+    /// (`PoWSendProgress.finishDuration`); one that never showed any, as at
+    /// the default 8 bits, is swapped at once. The swap runs on its own, so
+    /// the next send never waits for it.
+    func completePendingGeohashSend(_ pendingID: String, with message: BitchatMessage, in conversationID: ConversationID) {
+        let miningStatus = self.miningStatus
+        miningStatus.finish(messageID: pendingID)
+        guard miningStatus.showedProgress(for: pendingID), finishAnimationDuration > 0 else {
+            context.replacePublicMessage(withID: pendingID, by: message, in: conversationID)
+            miningStatus.end(messageID: pendingID)
+            return
+        }
+        let delay = UInt64(finishAnimationDuration * 1_000_000_000)
+        Task { @MainActor [weak context = self.context] in
+            try? await Task.sleep(nanoseconds: delay)
+            context?.replacePublicMessage(withID: pendingID, by: message, in: conversationID)
+            miningStatus.end(messageID: pendingID)
+        }
+    }
+
+    /// The message never went out: its bubble stays, failed, with the
+    /// reason under it, as a failed private message shows.
+    func failPendingGeohashSend(_ pendingID: String, in conversationID: ConversationID, reason: String) {
+        pendingGeohashSends.removeValue(forKey: pendingID)
+        miningStatus.end(messageID: pendingID)
+        context.setPublicMessageDeliveryStatus(.failed(reason: reason), forMessageID: pendingID, in: conversationID)
     }
 
     func appendLocalEcho(_ message: BitchatMessage, to conversationID: ConversationID) {

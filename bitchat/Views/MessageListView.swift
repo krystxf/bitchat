@@ -247,7 +247,9 @@ struct MessageListView: View {
                             // side of the row.
                             .contentShape(Rectangle())
                             .contextMenu {
-                                if message.sender != "system" {
+                                // A location message that never went out has
+                                // no event anyone could react to.
+                                if message.sender != "system" && !message.isUnsentLocationMessage {
                                     Section {
                                         ControlGroup {
                                             ForEach(MessageReaction.emojis, id: \.self) { emoji in
@@ -290,7 +292,11 @@ struct MessageListView: View {
                                 }
                                 if isResendableFailedMessage(message) {
                                     Button("content.actions.resend") {
-                                        conversationUIModel.resendFailedPrivateMessage(message)
+                                        if message.isPrivate {
+                                            conversationUIModel.resendFailedPrivateMessage(message)
+                                        } else {
+                                            conversationUIModel.resendFailedLocationMessage(message)
+                                        }
                                     }
                                 }
                                 if showsUserActions {
@@ -620,9 +626,11 @@ private extension MessageListView {
 
     /// A failed private text message of our own can be resent through the
     /// normal send path (the context menu removes the failed original and
-    /// re-submits its content).
+    /// re-submits its content). So can a location message of ours that never
+    /// went out: it shows only in its own channel's timeline, so the normal
+    /// send path sends it to that channel.
     func isResendableFailedMessage(_ message: BitchatMessage) -> Bool {
-        guard message.isPrivate,
+        guard message.isPrivate || (privatePeer == nil && message.isUnsentLocationMessage),
               conversationUIModel.isSentByCurrentUser(message),
               conversationUIModel.mediaAttachment(for: message) == nil,
               case .failed = message.deliveryStatus
@@ -778,7 +786,7 @@ private extension MessageListView {
         .opacity(message.isArchivedEcho ? 0.55 : 1)
 #if os(macOS)
         .overlay(alignment: isSelf ? .topTrailing : .topLeading) {
-            if hoveredReactionMessageID == message.id && message.sender != "system" {
+            if hoveredReactionMessageID == message.id && message.sender != "system" && !message.isUnsentLocationMessage {
                 ReactionQuickBar { emoji in toggleReaction(emoji, on: message) }
                     .offset(y: -20)
                     .transition(.scale(scale: 0.92).combined(with: .opacity))

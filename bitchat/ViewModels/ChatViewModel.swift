@@ -340,9 +340,9 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         get { conversations.activeChannel }
         set {
             guard conversations.activeChannel != newValue else { return }
-            // Leaving a channel expedites any in-flight NIP-13 mining: the
-            // pending message still sends, at the difficulty already reached.
-            outgoingCoordinator.expeditePendingGeohashMining()
+            // Leaving a channel drops location messages still mining their
+            // proof of work: they are not sent, and their bubbles end failed.
+            outgoingCoordinator.abandonPendingGeohashSends()
             conversations.setActiveChannel(newValue)
             visibleMessagesCache = nil
             objectWillChange.send()

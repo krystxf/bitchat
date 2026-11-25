@@ -72,6 +72,13 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.sendMessage(message.content)
     }
 
+    /// Resends a location message that never went out (it was still mining
+    /// when I left the channel), replacing its failed bubble.
+    func resendFailedLocationMessage(_ message: BitchatMessage) {
+        chatViewModel.removePublicMessage(withID: message.id)
+        chatViewModel.sendMessage(message.content)
+    }
+
     func clearCurrentConversation() {
         chatViewModel.sendMessage("/clear")
     }
