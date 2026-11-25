@@ -1,40 +1,21 @@
 import Foundation
 
-/// In-app override for the UI language, on top of the system per-app
-/// language. Apple resolves localization from the AppleLanguages default at
-/// process start, so a new choice takes effect on the next launch — callers
-/// surface a "restart to apply" note after changing it.
+/// The app follows the language chosen for it in the system settings (iOS
+/// Settings > Nova Chat > Language, macOS System Settings > General >
+/// Language & Region > Applications). An older build had its own in-app
+/// language picker; this clears what that picker stored, once, so the
+/// system setting is in charge again.
 enum AppLanguageSettings {
-    /// "" means no override: follow the device (or per-app system) language.
-    static let overrideKey = "app.languageOverride"
+    /// Where the removed in-app picker kept its choice.
+    private static let legacyOverrideKey = "app.languageOverride"
     private static let appleLanguagesKey = "AppleLanguages"
 
-    /// Language codes the app ships translations for, straight from the
-    /// built bundle so this never drifts from the string catalog.
-    static var availableLanguages: [String] {
-        Bundle.main.localizations
-            .filter { $0 != "Base" }
-            .sorted { endonym(for: $0).localizedCaseInsensitiveCompare(endonym(for: $1)) == .orderedAscending }
-    }
-
-    /// The language's name in that language ("فارسی", "한국어") so every user
-    /// can find their own entry regardless of the current UI language.
-    static func endonym(for code: String) -> String {
-        let locale = Locale(identifier: code)
-        let name = locale.localizedString(forIdentifier: code) ?? code
-        return name.lowercased(with: locale)
-    }
-
-    /// Persists the override (nil clears it). AppleLanguages drives the
-    /// actual localization lookup on next launch.
-    static func setOverride(_ code: String?) {
-        let defaults = UserDefaults.standard
-        if let code, !code.isEmpty {
-            defaults.set(code, forKey: overrideKey)
-            defaults.set([code], forKey: appleLanguagesKey)
-        } else {
-            defaults.removeObject(forKey: overrideKey)
-            defaults.removeObject(forKey: appleLanguagesKey)
-        }
+    /// Removes an override written by the old in-app picker. It only touches
+    /// AppleLanguages when that picker wrote it, so a language chosen in the
+    /// system settings stays as it is.
+    static func clearLegacyOverride(in defaults: UserDefaults = .standard) {
+        guard defaults.object(forKey: legacyOverrideKey) != nil else { return }
+        defaults.removeObject(forKey: legacyOverrideKey)
+        defaults.removeObject(forKey: appleLanguagesKey)
     }
 }

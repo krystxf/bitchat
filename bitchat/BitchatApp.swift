@@ -23,6 +23,9 @@ struct BitchatApp: App {
     #endif
 
     init() {
+        // Before anything localizes: hand the language back to the system
+        // setting if the removed in-app picker had overridden it.
+        AppLanguageSettings.clearLegacyOverride()
         _runtime = StateObject(wrappedValue: AppRuntime())
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
     }

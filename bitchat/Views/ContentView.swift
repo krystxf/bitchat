@@ -340,11 +340,6 @@ struct ContentView: View {
             AppInfoView(
                 topologyProvider: { appChromeModel.meshTopologyDisplayModel() },
                 onPanicWipe: { appChromeModel.panicClearAllData() },
-                nickname: Binding(
-                    get: { appChromeModel.nickname },
-                    set: { appChromeModel.setNickname($0) }
-                ),
-                onNicknameCommit: { appChromeModel.validateAndSaveNickname() },
                 blockedAccountsProvider: { appChromeModel.blockedAccounts() },
                 onUnblock: { appChromeModel.unblock($0) }
             )
