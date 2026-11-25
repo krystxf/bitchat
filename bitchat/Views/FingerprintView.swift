@@ -272,8 +272,8 @@ struct FingerprintView: View {
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // The host supplies the way out: the system back button when this
-        // view is pushed in the people sheet, or a close button when it is
-        // a sheet of its own (see `FingerprintSheet`).
+        // view is pushed onto a navigation stack, or the sheet top bar's
+        // close button when it is a sheet of its own (`FingerprintSheet`).
         .navigationTitle(Text(Strings.title))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -333,18 +333,14 @@ struct FingerprintView: View {
     }
 }
 
-/// `FingerprintView` presented as a sheet of its own, with a native title
-/// bar and close button.
+/// `FingerprintView` presented as a sheet of its own, with the shared
+/// sheet top bar: the title and the glass close button.
 struct FingerprintSheet: View {
     let peerID: PeerID
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            FingerprintView(peerID: peerID)
-                .toolbar {
-                    SheetCloseToolbarItem { dismiss() }
-                }
-        }
+        FingerprintView(peerID: peerID)
+            .sheetChrome(title: Text("fingerprint.title"), onClose: { dismiss() })
     }
 }
