@@ -821,6 +821,40 @@ struct ChatViewModelFormattingTests {
     }
 
     @Test @MainActor
+    func formatSenderName_prefersTheSavedPetname() async {
+        let (viewModel, transport) = makeTestableViewModel()
+        let senderPeerID = PeerID(str: "00000000000000b9")
+        let fingerprint = "fingerprint-bubble-petname"
+        let message = BitchatMessage(
+            id: "fmt-name-2",
+            sender: "Alice#a1b2",
+            content: "hello",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: senderPeerID
+        )
+        #expect(String(viewModel.formatSenderName(message, colorScheme: .dark).characters) == "Alice#a1b2")
+
+        transport.peerFingerprints[senderPeerID] = fingerprint
+        viewModel.identityManager.updateSocialIdentity(
+            SocialIdentity(
+                fingerprint: fingerprint,
+                localPetname: "Mom",
+                claimedNickname: "Alice",
+                trustLevel: .casual,
+                isFavorite: false,
+                isBlocked: false,
+                notes: nil
+            )
+        )
+
+        // The petname replaces the announced name and its suffix, and the
+        // cached label without it is not served.
+        #expect(String(viewModel.formatSenderName(message, colorScheme: .dark).characters) == "Mom")
+        #expect(viewModel.localPetname(for: senderPeerID) == "Mom")
+    }
+
+    @Test @MainActor
     func isSelfMessage_judgesBySenderIDNotNickname() async {
         let (viewModel, transport) = makeTestableViewModel()
         viewModel.nickname = "alice"

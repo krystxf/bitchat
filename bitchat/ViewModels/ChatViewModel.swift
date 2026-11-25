@@ -1961,6 +1961,19 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         peerIdentityCoordinator.getFingerprint(for: peerID)
     }
 
+    /// The name the user saved for this peer (a petname), if any. Chats show
+    /// it instead of the nickname the peer announced for themselves.
+    @MainActor
+    func localPetname(for peerID: PeerID) -> String? {
+        guard let fingerprint = getFingerprint(for: peerID),
+              let petname = identityManager.getSocialIdentity(for: fingerprint)?.localPetname?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+              !petname.isEmpty else {
+            return nil
+        }
+        return petname
+    }
+
     /// Helper to resolve nickname for a peer ID through various sources
     @MainActor
     func resolveNickname(for peerID: PeerID) -> String {

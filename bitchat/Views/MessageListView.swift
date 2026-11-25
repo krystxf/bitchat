@@ -739,11 +739,11 @@ private extension MessageListView {
                     Button {
                         presentSenderActions(for: peerID)
                     } label: {
-                        InitialsAvatar(name: message.sender, peerID: peerID, size: MessageBubbleStyle.avatarSize)
+                        InitialsAvatar(name: conversationUIModel.displayName(for: message), peerID: peerID, size: MessageBubbleStyle.avatarSize)
                     }
                     .buttonStyle(.plain)
                 } else {
-                    InitialsAvatar(name: message.sender, peerID: nil, size: MessageBubbleStyle.avatarSize)
+                    InitialsAvatar(name: conversationUIModel.displayName(for: message), peerID: nil, size: MessageBubbleStyle.avatarSize)
                 }
             }
         }

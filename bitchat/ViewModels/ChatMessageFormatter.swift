@@ -207,16 +207,24 @@ final class ChatMessageFormatter {
     /// It is in the secondary label color, as in Messages, not the sender's
     /// palette color: dark hues such as purple fall short of a readable
     /// contrast on the dark backdrop.
+    ///
+    /// A petname the user saved for the sender replaces the announced
+    /// nickname (and its "#abcd" suffix), as it already does in DMs and the
+    /// people list. It is part of the cache key, so renaming someone shows
+    /// at once.
     func formatSenderName(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
         let isDark = colorScheme == .dark
         let isVerifiedSender = isVerifiedSender(of: message)
-        let cacheVariant = Self.senderNameCacheNamespace + (isVerifiedSender ? "-vf" : "")
+        let petname = message.senderPeerID.flatMap { viewModel.localPetname(for: $0) }
+        let cacheVariant = Self.senderNameCacheNamespace
+            + (petname.map { "pet:\($0)|" } ?? "")
+            + (isVerifiedSender ? "-vf" : "")
         if let cachedName = message.getCachedFormattedText(isDark: isDark, isSelf: false, variant: cacheVariant) {
             return cachedName
         }
 
         let baseColor = Color.secondary
-        let (baseName, suffix) = message.sender.splitSuffix()
+        let (baseName, suffix) = petname.map { ($0, "") } ?? message.sender.splitSuffix()
         var nameStyle = AttributeContainer()
         nameStyle.foregroundColor = baseColor
         nameStyle.font = .bitchatSystem(size: 12, weight: .medium)

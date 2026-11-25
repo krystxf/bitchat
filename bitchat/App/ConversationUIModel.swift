@@ -211,6 +211,12 @@ final class ConversationUIModel: ObservableObject {
         return chatViewModel.peerIdentityStore.isVerified(fingerprint)
     }
 
+    /// The sender's name as this user knows them: their saved petname when
+    /// there is one, otherwise the nickname the message carries.
+    func displayName(for message: BitchatMessage) -> String {
+        message.senderPeerID.flatMap { chatViewModel.localPetname(for: $0) } ?? message.sender
+    }
+
     func senderDisplayName(for peerID: PeerID, fallbackMessages: [BitchatMessage]) -> String? {
         if peerID.isGeoDM || peerID.isGeoChat {
             return chatViewModel.geohashDisplayName(for: peerID)
