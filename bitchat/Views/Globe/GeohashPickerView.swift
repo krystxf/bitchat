@@ -26,7 +26,7 @@ struct GeohashPickerView: View {
         static let instruction = String(localized: "geohash_picker.instruction", defaultValue: "Drag to spin · pinch to zoom · tap to focus", comment: "Hint at the top of the globe geohash picker explaining its gestures")
         static let noSelection = String(localized: "geohash_picker.no_selection", defaultValue: "Select location", comment: "Shown in the globe geohash picker before a geohash is under the crosshair")
         static let select = String(localized: "geohash_picker.select", defaultValue: "Select", comment: "Button in the globe geohash picker that teleports to the geohash under the crosshair")
-        static let selectHint = String(localized: "geohash_picker.accessibility.select", defaultValue: "Select geohash", comment: "Accessibility label for the globe picker's select button")
+        static let selectHint = String(localized: "geohash_picker.accessibility.select", defaultValue: "Select Geohash", comment: "Accessibility label for the globe picker's select button")
         static let decreasePrecision = String(localized: "geohash_picker.accessibility.decrease_precision", defaultValue: "Decrease precision", comment: "Accessibility label for the globe picker button that zooms out to a larger geohash cell")
         static let increasePrecision = String(localized: "geohash_picker.accessibility.increase_precision", defaultValue: "Increase precision", comment: "Accessibility label for the globe picker button that zooms in to a smaller geohash cell")
     }

@@ -86,7 +86,7 @@ struct AppInfoView: View {
             static let relayBuiltIn = String(localized: "app_info.settings.relays.built_in", defaultValue: "Built in", comment: "Label marking a relay as one of the built-in relays, which cannot be removed")
             static let relayPlaceholder = String(localized: "app_info.settings.relays.placeholder", defaultValue: "Wss://relay.example.com", comment: "Placeholder text in the field for adding a relay address")
             static let relayAdd = String(localized: "app_info.settings.relays.add", defaultValue: "Add", comment: "Button that adds the typed relay address to the list")
-            static let relayRemove = String(localized: "app_info.settings.relays.remove", defaultValue: "Remove relay", comment: "Accessibility label for the button that removes an added relay")
+            static let relayRemove = String(localized: "app_info.settings.relays.remove", defaultValue: "Remove Relay", comment: "Accessibility label for the button that removes an added relay")
 
             static func relayError(_ failure: NostrRelaySettings.AddFailure) -> String {
                 switch failure {

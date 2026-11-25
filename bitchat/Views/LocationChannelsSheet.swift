@@ -56,8 +56,8 @@ struct LocationChannelsSheet: View {
         static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
         static let shareChannel = String(localized: "channel.share.action", defaultValue: "Share Channel", comment: "Context-menu / accessibility action that shares a location-channel invite")
         static let sharePrecisionTitle = String(localized: "channel.share.precision_warning.title", defaultValue: "Share a Precise Location Channel?", comment: "Title of the confirmation before sharing a neighborhood-or-finer geohash invite")
-        static let sharePrecisionMessage = String(localized: "channel.share.precision_warning.message", defaultValue: "This channel covers a small area. An invite sent over sms or imessage is visible to the carrier and both handsets — it discloses interest in that place, not only that someone uses bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite")
-        static let shareAnyway = String(localized: "channel.share.precision_warning.confirm", defaultValue: "Share anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")
+        static let sharePrecisionMessage = String(localized: "channel.share.precision_warning.message", defaultValue: "This Channel Covers a Small Area. An Invite Sent Over Sms or Imessage Is Visible to the Carrier and Both Handsets — It Discloses Interest in That Place, Not Only That Someone Uses Bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite")
+        static let shareAnyway = String(localized: "channel.share.precision_warning.confirm", defaultValue: "Share Anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")
         static let openMap = String(localized: "location_channels.accessibility.open_map", defaultValue: "Open map", comment: "Accessibility label for the button that opens the globe geohash picker")
 
         static func meshTitle(_ count: Int) -> String {

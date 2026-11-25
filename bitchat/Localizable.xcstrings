@@ -5730,7 +5730,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove relay"
+            "value" : "Remove Relay"
           }
         },
         "es" : {
@@ -15588,7 +15588,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delete recording"
+            "value" : "Delete Recording"
           }
         },
         "es" : {
@@ -19494,7 +19494,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Carrying sealed messages for friends to deliver"
+            "value" : "Carrying Sealed Messages for Friends to Deliver"
           }
         },
         "es" : {
@@ -37340,7 +37340,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Join the #%1$@ channel on bitchat: bitchat://geohash/%1$@ — new to bitchat? Get it at %2$@ then type #%1$@ under location channels."
+            "value" : "Join the #Zzhold0Zz Channel on Bitchat: Bitchat:/Zzhold1Zz/Zzhold2Zz — New to Bitchat? Get It at Zzhold3Zz Then Type #Zzhold4Zz Under Location Channels."
           }
         },
         "es" : {
@@ -37526,7 +37526,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share anyway"
+            "value" : "Share Anyway"
           }
         },
         "es" : {
@@ -37712,7 +37712,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This channel covers a small area. An invite sent over sms or imessage is visible to the carrier and both handsets — it discloses interest in that place, not only that someone uses bitchat."
+            "value" : "This Channel Covers a Small Area. An Invite Sent Over Sms or Imessage Is Visible to the Carrier and Both Handsets — It Discloses Interest in That Place, Not Only That Someone Uses Bitchat."
           }
         },
         "es" : {
@@ -45903,7 +45903,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Direct message"
+            "value" : "Direct Message"
           }
         },
         "es" : {
@@ -56478,7 +56478,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Notices: pinned posts for this area and the mesh"
+            "value" : "Notices: Pinned Posts for This Area and the Mesh"
           }
         },
         "es" : {
@@ -62409,7 +62409,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mark as verified"
+            "value" : "Mark as Verified"
           }
         },
         "es" : {
@@ -62594,7 +62594,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove verification"
+            "value" : "Remove Verification"
           }
         },
         "es" : {
@@ -67330,7 +67330,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select geohash"
+            "value" : "Select Geohash"
           }
         },
         "es" : {
@@ -69928,7 +69928,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open settings"
+            "value" : "Open Settings"
           }
         },
         "es" : {
@@ -70113,7 +70113,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove location access"
+            "value" : "Remove Location Access"
           }
         },
         "es" : {
@@ -70298,7 +70298,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Get location and my geohashes"
+            "value" : "Get Location and My Geohashes"
           }
         },
         "es" : {
@@ -72032,7 +72032,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ [%2$#@people_count@]"
+            "value" : "Zztoken0Zz [Zztoken1Zz]"
           },
           "substitutions" : {
             "people_count" : {
@@ -76630,7 +76630,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens the image full screen"
+            "value" : "Opens the Image Full Screen"
           }
         },
         "es" : {
@@ -76816,7 +76816,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reveals the image"
+            "value" : "Reveals the Image"
           }
         },
         "es" : {
@@ -77560,7 +77560,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delete image"
+            "value" : "Delete Image"
           }
         },
         "es" : {
@@ -77746,7 +77746,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hide image"
+            "value" : "Hide Image"
           }
         },
         "es" : {
@@ -77932,7 +77932,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open image"
+            "value" : "Open Image"
           }
         },
         "es" : {
@@ -78118,7 +78118,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reveal image"
+            "value" : "Reveal Image"
           }
         },
         "es" : {
@@ -80000,7 +80000,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show fingerprint"
+            "value" : "Show Fingerprint"
           }
         },
         "es" : {
@@ -81487,7 +81487,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Close notices"
+            "value" : "Close Notices"
           }
         },
         "es" : {
@@ -102748,7 +102748,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create group with %@"
+            "value" : "Create Group with Zzhold0Zz"
           }
         },
         "es" : {
@@ -103118,7 +103118,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Group name"
+            "value" : "Group Name"
           }
         },
         "es" : {
@@ -103488,7 +103488,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose a name for this group"
+            "value" : "Choose a Name for This Group"
           }
         },
         "es" : {
@@ -104043,7 +104043,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove member"
+            "value" : "Remove Member"
           }
         },
         "es" : {
@@ -104598,7 +104598,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No reachable people to add"
+            "value" : "No Reachable People to Add"
           }
         },
         "es" : {
@@ -104783,7 +104783,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invite %@"
+            "value" : "Invite Zzhold0Zz"
           }
         },
         "es" : {
@@ -105153,7 +105153,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leave this group?"
+            "value" : "Leave This Group?"
           }
         },
         "es" : {

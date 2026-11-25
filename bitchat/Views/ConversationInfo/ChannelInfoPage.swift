@@ -62,7 +62,7 @@ struct ChannelInfoPage: View {
             isPresented: $showsSharePrecisionWarning,
             titleVisibility: .visible
         ) {
-            Button(String(localized: "channel.share.precision_warning.confirm", defaultValue: "Share anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")) {
+            Button(String(localized: "channel.share.precision_warning.confirm", defaultValue: "Share Anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")) {
                 if let geohash = pendingShareGeohash {
                     activeSharePayload = ChannelSharePayload(text: ChannelShare.payload(forGeohash: geohash))
                 }
@@ -72,7 +72,7 @@ struct ChannelInfoPage: View {
                 pendingShareGeohash = nil
             }
         } message: {
-            Text(String(localized: "channel.share.precision_warning.message", defaultValue: "This channel covers a small area. An invite sent over sms or imessage is visible to the carrier and both handsets — it discloses interest in that place, not only that someone uses bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite"))
+            Text(String(localized: "channel.share.precision_warning.message", defaultValue: "This Channel Covers a Small Area. An Invite Sent Over Sms or Imessage Is Visible to the Carrier and Both Handsets — It Discloses Interest in That Place, Not Only That Someone Uses Bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite"))
         }
         .sheet(item: $activeSharePayload) { payload in
             ShareActivityView(text: payload.text)

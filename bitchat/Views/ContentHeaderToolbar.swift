@@ -106,7 +106,7 @@ struct ContentHeaderToolbar: ViewModifier {
                 )
             )
             .help(
-                String(localized: "content.header.carrying_mail", defaultValue: "Carrying sealed messages for friends to deliver", comment: "Tooltip for the courier mail indicator")
+                String(localized: "content.header.carrying_mail", defaultValue: "Carrying Sealed Messages for Friends to Deliver", comment: "Tooltip for the courier mail indicator")
             )
     }
 

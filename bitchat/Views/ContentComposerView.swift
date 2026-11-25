@@ -389,7 +389,7 @@ private extension ContentComposerView {
     var recorderTrashButton: some View {
         let isDiscarding = voiceRecordingVM.isDiscarding
         let isHighlighted = recorderPhase == .cancelArmed || isDiscarding
-        let deleteLabel = String(localized: "voice.recorder.accessibility.delete", defaultValue: "Delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar")
+        let deleteLabel = String(localized: "voice.recorder.accessibility.delete", defaultValue: "Delete Recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar")
         return Button(action: voiceRecordingVM.discardRecording) {
             Image(systemName: isHighlighted ? "trash.fill" : "trash")
                 .font(.bitchatSystem(size: 17, weight: .medium))
@@ -456,7 +456,7 @@ private extension ContentComposerView {
         .buttonStyle(.plain)
         .transition(.scale(scale: 0.6).combined(with: .opacity))
         .accessibilityLabel(sendLabel)
-        .accessibilityAction(named: Text(String(localized: "voice.recorder.accessibility.delete", defaultValue: "Delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar"))) {
+        .accessibilityAction(named: Text(String(localized: "voice.recorder.accessibility.delete", defaultValue: "Delete Recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar"))) {
             voiceRecordingVM.discardRecording()
         }
         .help(sendLabel)
