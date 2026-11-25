@@ -159,6 +159,9 @@ struct GifMessageView: View {
         .accessibilityValue(accessibilityValueText)
         .accessibilityHint(accessibilityHintText)
         .accessibilityAddTraits(phase == .loading ? [] : .isButton)
+        // The ignored children include the Button, so activation is wired
+        // here explicitly.
+        .accessibilityAction { handleTap() }
         .accessibilityActions {
             if loadedAsset != nil, reduceMotion {
                 if playsDespiteReduceMotion {
