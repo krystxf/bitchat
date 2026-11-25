@@ -45,7 +45,9 @@ let package = Package(
                 "Resources/Globe"
             ],
             resources: [
-                .process("Localizable.xcstrings")
+                .process("Localizable.xcstrings"),
+                // The reaction picker's emoji set (scripts/generate-emoji-catalog.py).
+                .process("Resources/Emoji/emoji-catalog.tsv")
             ]
         ),
         .testTarget(
