@@ -237,13 +237,18 @@ struct ContentView: View {
                 voiceRecordingVM.sessionProvider = { [weak conversationUIModel] in
                     conversationUIModel?.makeVoiceCaptureSession() ?? VoiceNoteCaptureSession()
                 }
-                appChromeModel.setPanicPreparation { [weak voiceRecordingVM] in
+                appChromeModel.setWipePreparation { [weak voiceRecordingVM] scope in
                     voiceRecordingVM?.panicWipe()
                     // Drop in-memory composer text before ChatViewModel resets
                     // persisted drafts — otherwise the next inactive/background
                     // transition would write the pre-wipe draft back.
                     messageText = ""
-                    activeDraftKey = .mesh
+                    // An open image would stay readable after its file is gone.
+                    imagePreviewURL = nil
+                    // Only the panic wipe leaves the conversation for mesh.
+                    if scope == .everything {
+                        activeDraftKey = .mesh
+                    }
                 }
                 #if os(macOS)
                 DispatchQueue.main.async {
@@ -460,7 +465,7 @@ struct ContentView: View {
         }
         .onDisappear {
             autocompleteDebounceTimer?.invalidate()
-            appChromeModel.setPanicPreparation(nil)
+            appChromeModel.setWipePreparation(nil)
         }
     }
 

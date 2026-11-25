@@ -106,7 +106,10 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        // AppKit asks this as the last window closes: that is leaving the
+        // app for extreme security mode, even before the quit that follows.
+        runtime?.handleAppExitEvent(.lastWindowClosed)
+        return true
     }
 }
 #endif
