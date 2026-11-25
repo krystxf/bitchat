@@ -39,6 +39,7 @@ struct ContentSidebarView: View {
     @Binding var showVerifySheet: Bool
 
     @AppStorage("sidebar.showsUnknownPeople") private var showsUnknownPeople = false
+    @State private var showsProfile = false
 
     var body: some View {
         let people = SidebarPeople(
@@ -85,6 +86,9 @@ struct ContentSidebarView: View {
             // macOS, next to the QR button; .navigation renders at the start
             // of the detail column's toolbar instead.
             ToolbarItem(placement: .primaryAction) {
+                profileButton
+            }
+            ToolbarItem(placement: .primaryAction) {
                 settingsButton
             }
             ToolbarItem(placement: .primaryAction) {
@@ -95,6 +99,21 @@ struct ContentSidebarView: View {
                 }
                 .help(Strings.verificationHelp)
             }
+        }
+    }
+
+    private var profileButton: some View {
+        Button(action: { showsProfile = true }) {
+            Label {
+                Text(verbatim: String(localized: "profile.title", defaultValue: "profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
+            } icon: {
+                Image(systemName: "person.crop.circle")
+            }
+        }
+        .help(String(localized: "profile.title", defaultValue: "profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
+        .sheet(isPresented: $showsProfile) {
+            ProfileSheet()
+                .environmentObject(appChromeModel)
         }
     }
 

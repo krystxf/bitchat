@@ -68,6 +68,12 @@ final class AppChromeModel: ObservableObject {
         }
     }
 
+    /// This device's current mesh peer ID, which seeds my avatar's color the
+    /// same way it does for everyone who sees my messages.
+    var myPeerID: PeerID {
+        chatViewModel.meshService.myPeerID
+    }
+
     func openMostRelevantPrivateChat() {
         chatViewModel.openMostRelevantPrivateChat()
     }
