@@ -207,17 +207,37 @@ private struct ChatBackgroundImageView: View {
             }
             .ignoresSafeArea()
             .task(id: url) {
-                image = await Task.detached(priority: .utility) {
-                    #if os(iOS)
-                    guard let data = try? Data(contentsOf: url), let uiImage = UIImage(data: data) else { return nil }
-                    return Image(uiImage: uiImage)
-                    #else
-                    guard let data = try? Data(contentsOf: url), let nsImage = NSImage(data: data) else { return nil }
-                    return Image(nsImage: nsImage)
-                    #endif
-                }.value
+                image = await Task.detached(priority: .utility) { ChatBackgroundRasterCache.shared.image(at: url) }.value
             }
         }
+    }
+}
+
+/// Decoded rasters are shared by the full-screen backdrop and picker thumbnail.
+final class ChatBackgroundRasterCache {
+    static let shared = ChatBackgroundRasterCache()
+    #if os(iOS)
+    private let images = NSCache<NSString, UIImage>()
+    #else
+    private let images = NSCache<NSString, NSImage>()
+    #endif
+
+    func clear() { images.removeAllObjects() }
+
+    func image(at url: URL) -> Image? {
+        let stamp = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate?.timeIntervalSince1970) ?? 0
+        let key = "\(url.path):\(stamp)" as NSString
+        #if os(iOS)
+        if let cached = images.object(forKey: key) { return Image(uiImage: cached) }
+        guard let data = try? Data(contentsOf: url), let decoded = UIImage(data: data) else { return nil }
+        images.setObject(decoded, forKey: key)
+        return Image(uiImage: decoded)
+        #else
+        if let cached = images.object(forKey: key) { return Image(nsImage: cached) }
+        guard let data = try? Data(contentsOf: url), let decoded = NSImage(data: data) else { return nil }
+        images.setObject(decoded, forKey: key)
+        return Image(nsImage: decoded)
+        #endif
     }
 }
 

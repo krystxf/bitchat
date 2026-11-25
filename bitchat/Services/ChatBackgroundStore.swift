@@ -92,12 +92,19 @@ struct ChatBackgroundImageStore {
         }
         CGImageDestinationAddImage(destination, image, [kCGImageDestinationLossyCompressionQuality: 0.86] as CFDictionary)
         guard CGImageDestinationFinalize(destination) else { throw CocoaError(.fileWriteUnknown) }
+        ChatBackgroundRasterCache.shared.clear()
         return fileURL(for: conversation)
     }
 
     func exists(for conversation: ComposerDraftStore.Key) -> Bool {
         FileManager.default.fileExists(atPath: fileURL(for: conversation).path)
     }
-    func remove(for conversation: ComposerDraftStore.Key) { try? FileManager.default.removeItem(at: fileURL(for: conversation)) }
-    func removeAll() { try? FileManager.default.removeItem(at: directory) }
+    func remove(for conversation: ComposerDraftStore.Key) {
+        try? FileManager.default.removeItem(at: fileURL(for: conversation))
+        ChatBackgroundRasterCache.shared.clear()
+    }
+    func removeAll() {
+        try? FileManager.default.removeItem(at: directory)
+        ChatBackgroundRasterCache.shared.clear()
+    }
 }
