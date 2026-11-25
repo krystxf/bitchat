@@ -124,7 +124,6 @@ struct ContentView: View {
     @State private var isAtBottomPublic = true
     @State private var isAtBottomPrivate = true
     @State private var autocompleteDebounceTimer: Timer?
-    @State private var showVerifySheet = false
     @State private var imagePreviewURL: URL?
     #if os(iOS)
     @State private var showImagePicker = false
@@ -162,7 +161,6 @@ struct ContentView: View {
         return ContentRootModalPresentationState(
             appChromeModel: appChromeModel,
             isImagePreviewPresented: imagePreviewURL != nil,
-            isVerificationSheetPresented: showVerifySheet,
             legacyPrivateMediaConsentRequest:
                 conversationUIModel.legacyPrivateMediaConsentRequest,
             isVoiceAlertPresented: includingVoiceAlert && voiceRecordingVM.showAlert,
@@ -361,10 +359,6 @@ struct ContentView: View {
                     .environmentObject(verificationModel)
             }
         }
-        .sheet(isPresented: $showVerifySheet) {
-            VerificationSheetView(isPresented: $showVerifySheet)
-                .environmentObject(verificationModel)
-        }
         // Hosted at the root: the sidebar and the channel info page both
         // open it.
         .sheet(isPresented: $appChromeModel.isLocationChannelsSheetPresented) {
@@ -530,10 +524,7 @@ struct ContentView: View {
     }
 
     private var sidebar: some View {
-        ContentSidebarView(
-            selection: $sidebarSelection,
-            showVerifySheet: $showVerifySheet
-        )
+        ContentSidebarView(selection: $sidebarSelection)
         #if os(macOS)
         // Wide enough for the title bar's traffic lights, sidebar toggle and
         // the profile, settings and QR buttons; narrower and macOS moves the

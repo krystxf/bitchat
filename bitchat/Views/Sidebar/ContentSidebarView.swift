@@ -31,12 +31,12 @@ enum SidebarItem: Hashable {
 /// spam stay out of sight until the user asks for them.
 struct ContentSidebarView: View {
     @EnvironmentObject private var appChromeModel: AppChromeModel
+    @EnvironmentObject private var verificationModel: VerificationModel
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @EnvironmentObject private var peerListModel: PeerListModel
     @ObservedObject private var bridgeService = BridgeService.shared
 
     @Binding var selection: SidebarItem?
-    @Binding var showVerifySheet: Bool
 
     @AppStorage("sidebar.showsUnknownPeople") private var showsUnknownPeople = false
     @State private var showsProfile = false
@@ -82,22 +82,14 @@ struct ContentSidebarView: View {
         .listStyle(.sidebar)
         .navigationTitle(Text(verbatim: Strings.appName))
         .toolbar {
-            // .primaryAction keeps the gear in the sidebar's own title bar on
-            // macOS, next to the QR button; .navigation renders at the start
-            // of the detail column's toolbar instead.
+            // .primaryAction keeps the buttons in the sidebar's own title bar
+            // on macOS; .navigation renders at the start of the detail
+            // column's toolbar instead.
             ToolbarItem(placement: .primaryAction) {
                 profileButton
             }
             ToolbarItem(placement: .primaryAction) {
                 settingsButton
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showVerifySheet = true
-                } label: {
-                    Label(Strings.verification, systemImage: "qrcode")
-                }
-                .help(Strings.verificationHelp)
             }
         }
     }
@@ -114,6 +106,7 @@ struct ContentSidebarView: View {
         .sheet(isPresented: $showsProfile) {
             ProfileSheet()
                 .environmentObject(appChromeModel)
+                .environmentObject(verificationModel)
         }
     }
 
@@ -282,8 +275,6 @@ private extension ContentSidebarView {
         static let unknown = String(localized: "sidebar.unknown.title", defaultValue: "unknown", comment: "Collapsed sidebar group holding people the user does not know yet and their message requests")
         static let locationChannels = String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button") + "…"
         static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
-        static let verification = String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
-        static let verificationHelp = String(localized: "content.help.verification", comment: "Help text for verification button")
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")
 
         static func peopleCount(_ count: Int) -> String {

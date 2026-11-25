@@ -126,14 +126,10 @@ private func installSmokeEnvironment<V: View>(
 @MainActor
 private struct ContentSidebarHarness: View {
     @State private var selection: SidebarItem? = .mesh
-    @State private var showVerifySheet = false
 
     var body: some View {
         NavigationStack {
-            ContentSidebarView(
-                selection: $selection,
-                showVerifySheet: $showVerifySheet
-            )
+            ContentSidebarView(selection: $selection)
         }
     }
 }
