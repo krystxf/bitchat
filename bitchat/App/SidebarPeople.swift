@@ -11,18 +11,20 @@
 /// The sidebar lists contacts openly and keeps everyone else under a
 /// collapsed "unknown" group, so strangers and spam stay out of sight until
 /// the user asks for them. A contact is someone the user chose: a favorite,
-/// a verified identity, or a direct conversation the user opened or wrote
-/// in. Blocking someone always moves them out of the contacts.
+/// someone they saved a name (petname) for, or someone they wrote to.
+/// Opening a chat is not enough, so a stranger's message request stays
+/// under "unknown" until the user replies. Blocking someone always moves
+/// them out of the contacts.
 struct ContactStanding: Equatable {
     var isMe = false
     var isBlocked = false
     var isFavorite = false
-    var isVerified = false
+    var hasPetname = false
     var hasAcceptedConversation = false
 
     var isContact: Bool {
         guard !isMe, !isBlocked else { return false }
-        return isFavorite || isVerified || hasAcceptedConversation
+        return isFavorite || hasPetname || hasAcceptedConversation
     }
 }
 
@@ -32,7 +34,7 @@ extension MeshPeerRow {
             isMe: isMe,
             isBlocked: isBlocked,
             isFavorite: isFavorite,
-            isVerified: isVerified,
+            hasPetname: hasPetname,
             hasAcceptedConversation: hasAcceptedConversation
         )
     }
@@ -53,7 +55,7 @@ extension RecentChatRow {
     var standing: ContactStanding {
         ContactStanding(
             isFavorite: isFavorite,
-            isVerified: isVerified,
+            hasPetname: hasPetname,
             hasAcceptedConversation: hasAcceptedConversation
         )
     }

@@ -20,8 +20,8 @@ struct ContactStandingTests {
         #expect(ContactStanding(isFavorite: true).isContact)
     }
 
-    @Test func aVerifiedPersonIsAContact() {
-        #expect(ContactStanding(isVerified: true).isContact)
+    @Test func aSavedPetnameMakesAContact() {
+        #expect(ContactStanding(hasPetname: true).isContact)
     }
 
     @Test func anAcceptedConversationMakesAContact() {
@@ -29,14 +29,14 @@ struct ContactStandingTests {
     }
 
     @Test func youAreNeverYourOwnContact() {
-        #expect(!ContactStanding(isMe: true, isFavorite: true, isVerified: true).isContact)
+        #expect(!ContactStanding(isMe: true, isFavorite: true, hasPetname: true).isContact)
     }
 
     @Test func blockingMovesAContactOut() {
         #expect(!ContactStanding(
             isBlocked: true,
             isFavorite: true,
-            isVerified: true,
+            hasPetname: true,
             hasAcceptedConversation: true
         ).isContact)
     }
@@ -47,6 +47,7 @@ struct SidebarPeopleTests {
         let me = meshPeer("me", isMe: true, isFavorite: true)
         let favorite = meshPeer("friend", isFavorite: true)
         let verified = meshPeer("verified", isVerified: true)
+        let named = meshPeer("named", hasPetname: true)
         let stranger = meshPeer("stranger", hasUnread: true)
         let blockedFavorite = meshPeer("blocked", isFavorite: true, isBlocked: true)
 
@@ -57,24 +58,26 @@ struct SidebarPeopleTests {
         let acceptedChat = chat("00000000000000c1", hasAcceptedConversation: true)
         let request = chat("00000000000000c2", hasUnread: true)
         let verifiedChat = chat("00000000000000c3", isVerified: true)
+        let namedChat = chat("00000000000000c5", hasPetname: true)
 
         let bridged = BridgeService.BridgedParticipant(pubkey: "ff", nickname: "far", lastSeen: Date())
 
         let people = SidebarPeople(
-            meshPeers: [me, favorite, stranger, verified, blockedFavorite],
+            meshPeers: [me, favorite, stranger, verified, named, blockedFavorite],
             geohashPeople: [geoMe, geoStranger, geoAccepted],
-            chats: [request, acceptedChat, verifiedChat],
+            chats: [request, acceptedChat, verifiedChat, namedChat],
             bridgedPeople: [bridged]
         )
 
-        #expect(people.contacts.meshPeers == [favorite, verified])
+        // Verification alone does not make a contact; a petname does.
+        #expect(people.contacts.meshPeers == [favorite, named])
         #expect(people.contacts.geohashPeople == [geoAccepted])
-        #expect(people.contacts.chats == [acceptedChat, verifiedChat])
+        #expect(people.contacts.chats == [acceptedChat, namedChat])
         #expect(people.contacts.bridgedPeople.isEmpty)
 
-        #expect(people.unknown.meshPeers == [stranger, blockedFavorite])
+        #expect(people.unknown.meshPeers == [stranger, verified, blockedFavorite])
         #expect(people.unknown.geohashPeople == [geoStranger])
-        #expect(people.unknown.chats == [request])
+        #expect(people.unknown.chats == [request, verifiedChat])
         #expect(people.unknown.bridgedPeople == [bridged])
     }
 
@@ -111,7 +114,8 @@ struct SidebarPeopleTests {
         isVerified: Bool = false,
         isBlocked: Bool = false,
         hasUnread: Bool = false,
-        hasAcceptedConversation: Bool = false
+        hasAcceptedConversation: Bool = false,
+        hasPetname: Bool = false
     ) -> MeshPeerRow {
         MeshPeerRow(
             peerID: PeerID(str: name),
@@ -127,7 +131,8 @@ struct SidebarPeopleTests {
             showsVerifiedBadgeWhenOffline: false,
             showsVouchedBadge: false,
             isVerified: isVerified,
-            hasAcceptedConversation: hasAcceptedConversation
+            hasAcceptedConversation: hasAcceptedConversation,
+            hasPetname: hasPetname
         )
     }
 
@@ -150,7 +155,8 @@ struct SidebarPeopleTests {
         _ peerID: String,
         hasUnread: Bool = false,
         isVerified: Bool = false,
-        hasAcceptedConversation: Bool = false
+        hasAcceptedConversation: Bool = false,
+        hasPetname: Bool = false
     ) -> RecentChatRow {
         RecentChatRow(
             peerID: PeerID(str: peerID),
@@ -159,7 +165,8 @@ struct SidebarPeopleTests {
             lastActivity: Date(timeIntervalSince1970: 100),
             isFavorite: false,
             isVerified: isVerified,
-            hasAcceptedConversation: hasAcceptedConversation
+            hasAcceptedConversation: hasAcceptedConversation,
+            hasPetname: hasPetname
         )
     }
 }
@@ -197,14 +204,36 @@ struct PeerListModelContactTests {
         #expect(accepted)
     }
 
-    @Test func openingAcceptsTheConversationUntilItIsRemoved() async throws {
+    @Test func openingAloneKeepsARequestUnknown() async throws {
+        let viewModel = makeViewModel()
+        let model = makeModel(viewModel)
+        let peerID = PeerID(str: "00000000000000d4")
+
+        viewModel.seedPrivateChat([message(id: "in-1", from: peerID)], for: peerID)
+        let listed = await TestHelpers.waitUntil({
+            model.recentChatRows.contains { $0.peerID == peerID }
+        }, timeout: TestConstants.settleTimeout)
+        try #require(listed)
+
+        // Reading a stranger's message is not a reply: the chat stays a
+        // request until I write back.
+        viewModel.conversations.setSelectedPrivatePeer(peerID)
+        viewModel.conversations.setSelectedPrivatePeer(nil)
+        let accepted = await TestHelpers.waitUntil({
+            model.recentChatRows.first { $0.peerID == peerID }?.hasAcceptedConversation == true
+        }, timeout: TestConstants.negativeWaitWindow)
+        #expect(!accepted)
+    }
+
+    @Test func replyingAcceptsTheConversationUntilItIsRemoved() async throws {
         let viewModel = makeViewModel()
         let model = makeModel(viewModel)
         let peerID = PeerID(str: "00000000000000d3")
 
-        viewModel.seedPrivateChat([message(id: "in-1", from: peerID)], for: peerID)
-        viewModel.conversations.setSelectedPrivatePeer(peerID)
-        viewModel.conversations.setSelectedPrivatePeer(nil)
+        viewModel.seedPrivateChat([
+            message(id: "in-1", from: peerID),
+            message(id: "out-1", from: viewModel.meshService.myPeerID)
+        ], for: peerID)
 
         let accepted = await TestHelpers.waitUntil({
             model.recentChatRows.first { $0.peerID == peerID }?.hasAcceptedConversation == true

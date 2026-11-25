@@ -19,8 +19,10 @@ struct MeshPeerRow: Identifiable, Equatable {
     let showsVouchedBadge: Bool
     /// I verified this person's fingerprint.
     let isVerified: Bool
-    /// I opened or wrote in a direct conversation with this person.
+    /// I wrote in a direct conversation with this person.
     let hasAcceptedConversation: Bool
+    /// I saved a name (petname) for this person.
+    var hasPetname = false
 
     var id: String { peerID.id }
 }
@@ -31,7 +33,7 @@ struct GeohashPersonRow: Identifiable, Equatable {
     let isMe: Bool
     let isTeleported: Bool
     let isBlocked: Bool
-    /// I opened or wrote in a geohash DM with this person.
+    /// I wrote in a geohash DM with this person.
     let hasAcceptedConversation: Bool
 }
 
@@ -57,9 +59,11 @@ struct RecentChatRow: Identifiable, Equatable {
     let lastActivity: Date
     let isFavorite: Bool
     let isVerified: Bool
-    /// I opened or wrote in this conversation. A chat that only holds
-    /// messages from the other side is a message request.
+    /// I wrote in this conversation. A chat that only holds messages from
+    /// the other side is a message request, even after I opened it.
     let hasAcceptedConversation: Bool
+    /// I saved a name (petname) for this person.
+    var hasPetname = false
 
     var id: String { peerID.id }
 }
@@ -193,17 +197,6 @@ final class PeerListModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Opening a conversation accepts it, whatever opened it: a sidebar
-        // row, a message's DM action, a command or a notification.
-        conversations.$selectedPrivatePeerID
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] peerID in
-                guard let self, let peerID,
-                      self.acceptedConversationPeerIDs.insert(peerID).inserted else { return }
-                self.setNeedsRefresh()
-            }
-            .store(in: &cancellables)
-
         chatViewModel.groupStore.$groups
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -306,7 +299,8 @@ final class PeerListModel: ObservableObject {
                 showsVerifiedBadgeWhenOffline: verifiedBadge,
                 showsVouchedBadge: vouchedBadge,
                 isVerified: isVerifiedFingerprint,
-                hasAcceptedConversation: !isMe && acceptance.contains(peer.peerID, fingerprint: fingerprint)
+                hasAcceptedConversation: !isMe && acceptance.contains(peer.peerID, fingerprint: fingerprint),
+                hasPetname: !isMe && chatViewModel.localPetname(for: peer.peerID) != nil
             )
         }
 
@@ -402,7 +396,8 @@ final class PeerListModel: ObservableObject {
                     lastActivity: candidate.lastActivity,
                     isFavorite: !candidate.peerID.isGeoDM && chatViewModel.isFavorite(peerID: candidate.peerID),
                     isVerified: fingerprint.map { peerIdentityStore.isVerified($0) } ?? false,
-                    hasAcceptedConversation: acceptance.contains(candidate.peerID, fingerprint: fingerprint)
+                    hasAcceptedConversation: acceptance.contains(candidate.peerID, fingerprint: fingerprint),
+                    hasPetname: chatViewModel.localPetname(for: candidate.peerID) != nil
                 )
             }
     }
