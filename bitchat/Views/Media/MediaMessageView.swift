@@ -9,8 +9,6 @@ import SwiftUI
 import BitFoundation
 
 struct MediaMessageView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @ThemedPalette private var palette
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
     let message: BitchatMessage
     let media: BitchatMessage.Media
@@ -20,113 +18,56 @@ struct MediaMessageView: View {
     /// fields by identity, so without the snapshot a status-only change
     /// (send progress, delivered → read) would not re-render this row.
     private let deliveryStatus: DeliveryStatus
+    /// Whether I sent the media, which puts it on the right. Nil asks the
+    /// model; the list passes the answer it already has.
+    private let isSelf: Bool?
+    /// Whether the sender's name goes above the media.
+    private let showsSenderName: Bool
+    private let maxBubbleWidth: CGFloat
     @State private var showDeliveryDetail = false
 
     @Binding var imagePreviewURL: URL?
 
-    init(message: BitchatMessage, media: BitchatMessage.Media, imagePreviewURL: Binding<URL?>) {
+    init(
+        message: BitchatMessage,
+        media: BitchatMessage.Media,
+        imagePreviewURL: Binding<URL?>,
+        isSelf: Bool? = nil,
+        showsSenderName: Bool = false,
+        maxBubbleWidth: CGFloat = .infinity
+    ) {
         self.message = message
         self.media = media
         self.deliveryStatus = message.deliveryStatus
         self._imagePreviewURL = imagePreviewURL
+        self.isSelf = isSelf
+        self.showsSenderName = showsSenderName
+        self.maxBubbleWidth = maxBubbleWidth
     }
 
     var body: some View {
-        let isFromMe = conversationUIModel.isMediaMessageFromCurrentUser(message)
+        let isFromMe = isSelf ?? conversationUIModel.isMediaMessageFromCurrentUser(message)
         let state = mediaSendState(for: deliveryStatus, isFromMe: isFromMe)
-        let cancelAction: (() -> Void)? = state.canCancel ? { conversationUIModel.cancelMediaSend(messageID: message.id) } : nil
+        let showsDeliveryStatus = isFromMe && message.isPrivate && deliveryStatus != .notSentYet
 
-        // Baseline alignment (via the header text inside the VStack) keeps the
-        // lock on the header line; a fixed top padding left its solid body
-        // hanging below the line's visual center.
-        HStack(alignment: .firstTextBaseline, spacing: 0) {
-            if message.isPrivate {
-                Image(systemName: "lock.fill")
-                    .font(.bitchatSystem(size: 8))
-                    .foregroundColor(Color.orange.opacity(0.75))
-                    .padding(.trailing, 4)
-                    .accessibilityHidden(true)
+        VStack(alignment: isFromMe ? .trailing : .leading, spacing: 3) {
+            if showsSenderName && !isFromMe {
+                MessageSenderNameView(message: message)
             }
-            if conversationUIModel.showsVerifiedSeal(for: message) {
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.bitchatSystem(size: 8))
-                    .foregroundColor(Color.green.opacity(0.85))
-                    .padding(.trailing, 4)
-                    .accessibilityLabel(
-                        String(localized: "content.accessibility.verified_sender", defaultValue: "Verified sender", comment: "Accessibility label for the seal next to a verified peer's name on a private message")
-                    )
+            MessageBubbleLayout(isSelf: isFromMe, maxBubbleWidth: maxBubbleWidth) {
+                mediaContent(isFromMe: isFromMe, state: state)
+                MessageMetaView(
+                    message: message,
+                    showsVerifiedSeal: !isFromMe && conversationUIModel.showsVerifiedSeal(for: message),
+                    deliveryStatus: showsDeliveryStatus ? deliveryStatus : nil,
+                    showsDeliveryDetail: $showDeliveryDetail
+                )
             }
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .center, spacing: 4) {
-                    Text(conversationUIModel.formatMessageHeader(message, colorScheme: colorScheme))
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    // Delivery status indicator for private messages. Tappable:
-                    // .help() tooltips only exist on macOS, so iOS users get the
-                    // explanation as a caption under the row instead.
-                    if message.isPrivate && conversationUIModel.isSentByCurrentUser(message),
-                       deliveryStatus != .notSentYet {
-                        Button {
-                            showDeliveryDetail.toggle()
-                        } label: {
-                            DeliveryStatusView(status: deliveryStatus)
-                                .padding(.leading, 4)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint(
-                            String(localized: "content.accessibility.delivery_detail_hint", comment: "Accessibility hint for the delivery status glyph explaining a tap reveals details")
-                        )
-                    }
-                }
-
-                // Failure reasons stay visible without a tap; other statuses
-                // reveal on demand.
-                if message.isPrivate && conversationUIModel.isSentByCurrentUser(message),
-                   deliveryStatus != .notSentYet {
-                    if case .failed = deliveryStatus {
-                        Text(verbatim: deliveryStatus.bitchatDescription)
-                            .bitchatFont(size: 11)
-                            .foregroundColor(Color.red.opacity(0.9))
-                            .fixedSize(horizontal: false, vertical: true)
-                    } else if showDeliveryDetail {
-                        Text(verbatim: deliveryStatus.bitchatDescription)
-                            .bitchatFont(size: 11)
-                            .foregroundColor(palette.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-
-                Group {
-                    switch media {
-                    case .voice(let url):
-                        VoiceNoteView(
-                            url: url,
-                            isSending: state.isSending,
-                            sendProgress: state.progress,
-                            isLive: conversationUIModel.isLiveVoiceMessage(message),
-                            onCancel: cancelAction
-                        )
-                    case .image(let url):
-                        BlockRevealImageView(
-                            url: url,
-                            revealProgress: state.progress,
-                            isSending: state.isSending,
-                            onCancel: cancelAction,
-                            initiallyBlurred: !isFromMe,
-                            onOpen: {
-                                if !state.isSending {
-                                    imagePreviewURL = url
-                                }
-                            },
-                            onDelete: !isFromMe ? { conversationUIModel.deleteMediaMessage(messageID: message.id) } : nil
-                        )
-                        .frame(maxWidth: 280)
-                    }
-                }
+            if showsDeliveryStatus {
+                MessageDeliveryCaption(status: deliveryStatus, showsDetail: showDeliveryDetail)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
         // Collapse the revealed caption when the status advances (e.g.
         // sending → sent → delivered) so a detail opened for one state
         // doesn't linger and silently morph into another. Guarded write:
@@ -137,6 +78,42 @@ struct MediaMessageView: View {
             if showDeliveryDetail {
                 showDeliveryDetail = false
             }
+        }
+    }
+
+    /// The voice note or image itself. Each draws its own rounded card, so
+    /// it stands in for the bubble.
+    @ViewBuilder
+    private func mediaContent(
+        isFromMe: Bool,
+        state: (isSending: Bool, progress: Double?, canCancel: Bool)
+    ) -> some View {
+        let cancelAction: (() -> Void)? = state.canCancel ? { conversationUIModel.cancelMediaSend(messageID: message.id) } : nil
+        switch media {
+        case .voice(let url):
+            VoiceNoteView(
+                url: url,
+                isSending: state.isSending,
+                sendProgress: state.progress,
+                isLive: conversationUIModel.isLiveVoiceMessage(message),
+                onCancel: cancelAction
+            )
+            .frame(maxWidth: 320)
+        case .image(let url):
+            BlockRevealImageView(
+                url: url,
+                revealProgress: state.progress,
+                isSending: state.isSending,
+                onCancel: cancelAction,
+                initiallyBlurred: !isFromMe,
+                onOpen: {
+                    if !state.isSending {
+                        imagePreviewURL = url
+                    }
+                },
+                onDelete: !isFromMe ? { conversationUIModel.deleteMediaMessage(messageID: message.id) } : nil
+            )
+            .frame(maxWidth: 280)
         }
     }
 
@@ -159,7 +136,8 @@ struct MediaMessageView: View {
         case .notSentYet, .sent, .carried, .read, .delivered, .failed:
             break
         }
-        let canCancel = isSending && conversationUIModel.isSentByCurrentUser(message)
+        // Only my own sends get this far, so any in-flight one can cancel.
+        let canCancel = isSending
         let clamped = progress.map { max(0, min(1, $0)) }
         return (isSending, isSending ? clamped : nil, canCancel)
     }

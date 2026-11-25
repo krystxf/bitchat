@@ -155,7 +155,7 @@ extension ChatViewModel: ChatPublicConversationContext {
     }
 
     func prewarmMessageFormatting(_ message: BitchatMessage) {
-        _ = formatMessageAsText(message, colorScheme: currentColorScheme)
+        prewarmMessageRow(message, colorScheme: currentColorScheme)
     }
 
     func notifyMention(from sender: String, message: String) {

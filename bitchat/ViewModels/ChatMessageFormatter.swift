@@ -60,9 +60,9 @@ final class ChatMessageFormatter {
                 suffixStyle.foregroundColor = baseColor.opacity(0.6)
                 result.append(AttributedString(suffix).mergingAttributes(suffixStyle))
             }
-            // Private rows render a filled SF Symbol seal beside the lock
-            // (TextMessageView / MediaMessageView); skip the in-string ✓ there
-            // so verified DMs don't show two markers.
+            // Private rows render a filled SF Symbol seal beside the time
+            // (MessageMetaView); skip the in-string ✓ there so verified DMs
+            // don't show two markers.
             if isVerifiedSender, !message.isPrivate {
                 appendVerifiedSeal(to: &result, baseColor: baseColor, design: design)
             }
@@ -232,6 +232,17 @@ final class ChatMessageFormatter {
         }
         message.setCachedFormattedText(result, isDark: isDark, isSelf: false, variant: cacheVariant)
         return result
+    }
+
+    /// Formats a message ahead of display into the variant its row shows:
+    /// the full text for a system line, the bubble body for everything
+    /// else.
+    func prewarmRow(_ message: BitchatMessage, colorScheme: ColorScheme) {
+        if message.sender == "system" {
+            _ = formatMessageAsText(message, colorScheme: colorScheme)
+        } else {
+            _ = formatMessageBody(message, isSelf: isSelfMessage(message), colorScheme: colorScheme)
+        }
     }
 
     /// Whether this device wrote the row: the one rule behind every

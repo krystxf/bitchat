@@ -1849,6 +1849,11 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         messageFormatter.formatSenderName(message, colorScheme: colorScheme)
     }
 
+    @MainActor
+    func prewarmMessageRow(_ message: BitchatMessage, colorScheme: ColorScheme) {
+        messageFormatter.prewarmRow(message, colorScheme: colorScheme)
+    }
+
     // MARK: - Noise Protocol Support
 
     @MainActor

@@ -130,6 +130,8 @@ struct MessageListView: View {
             notesHereStrip
         }
         GeometryReader { geometry in
+        // Rows are inset 12pt on each side.
+        let maxBubbleWidth = MessageBubbleStyle.maxBubbleWidth(rowWidth: geometry.size.width - 24)
         ScrollViewReader { proxy in
             ScrollView {
                 if messageItems.isEmpty && privatePeer == nil {
@@ -138,7 +140,8 @@ struct MessageListView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(messageItems) { item in
                         let message = item.message
-                        messageRow(for: message)
+                        let isSelf = conversationUIModel.isSentByCurrentUser(message)
+                        messageRow(for: message, isSelf: isSelf, maxBubbleWidth: maxBubbleWidth)
                             .onAppear {
                                 // Callbacks lag a timeline switch: the new
                                 // rows appear before the old ones disappear,
@@ -181,9 +184,11 @@ struct MessageListView: View {
                                     cancelFollowScroll()
                                 }
                             }
+                            // The menu belongs to the bubble, not the empty
+                            // side of the row.
                             .contentShape(Rectangle())
                             .contextMenu {
-                                let showsUserActions = message.sender != "system" && !conversationUIModel.isSentByCurrentUser(message)
+                                let showsUserActions = message.sender != "system" && !isSelf
                                 if showsUserActions {
                                     // Mention and DM are redundant inside a 1:1 conversation:
                                     // mentioning the only other participant is noise, and "DM"
@@ -228,14 +233,15 @@ struct MessageListView: View {
                                     }
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: rowAlignment(for: message, isSelf: isSelf))
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 1)
+                            .padding(.vertical, 2)
                             // Archived echoes read as one tinted block, not
                             // just faded rows.
                             .background(message.isArchivedEcho ? palette.secondary.opacity(0.08) : Color.clear)
                     }
                 }
-                .padding(.vertical, 2)
+                .padding(.vertical, 6)
 
                 // Only carried history on screen: the ambient layer (radar,
                 // sightings, live hints) stays visible below it instead of
@@ -595,15 +601,40 @@ private extension MessageListView {
         return "\(base), \(count)"
     }
 
+    /// Whether other people's names go above their bubbles: wherever
+    /// several people talk, so not in a 1:1 private chat.
+    var showsSenderNames: Bool {
+        privatePeer.map(\.isGroup) ?? true
+    }
+
+    /// System lines sit centered; bubbles sit on their sender's side, mine
+    /// on the right.
+    func rowAlignment(for message: BitchatMessage, isSelf: Bool) -> Alignment {
+        if message.sender == "system" { return .center }
+        return isSelf ? .trailing : .leading
+    }
+
     @ViewBuilder
-    func messageRow(for message: BitchatMessage) -> some View {
+    func messageRow(for message: BitchatMessage, isSelf: Bool, maxBubbleWidth: CGFloat) -> some View {
         Group {
             if message.sender == "system" {
                 systemMessageRow(message)
             } else if let media = conversationUIModel.mediaAttachment(for: message) {
-                MediaMessageView(message: message, media: media, imagePreviewURL: $imagePreviewURL)
+                MediaMessageView(
+                    message: message,
+                    media: media,
+                    imagePreviewURL: $imagePreviewURL,
+                    isSelf: isSelf,
+                    showsSenderName: showsSenderNames,
+                    maxBubbleWidth: maxBubbleWidth
+                )
             } else {
-                TextMessageView(message: message)
+                TextMessageView(
+                    message: message,
+                    isSelf: isSelf,
+                    showsSenderName: showsSenderNames,
+                    maxBubbleWidth: maxBubbleWidth
+                )
             }
         }
         // Archived echoes ("heard here earlier") render dimmed: real history,
@@ -611,11 +642,12 @@ private extension MessageListView {
         .opacity(message.isArchivedEcho ? 0.55 : 1)
     }
 
-    @ViewBuilder
+    /// Status lines ("* you're on #mesh *") stay plain, without a bubble.
     func systemMessageRow(_ message: BitchatMessage) -> some View {
         Text(conversationUIModel.formatMessage(message, colorScheme: colorScheme))
+            .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 2)
     }
 
     func expandWindow(ifNeededFor message: BitchatMessage,
