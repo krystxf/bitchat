@@ -139,7 +139,6 @@ struct ContentPeopleSheetView: View {
                         isTextFieldFocused: isTextFieldFocused,
                         voiceRecordingVM: voiceRecordingVM,
                         autocompleteDebounceTimer: $autocompleteDebounceTimer,
-                        headerHeight: headerHeight,
                         onSendMessage: onSendMessage,
                         showImagePicker: $showImagePicker,
                         imagePickerSourceType: $imagePickerSourceType
@@ -157,7 +156,6 @@ struct ContentPeopleSheetView: View {
                         isTextFieldFocused: isTextFieldFocused,
                         voiceRecordingVM: voiceRecordingVM,
                         autocompleteDebounceTimer: $autocompleteDebounceTimer,
-                        headerHeight: headerHeight,
                         onSendMessage: onSendMessage
                     )
                     #endif
@@ -434,6 +432,7 @@ private extension ContentPeopleListView {
 }
 
 private struct ContentPrivateChatSheetView: View {
+    @EnvironmentObject private var appChromeModel: AppChromeModel
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
 
     @Binding var showSidebar: Bool
@@ -449,7 +448,6 @@ private struct ContentPrivateChatSheetView: View {
     @Binding var autocompleteDebounceTimer: Timer?
     @ThemedPalette private var palette
 
-    let headerHeight: CGFloat
     let onSendMessage: () -> Void
 
     #if os(iOS)
@@ -458,74 +456,9 @@ private struct ContentPrivateChatSheetView: View {
     #endif
 
     var body: some View {
+        // The people sheet's NavigationStack hosts this view, so the title
+        // and the buttons go into that stack's bar: no second stack here.
         VStack(spacing: 0) {
-            if let headerState = privateConversationModel.selectedHeaderState {
-                HStack(spacing: 12) {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                            privateConversationModel.endConversation()
-                        }
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.bitchatSystem(size: 12))
-                            .foregroundColor(palette.primary)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(
-                        String(localized: "content.accessibility.back_to_main_chat", comment: "Accessibility label for returning to main chat")
-                    )
-
-                    Spacer(minLength: 0)
-
-                    HStack(spacing: 8) {
-                        ContentPrivateHeaderInfoButton(
-                            headerState: headerState,
-                            headerHeight: headerHeight
-                        )
-
-                        if headerState.supportsFavoriteToggle {
-                            Button(action: {
-                                privateConversationModel.toggleFavoriteForSelectedConversation()
-                            }) {
-                                Image(systemName: headerState.isFavorite ? "star.fill" : "star")
-                                    .font(.bitchatSystem(size: 14))
-                                    .foregroundColor(headerState.isFavorite ? Color.yellow : palette.primary)
-                                    // Same visual box + 44pt hit target as SheetCloseButton.
-                                    .frame(width: 32, height: 32)
-                                    .contentShape(Rectangle().inset(by: -6))
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(
-                                headerState.isFavorite
-                                ? String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")
-                                : String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
-                            )
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    Spacer(minLength: 0)
-
-                    SheetCloseButton {
-                        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                            privateConversationModel.endConversation()
-                            showSidebar = true
-                        }
-                    }
-                }
-                // minHeight so scaled text at accessibility sizes grows the
-                // bar instead of clipping inside it.
-                .frame(minHeight: headerHeight)
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-                .padding(.bottom, 12)
-                // No panel: the header sits on the sheet's own surface. The DM
-                // signature is carried by the orange lock, caption, and
-                // composer accents.
-            }
-
             MessageListView(
                 privatePeer: privateConversationModel.selectedPeerID,
                 isAtBottom: $isAtBottomPrivate,
@@ -568,6 +501,164 @@ private struct ContentPrivateChatSheetView: View {
             #endif
         }
         .foregroundColor(palette.primary)
+        .navigationTitle(Text(verbatim: headerState?.displayName ?? ""))
+        .privateChatSubtitle(statusText)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar { toolbarContent }
+    }
+
+    private var headerState: PrivateConversationHeaderState? {
+        privateConversationModel.selectedHeaderState
+    }
+
+    /// iOS before 26 has no navigation subtitle, so there the title slot
+    /// holds the name with the status line under it.
+    private var needsTitleFallback: Bool {
+        #if os(iOS)
+        if #available(iOS 26.0, *) { return false }
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    // MARK: - Toolbar
+
+    // iOS: back on the leading edge; info, favorite and close on the
+    // trailing edge, as in the old header. A macOS sheet shows no leading,
+    // trailing or principal items: automatic items go to the leading edge
+    // of its bottom button bar and close to the trailing edge.
+    #if os(iOS)
+    private var leadingPlacement: ToolbarItemPlacement { .navigationBarLeading }
+    private var actionPlacement: ToolbarItemPlacement { .navigationBarTrailing }
+    private var closePlacement: ToolbarItemPlacement { .navigationBarTrailing }
+    #else
+    private var leadingPlacement: ToolbarItemPlacement { .automatic }
+    private var actionPlacement: ToolbarItemPlacement { .automatic }
+    private var closePlacement: ToolbarItemPlacement { .cancellationAction }
+    #endif
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: leadingPlacement) {
+            backButton
+        }
+        if needsTitleFallback, let headerState {
+            ToolbarItem(placement: .principal) {
+                PrivateChatTitleView(
+                    title: headerState.displayName,
+                    subtitle: statusText
+                )
+            }
+        }
+        if let headerState {
+            // A group has no single fingerprint to show.
+            if !headerState.isGroupConversation {
+                ToolbarItem(placement: actionPlacement) {
+                    fingerprintButton(headerState)
+                }
+            }
+            if headerState.supportsFavoriteToggle {
+                ToolbarItem(placement: actionPlacement) {
+                    favoriteButton(headerState)
+                }
+            }
+        }
+        SheetCloseToolbarItem(placement: closePlacement) {
+            withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
+                privateConversationModel.endConversation()
+                showSidebar = true
+            }
+        }
+    }
+
+    private var backButton: some View {
+        Button {
+            withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
+                privateConversationModel.endConversation()
+            }
+        } label: {
+            Label(Strings.backToMainChat, systemImage: "chevron.left")
+                .labelStyle(.iconOnly)
+        }
+        #if os(macOS)
+        .help(Strings.backToMainChat)
+        #endif
+    }
+
+    private func fingerprintButton(_ headerState: PrivateConversationHeaderState) -> some View {
+        let status = headerState.encryptionStatus
+        return Button {
+            appChromeModel.showFingerprint(for: headerState.headerPeerID)
+        } label: {
+            Label {
+                Text(verbatim: Strings.verifyEncryption)
+            } icon: {
+                // The lock tells the session state at a glance; a peer with
+                // no handshake yet gets a neutral glyph, as the old header
+                // showed no lock for it.
+                Image(systemName: status?.icon ?? "info.circle")
+                    .foregroundStyle(Self.isSecured(status) ? Color.primary : Color.red)
+            }
+            .labelStyle(.iconOnly)
+        }
+        .accessibilityValue(status.map(Strings.encryptionStatus) ?? "")
+        .accessibilityHint(Strings.viewFingerprintHint)
+        #if os(macOS)
+        .help(Strings.verifyEncryption)
+        #endif
+    }
+
+    private func favoriteButton(_ headerState: PrivateConversationHeaderState) -> some View {
+        let label = headerState.isFavorite ? Strings.removeFavorite : Strings.addFavorite
+        return Button {
+            privateConversationModel.toggleFavoriteForSelectedConversation()
+        } label: {
+            Label {
+                Text(verbatim: label)
+            } icon: {
+                Image(systemName: headerState.isFavorite ? "star.fill" : "star")
+                    .foregroundStyle(headerState.isFavorite ? Color.yellow : Color.primary)
+            }
+            .labelStyle(.iconOnly)
+        }
+        #if os(macOS)
+        .help(label)
+        #endif
+    }
+
+    /// No icon (no handshake yet) counts as secured, so the neutral glyph
+    /// is not painted red.
+    private static func isSecured(_ status: EncryptionStatus?) -> Bool {
+        switch status {
+        case nil, .some(.noHandshake), .some(.noiseSecured), .some(.noiseVerified):
+            return true
+        case .some(.none), .some(.noiseHandshaking):
+            return false
+        }
+    }
+
+    /// The status under the name: how the peer is reachable and, once a
+    /// handshake has started, the encryption state. The same facts the old
+    /// header showed as icons.
+    private var statusText: String {
+        guard let headerState else { return "" }
+        if headerState.isGroupConversation {
+            return Strings.groupChat
+        }
+        let availability: String
+        switch headerState.availability {
+        case .bluetoothConnected: availability = Strings.connectedMesh
+        case .meshReachable: availability = Strings.reachableMesh
+        case .nostrAvailable: availability = Strings.availableNostr
+        case .offline: availability = Strings.offline
+        }
+        guard let status = headerState.encryptionStatus, status.icon != nil else {
+            return availability
+        }
+        return "\(availability) · \(status.description)"
     }
 
     private var swipeToLeaveGesture: some Gesture {
@@ -632,101 +723,82 @@ private struct ContentPrivateChatSheetView: View {
     }
 }
 
-private struct ContentPrivateHeaderInfoButton: View {
-    @EnvironmentObject private var appChromeModel: AppChromeModel
-    @ThemedPalette private var palette
+private extension ContentPrivateChatSheetView {
+    enum Strings {
+        static let backToMainChat = String(localized: "content.accessibility.back_to_main_chat", comment: "Accessibility label for returning to main chat")
+        static let verifyEncryption = String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
+        static let viewFingerprintHint = String(localized: "content.accessibility.view_fingerprint_hint", comment: "Accessibility hint for viewing encryption fingerprint")
+        static let addFavorite = String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
+        static let removeFavorite = String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")
+        static let groupChat = String(localized: "content.accessibility.group_chat", comment: "Accessibility label for the group chat indicator")
+        static let connectedMesh = String(localized: "content.accessibility.connected_mesh", comment: "Accessibility label for mesh-connected peer indicator")
+        static let reachableMesh = String(localized: "content.accessibility.reachable_mesh", comment: "Accessibility label for mesh-reachable peer indicator")
+        static let availableNostr = String(localized: "content.accessibility.available_nostr", comment: "Accessibility label for Nostr-available peer indicator")
+        static let offline = String(localized: "mesh_peers.state.offline", comment: "State label for a peer that is not currently reachable")
 
-    let headerState: PrivateConversationHeaderState
-    let headerHeight: CGFloat
-
-    var body: some View {
-        Button(action: {
-            // A group has no single fingerprint to show.
-            guard !headerState.isGroupConversation else { return }
-            appChromeModel.showFingerprint(for: headerState.headerPeerID)
-        }) {
-            HStack(spacing: 6) {
-                if headerState.isGroupConversation {
-                    Image(systemName: "person.3.fill")
-                        .font(.bitchatSystem(size: 14))
-                        .foregroundColor(palette.primary)
-                        .accessibilityLabel(String(localized: "content.accessibility.group_chat", comment: "Accessibility label for the group chat indicator"))
-                } else {
-                    switch headerState.availability {
-                    case .bluetoothConnected:
-                        Image(systemName: "dot.radiowaves.left.and.right")
-                            .font(.bitchatSystem(size: 14))
-                            .foregroundColor(palette.primary)
-                            .accessibilityLabel(String(localized: "content.accessibility.connected_mesh", comment: "Accessibility label for mesh-connected peer indicator"))
-                    case .meshReachable:
-                        Image(systemName: "point.3.filled.connected.trianglepath.dotted")
-                            .font(.bitchatSystem(size: 14))
-                            .foregroundColor(palette.primary)
-                            .accessibilityLabel(String(localized: "content.accessibility.reachable_mesh", comment: "Accessibility label for mesh-reachable peer indicator"))
-                    case .nostrAvailable:
-                        Image(systemName: "globe")
-                            .font(.bitchatSystem(size: 14))
-                            .foregroundColor(.purple)
-                            .accessibilityLabel(String(localized: "content.accessibility.available_nostr", comment: "Accessibility label for Nostr-available peer indicator"))
-                    case .offline:
-                        // Slashed variant of the connected glyph — offline as
-                        // the negation of connected, no text label (a leading
-                        // one read as part of the name: "sin conexión bob").
-                        // VoiceOver still says it.
-                        Image(systemName: "antenna.radiowaves.left.and.right.slash")
-                            .font(.bitchatSystem(size: 14))
-                            .foregroundColor(palette.secondary)
-                            .accessibilityLabel(String(localized: "mesh_peers.state.offline", comment: "State label for a peer that is not currently reachable"))
-                    }
-                }
-
-                Text(headerState.displayName)
-                    .bitchatFont(size: 16, weight: .medium)
-                    .foregroundColor(palette.primary)
-                    // Middle truncation keeps the identity suffix visible on
-                    // long nicknames instead of wrapping into the fixed-height
-                    // header.
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-
-                if let encryptionStatus = headerState.encryptionStatus,
-                   let icon = encryptionStatus.icon {
-                    Image(systemName: icon)
-                        .font(.bitchatSystem(size: 14))
-                        // Optical centering: the lock glyphs' ink is bottom-heavy
-                        // (solid body, thin shackle), so geometric centering reads
-                        // ~1pt low next to the name. The seal badge is symmetric
-                        // and needs no lift.
-                        .offset(y: icon.hasPrefix("lock") ? -1 : 0)
-                        .foregroundColor(
-                            encryptionStatus == .noiseVerified || encryptionStatus == .noiseSecured
-                            ? palette.primary
-                            : Color.red
-                        )
-                        .accessibilityLabel(
-                            String(
-                                format: String(localized: "content.accessibility.encryption_status", comment: "Accessibility label announcing encryption status"),
-                                locale: .current,
-                                encryptionStatus.accessibilityDescription
-                            )
-                        )
-                }
-
-            }
+        static func encryptionStatus(_ status: EncryptionStatus) -> String {
+            String(
+                format: String(localized: "content.accessibility.encryption_status", comment: "Accessibility label announcing encryption status"),
+                locale: .current,
+                status.accessibilityDescription
+            )
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(
+
+        static func privateChatHeader(_ name: String) -> String {
             String(
                 format: String(localized: "content.accessibility.private_chat_header", comment: "Accessibility label describing the private chat header"),
                 locale: .current,
-                headerState.displayName
+                name
             )
-        )
-        .accessibilityHint(
-            headerState.isGroupConversation
-            ? ""
-            : String(localized: "content.accessibility.view_fingerprint_hint", comment: "Accessibility hint for viewing encryption fingerprint")
-        )
-        .frame(minHeight: headerHeight)
+        }
+    }
+}
+
+/// The title for iOS before 26, which has no navigation subtitle: the name
+/// over a status line, sized like the system's inline title.
+private struct PrivateChatTitleView: View {
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(verbatim: title)
+                .font(.headline)
+                // Middle truncation keeps the identity suffix of a long
+                // nickname visible.
+                .lineLimit(1)
+                .truncationMode(.middle)
+            if !subtitle.isEmpty {
+                Text(verbatim: subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(ContentPrivateChatSheetView.Strings.privateChatHeader(title))
+        .accessibilityValue(subtitle)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
+private extension View {
+    /// The status line under the navigation title, where the system has
+    /// one: macOS, and iOS from 26.
+    @ViewBuilder
+    func privateChatSubtitle(_ subtitle: String) -> some View {
+        #if os(iOS)
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            navigationSubtitle(Text(verbatim: subtitle))
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+        #else
+        navigationSubtitle(Text(verbatim: subtitle))
+        #endif
     }
 }
