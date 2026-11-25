@@ -8,9 +8,9 @@
 
 import SwiftUI
 
-/// The standard row of the people sheet's list: a leading glyph, a title
-/// with an optional detail line under it, and trailing accessories (unread,
-/// favorite).
+/// The standard row of the sidebar's people and groups: a leading glyph, a
+/// title with an optional detail line under it, and trailing accessories
+/// (unread, favorite).
 ///
 /// Colors are concrete `Color`s on purpose. Inside a list-row `Button` the
 /// hierarchical `.primary`/`.secondary` styles resolve against the button
@@ -112,7 +112,7 @@ struct PeopleRowName: View {
     }
 }
 
-/// Trailing unread marker, shared by every tappable section.
+/// Trailing unread marker, shared by every row that opens a chat.
 struct PeopleUnreadIndicator: View {
     private static let tooltip = String(localized: "mesh_peers.tooltip.new_messages", comment: "Tooltip for the unread messages indicator")
 
@@ -123,34 +123,12 @@ struct PeopleUnreadIndicator: View {
     }
 }
 
-/// The only row of a roster section with nobody in it.
+/// The only row of the sidebar's people when there is nobody to list.
 struct PeopleEmptyRow: View {
     @ThemedPalette private var palette
 
     var body: some View {
         Text("geohash_people.none_nearby")
             .foregroundColor(palette.secondary)
-    }
-}
-
-extension View {
-    /// The people sheet's list style: inset grouped on iOS, inset on macOS.
-    func peopleListStyle() -> some View {
-        #if os(macOS)
-        return listStyle(.inset)
-        #else
-        return listStyle(.insetGrouped)
-        #endif
-    }
-
-    /// A tappable people row. In an iOS list a default-style button gets
-    /// the native row highlight. On macOS the default style draws a bordered
-    /// push button around the whole row, so the row uses the plain style.
-    func peopleRowButtonStyle() -> some View {
-        #if os(macOS)
-        return buttonStyle(.plain)
-        #else
-        return self
-        #endif
     }
 }

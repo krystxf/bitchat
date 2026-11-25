@@ -51,7 +51,6 @@ struct PrivateChatDetailView: View {
             imagePreviewURL: $imagePreviewURL,
             windowCountPublic: $windowCountPublic,
             windowCountPrivate: $windowCountPrivate,
-            showSidebar: .constant(false),
             isTextFieldFocused: isTextFieldFocused
         )
         .floatingBar(edge: .top) {

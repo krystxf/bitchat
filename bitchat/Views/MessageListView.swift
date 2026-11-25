@@ -70,7 +70,6 @@ struct MessageListView: View {
     @Binding var imagePreviewURL: URL?
     @Binding var windowCountPublic: Int
     @Binding var windowCountPrivate: [PeerID: Int]
-    @Binding var showSidebar: Bool
 
     var isTextFieldFocused: FocusState<Bool>.Binding
 
@@ -219,9 +218,6 @@ struct MessageListView: View {
                                         if let peerID = message.senderPeerID {
                                             Button("content.actions.direct_message") {
                                                 privateConversationModel.openConversation(for: peerID)
-                                                withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                                                    showSidebar = true
-                                                }
                                             }
                                         }
                                     }
@@ -322,9 +318,6 @@ struct MessageListView: View {
                 Button("content.actions.direct_message") {
                     if let peerID = selectedMessageSenderID {
                         privateConversationModel.openConversation(for: peerID)
-                        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                            showSidebar = true
-                        }
                     }
                 }
 

@@ -119,10 +119,6 @@ final class PeerListModel: ObservableObject {
         chatViewModel.geohashParticipantCount(for: geohash)
     }
 
-    func startConversation(with peerID: PeerID) {
-        chatViewModel.startPrivateChat(with: peerID)
-    }
-
     func toggleFavorite(peerID: PeerID) {
         chatViewModel.toggleFavorite(peerID: peerID)
     }
@@ -133,10 +129,6 @@ final class PeerListModel: ObservableObject {
     func geohashPubkeyHex(forConversation peerID: PeerID) -> String? {
         guard peerID.isGeoDM else { return nil }
         return geohashPeople.first { PeerID(nostr_: $0.id) == peerID }?.id
-    }
-
-    func openGeohashDirectMessage(with pubkeyHex: String) {
-        chatViewModel.startGeohashDM(withPubkeyHex: pubkeyHex)
     }
 
     func blockGeohashUser(pubkeyHexLowercased: String, displayName: String) {
@@ -190,7 +182,7 @@ final class PeerListModel: ObservableObject {
 
         // Direct-conversation changes reorder or create recent-chat rows.
         // Filtered to `.direct` so public-timeline traffic (every mesh or
-        // geohash message emits a change) doesn't rebuild the sheet.
+        // geohash message emits a change) doesn't rebuild the sidebar.
         conversations.changes
             .receive(on: DispatchQueue.main)
             .sink { [weak self] change in
@@ -269,13 +261,6 @@ final class PeerListModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Rebuilds the rows now. The geohash roster republishes only when
-    /// membership or names change, so its recency order goes stale while the
-    /// same people stay active; the people sheet calls this as it opens.
-    func refreshNow() {
-        refresh()
-    }
-
     /// Coalesces bursts of triggers into one rebuild per main-queue turn: a
     /// participant event republishes the roster and the teleport set, and a
     /// mesh snapshot touches peers, unread and encryption state at once.
@@ -344,7 +329,7 @@ final class PeerListModel: ObservableObject {
         )
 
         // Assign only what changed: every @Published write re-renders every
-        // view observing this model (root, header, the open sheet).
+        // view observing this model (root, header, sidebar).
         if self.meshRows != meshRows { self.meshRows = meshRows }
         if reachableMeshPeerCount != meshCounts.reachable { reachableMeshPeerCount = meshCounts.reachable }
         if connectedMeshPeerCount != meshCounts.connected { connectedMeshPeerCount = meshCounts.connected }

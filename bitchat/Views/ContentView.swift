@@ -564,8 +564,7 @@ struct ContentView: View {
     private func applySidebarSelection(_ item: SidebarItem?) {
         guard let item else {
             if isCompact {
-                // Back to the list: leave the private conversation, as the
-                // people sheet's back button did.
+                // Back to the list: leave the private conversation.
                 if selectedPrivatePeerID != nil {
                     privateConversationModel.endConversation()
                 }
@@ -660,7 +659,6 @@ struct ContentView: View {
             imagePreviewURL: $imagePreviewURL,
             windowCountPublic: $windowCountPublic,
             windowCountPrivate: $windowCountPrivate,
-            showSidebar: .constant(false),
             isTextFieldFocused: $isTextFieldFocused
         )
     }

@@ -32,13 +32,4 @@ struct PeopleListOrderMemoryTests {
         #expect(first == ["a", "b", "c"])
         #expect(second == first)
     }
-
-    @Test func newGenerationShowsTheProducerOrderAgain() {
-        let memory = PeopleListOrderMemory()
-        _ = memory.order(["a", "b", "c"], generation: 0)
-        #expect(memory.order(["c", "b", "a"], generation: 0) == ["a", "b", "c"])
-        #expect(memory.order(["c", "b", "a"], generation: 1) == ["c", "b", "a"])
-        // The same generation keeps the order it just showed.
-        #expect(memory.order(["a", "c", "b"], generation: 1) == ["c", "b", "a"])
-    }
 }

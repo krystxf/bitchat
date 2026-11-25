@@ -6,9 +6,9 @@
 // For more information, see <https://unlicense.org>
 //
 
-/// Row ordering for the people sheet's rosters.
+/// Row ordering for the sidebar's rosters.
 ///
-/// Rows stay where they are while the sheet is open: ids already on screen
+/// Rows stay where they are while the sidebar shows them: ids already on screen
 /// keep their relative order (minus anyone who left) and newcomers append in
 /// the producer's order. Without this, recency-sorted rosters reshuffle on
 /// every heartbeat and rows move out from under a tap.
@@ -43,16 +43,9 @@ enum PeopleListOrdering {
 @MainActor
 final class PeopleListOrderMemory {
     private var shownIDs: [String] = []
-    private var generation: Int?
 
-    /// Returns `current` in stable order and remembers that order. A
-    /// `generation` different from the last call's forgets the remembered
-    /// order first, so the roster shows in the producer's order again.
-    func order(_ current: [String], generation: Int = 0) -> [String] {
-        if generation != self.generation {
-            self.generation = generation
-            shownIDs = []
-        }
+    /// Returns `current` in stable order and remembers that order.
+    func order(_ current: [String]) -> [String] {
         shownIDs = PeopleListOrdering.stableOrder(previous: shownIDs, current: current)
         return shownIDs
     }
