@@ -70,7 +70,7 @@ struct PrivateChatDetailView: View {
             conversationUIModel.processSelectedImage(from: url)
         }
         .background {
-            ChatConversationBackground(option: chatBackgroundOption)
+            ChatConversationBackground(option: chatBackgroundOption, conversationKey: chatBackgroundConversationKey)
                 .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
         }
         .foregroundColor(palette.primary)

@@ -670,7 +670,7 @@ struct ContentView: View {
                 conversationUIModel.processSelectedImage(from: url)
             }
             .background {
-                ChatConversationBackground(option: chatBackgroundOption)
+                ChatConversationBackground(option: chatBackgroundOption, conversationKey: activeDraftKey)
                     .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
             }
             .modifier(ContentHeaderToolbar(

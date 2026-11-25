@@ -109,13 +109,16 @@ struct ThemedRootBackground: View {
 /// their normal contrast.
 struct ChatConversationBackground: View {
     let option: ChatBackgroundOption
+    var conversationKey: ComposerDraftStore.Key? = nil
     @Environment(\.colorScheme) private var colorScheme
 
     private var isDark: Bool { colorScheme == .dark }
 
     var body: some View {
         Group {
-            if option == .default {
+            if option == .image, let conversationKey, ChatBackgroundImageStore.shared.exists(for: conversationKey) {
+                ChatBackgroundImageView(url: ChatBackgroundImageStore.shared.fileURL(for: conversationKey), isDark: isDark)
+            } else if option == .default || option == .image {
                 ThemedRootBackground()
             } else if option == .oled {
                 (isDark ? Color.black : systemBackground).ignoresSafeArea()
@@ -146,7 +149,7 @@ struct ChatConversationBackground: View {
 
     private var gradientColors: [Color] {
         switch option {
-        case .default, .oled: []
+        case .default, .oled, .image: []
         case .dusk:
             isDark
                 ? [Color(red: 0.13, green: 0.09, blue: 0.16), Color(red: 0.05, green: 0.04, blue: 0.08)]
@@ -167,7 +170,7 @@ struct ChatConversationBackground: View {
         case .dusk: .purple
         case .ocean: .cyan
         case .forest: .green
-        case .default, .oled: .blue
+        case .default, .oled, .image: .blue
         }
     }
 
@@ -176,7 +179,7 @@ struct ChatConversationBackground: View {
         case .dusk: .pink
         case .ocean: .blue
         case .forest: .mint
-        case .default, .oled: .purple
+        case .default, .oled, .image: .purple
         }
     }
 
@@ -186,6 +189,35 @@ struct ChatConversationBackground: View {
         #else
         Color(NSColor.windowBackgroundColor)
         #endif
+    }
+}
+
+private struct ChatBackgroundImageView: View {
+    let url: URL
+    let isDark: Bool
+    @State private var image: Image?
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                if let image {
+                    image.resizable().scaledToFill().frame(width: proxy.size.width, height: proxy.size.height).clipped()
+                } else { Color.black }
+                (isDark ? Color.black.opacity(0.34) : Color.white.opacity(0.42))
+                (isDark ? Color.black.opacity(0.12) : Color.white.opacity(0.08)).blur(radius: 10)
+            }
+            .ignoresSafeArea()
+            .task(id: url) {
+                image = await Task.detached(priority: .utility) {
+                    #if os(iOS)
+                    guard let data = try? Data(contentsOf: url), let uiImage = UIImage(data: data) else { return nil }
+                    return Image(uiImage: uiImage)
+                    #else
+                    guard let data = try? Data(contentsOf: url), let nsImage = NSImage(data: data) else { return nil }
+                    return Image(nsImage: nsImage)
+                    #endif
+                }.value
+            }
+        }
     }
 }
 
