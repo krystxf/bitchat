@@ -66,19 +66,6 @@ struct FingerprintView: View {
         let fingerprintState = verificationModel.fingerprintPresentation(for: peerID)
 
         VStack(spacing: 20) {
-            // Header
-            HStack {
-                Text(Strings.title)
-                    .bitchatFont(size: 16, weight: .bold)
-                    .foregroundColor(textColor)
-                
-                Spacer()
-                
-                SheetCloseButton { dismiss() }
-                    .foregroundColor(textColor)
-            }
-            .padding()
-            
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     if let icon = fingerprintState.encryptionStatus.icon {
@@ -284,6 +271,13 @@ struct FingerprintView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // The host supplies the way out: the system back button when this
+        // view is pushed in the people sheet, or a close button when it is
+        // a sheet of its own (see `FingerprintSheet`).
+        .navigationTitle(Text(Strings.title))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
         .onAppear {
             syncAliasDraft(from: fingerprintState, force: true)
         }
@@ -336,5 +330,21 @@ struct FingerprintView: View {
         }
         
         return formatted
+    }
+}
+
+/// `FingerprintView` presented as a sheet of its own, with a native title
+/// bar and close button.
+struct FingerprintSheet: View {
+    let peerID: PeerID
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            FingerprintView(peerID: peerID)
+                .toolbar {
+                    SheetCloseToolbarItem { dismiss() }
+                }
+        }
     }
 }

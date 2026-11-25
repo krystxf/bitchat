@@ -377,7 +377,7 @@ struct ContentView: View {
             set: { _ in appChromeModel.clearFingerprint() }
         )) {
             if let peerID = appChromeModel.showingFingerprintFor {
-                FingerprintView(peerID: peerID)
+                FingerprintSheet(peerID: peerID)
                     .environmentObject(verificationModel)
             }
         }
