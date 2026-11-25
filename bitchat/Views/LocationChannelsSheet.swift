@@ -125,12 +125,6 @@ struct LocationChannelsSheet: View {
         // two-column split view and squeezes this content into its sidebar.
         NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    Text(Strings.title)
-                        .bitchatFont(size: 18)
-                    Spacer()
-                    closeButton
-                }
                 Text(Strings.description)
                     .bitchatFont(size: 12)
                     .foregroundColor(palette.secondary)
@@ -176,12 +170,13 @@ struct LocationChannelsSheet: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .navigationTitle(Text(Strings.title))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarHidden(true)
-            #else
-            .navigationTitle("")
             #endif
+            .toolbar {
+                SheetCloseToolbarItem { isPresented = false }
+            }
         }
         #if os(macOS)
         .frame(minWidth: 420, minHeight: 520)
@@ -278,10 +273,6 @@ struct LocationChannelsSheet: View {
 
     private func presentShare(forGeohash geohash: String) {
         activeSharePayload = ChannelSharePayload(text: ChannelShare.payload(forGeohash: geohash))
-    }
-
-    private var closeButton: some View {
-        SheetCloseButton { isPresented = false }
     }
 
     /// Participant counts mean "active in the last five minutes": they change
