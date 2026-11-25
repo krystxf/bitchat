@@ -41,6 +41,7 @@ bitchat is designed for private, account-free communication. This policy describ
 6. **Media attachments**
    - Voice notes and images you send or receive can be stored under Application Support so they remain playable while referenced by the app.
    - Incoming media is subject to a 100 MB quota with oldest-file eviction. All stored media, sent and received, is also deleted once it is more than seven days old, and immediately by panic wipe or app removal.
+   - GIFs shown from Giphy or Tenor links are cached in the app's Caches folder, which is excluded from backups and kept under about 64 MB (oldest first). File names are hashes, not the links. The cache is deleted by panic wipe, by extreme security mode's wipe, and by app removal.
 
 7. **Optional location-channel state**
    - Your selected geohash channel, bookmarks, teleport flags, and bookmark display names are stored locally so the UI can restore them.
@@ -83,6 +84,13 @@ Nostr relays are operated by third parties. Their retention, logging, availabili
 
 You can add relays yourself in settings, including `.onion` addresses. Added relays are stored locally, are limited in number, and are erased by panic wipe. Tor routing is on by default; while it is off, every relay you connect to can see your IP address, including relays carrying your private messages.
 
+### GIF Links
+
+A GIF travels as a message that holds a Giphy or Tenor link; bitchat does not carry the GIF itself. To show it, the app downloads it over HTTPS from Giphy or Tenor (giphy.com, gph.is, tenor.com and their media hosts, and no other host, including after redirects). Those services then see your IP address, or a Tor exit's when Tor routing is on, the time, and which GIF was loaded. Requests carry no cookies and no headers that name the app or your language.
+
+- GIFs you send, and GIFs from favorites while "Show Images from Favorites" is on, load by themselves. Every other GIF shows a placeholder and loads only after you tap it; nothing is fetched before that tap.
+- With Tor routing on, GIF downloads go through Tor, and nothing is sent while Tor is not connected.
+
 ## Location and Apple Services
 
 Location permission is optional and requested as when-in-use access. It is used to compute geohash channels, bridge rendezvous cells, and nearby place labels.
@@ -119,6 +127,7 @@ No cryptographic system can protect content after a recipient reads, copies, scr
 - **Recent public mesh gossip:** up to 6 hours.
 - **Public board posts and tombstones:** until expiry, at most seven days.
 - **Media:** seven days, or sooner by quota eviction, panic wipe, or app removal.
+- **GIF cache:** until pruned past about 64 MB, a panic wipe or extreme security mode's wipe, or app removal.
 - **Groups, favorites, preferences, identity keys, and bookmarks:** until removed by the feature, panic wipe, or app removal.
 - **Nostr data:** according to the policies of the relays that receive it.
 
