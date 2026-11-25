@@ -394,6 +394,12 @@ final class ConversationStore: ObservableObject {
 
     let changes = PassthroughSubject<ConversationChange, Never>()
 
+    /// Reaction lines that arrived before their target message. They stay
+    /// out of every timeline until the target arrives here.
+    private(set) var reactionOrphans = ReactionOrphanStore()
+    /// The orphan store's clock; tests move it to age lines out.
+    var reactionOrphanClock: () -> Date = { Date() }
+
     // MARK: Intent API
 
     /// Returns the conversation for `id`, creating it (with the cap policy
@@ -410,26 +416,38 @@ final class ConversationStore: ObservableObject {
     }
 
     /// Appends a message in timestamp order. Returns `false` (and emits
-    /// nothing) if a message with the same ID is already present.
+    /// nothing) if a message with the same ID is already present, or if
+    /// the message is a reaction line whose target is not here yet: that
+    /// line waits in `reactionOrphans` instead and joins the timeline when
+    /// its target does.
     @discardableResult
     func append(_ message: BitchatMessage, to id: ConversationID) -> Bool {
+        if holdsReactionOrphan(message, in: id) { return false }
         let conversation = conversation(for: id)
         let result = conversation.insert(message)
         guard result.inserted else { return false }
         registerMessageID(message.id, in: id)
         unregisterMessageIDs(result.trimmedMessageIDs, from: id)
         changes.send(.appended(id, message))
+        attachReactionOrphans(targeting: message.id, in: id)
         return true
     }
 
-    /// Replace-or-append by message ID (media progress, edits).
+    /// Replace-or-append by message ID (media progress, edits). A new
+    /// reaction line whose target is not here yet waits in
+    /// `reactionOrphans`, as with `append(_:to:)`.
     func upsertByID(_ message: BitchatMessage, in id: ConversationID) {
+        if conversationsByID[id]?.containsMessage(withID: message.id) != true,
+           holdsReactionOrphan(message, in: id) {
+            return
+        }
         let conversation = conversation(for: id)
         switch conversation.upsert(message) {
         case .appended(let trimmedMessageIDs):
             registerMessageID(message.id, in: id)
             unregisterMessageIDs(trimmedMessageIDs, from: id)
             changes.send(.appended(id, message))
+            attachReactionOrphans(targeting: message.id, in: id)
         case .updated:
             changes.send(.updated(id, messageID: message.id))
         }
@@ -455,6 +473,7 @@ final class ConversationStore: ObservableObject {
         registerMessageID(replacement.id, in: id)
         changes.send(.messageRemoved(id, messageID: messageID))
         changes.send(.appended(id, replacement))
+        attachReactionOrphans(targeting: replacement.id, in: id)
         return true
     }
 
@@ -647,6 +666,20 @@ final class ConversationStore: ObservableObject {
         for messageID in sourceConversation.messageIDs {
             unregisterMessageID(messageID, from: source)
         }
+        // Reactions still waiting follow their conversation, and the ones
+        // whose target the move brought in join the timeline.
+        reactionOrphans.move(from: source, to: destination)
+        let attached = reactionOrphans.release(
+            in: destination,
+            where: { destinationConversation.containsMessage(withID: $0) },
+            now: reactionOrphanClock()
+        )
+        for reaction in attached {
+            let result = destinationConversation.insert(reaction)
+            guard result.inserted else { continue }
+            registerMessageID(reaction.id, in: destination)
+            unregisterMessageIDs(result.trimmedMessageIDs, from: destination)
+        }
 
         let wasUnread = unreadConversations.contains(source)
         let wasSelected = selectedConversationID == source
@@ -707,12 +740,14 @@ final class ConversationStore: ObservableObject {
             unregisterMessageID(messageID, from: id)
         }
         conversation.clearMessages()
+        reactionOrphans.discard(id)
         changes.send(.cleared(id))
     }
 
     /// Removes a conversation entirely, including unread state; clears the
     /// selection if it pointed at the removed conversation.
     func removeConversation(_ id: ConversationID) {
+        reactionOrphans.discard(id)
         guard let conversation = conversationsByID.removeValue(forKey: id) else { return }
         for messageID in conversation.messageIDs {
             unregisterMessageID(messageID, from: id)
@@ -726,6 +761,9 @@ final class ConversationStore: ObservableObject {
     }
 
     func clearAll() {
+        // Waiting reactions belong to no conversation object yet, so they go
+        // before the early return below.
+        reactionOrphans.removeAll()
         let removedIDs = conversationIDs
         guard !removedIDs.isEmpty || selectedConversationID != nil else { return }
 
@@ -739,6 +777,33 @@ final class ConversationStore: ObservableObject {
 
         for id in removedIDs {
             changes.send(.removed(id))
+        }
+    }
+
+    // MARK: Reaction orphans
+
+    /// Holds `message` in `reactionOrphans` when it is a reaction line whose
+    /// target is not in conversation `id`. Does not create the
+    /// conversation: a reaction alone opens no chat.
+    private func holdsReactionOrphan(_ message: BitchatMessage, in id: ConversationID) -> Bool {
+        guard let event = MessageReaction.event(in: message.content),
+              conversationsByID[id]?.containsMessage(withID: event.targetID) != true else { return false }
+        reactionOrphans.hold(message, targetID: event.targetID, in: id, now: reactionOrphanClock())
+        return true
+    }
+
+    /// Moves the reaction lines waiting for `messageID` into conversation
+    /// `id`, now that the message is there.
+    private func attachReactionOrphans(targeting messageID: String, in id: ConversationID) {
+        guard reactionOrphans.count > 0,
+              let conversation = conversationsByID[id],
+              conversation.containsMessage(withID: messageID) else { return }
+        for reaction in reactionOrphans.release(targetID: messageID, in: id, now: reactionOrphanClock()) {
+            let result = conversation.insert(reaction)
+            guard result.inserted else { continue }
+            registerMessageID(reaction.id, in: id)
+            unregisterMessageIDs(result.trimmedMessageIDs, from: id)
+            changes.send(.appended(id, reaction))
         }
     }
 
