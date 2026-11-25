@@ -47,8 +47,11 @@ struct GlobeView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                // Static background lives in its own layer and is not redrawn by globe movement.
-                GlobeStarfield(color: colors.star)
+                // Keep the local fallback's sky tied to its projected camera too.
+                GlobeStarfield(color: colors.star,
+                               centerLat: state.centerLat,
+                               centerLon: state.centerLon,
+                               reduceMotion: reduceMotion)
                     .equatable()
 
                 let renderer = GlobeRenderer(
@@ -103,6 +106,9 @@ struct GlobeView: View {
 
 private struct GlobeStarfield: View, Equatable {
     let color: Color
+    let centerLat: Double
+    let centerLon: Double
+    let reduceMotion: Bool
 
     private struct Star {
         let x: Double
@@ -125,13 +131,25 @@ private struct GlobeStarfield: View, Equatable {
 
     var body: some View {
         Canvas { context, size in
+            let offset = GlobeParallax.offset(longitude: centerLon,
+                                              latitude: centerLat,
+                                              heading: 0,
+                                              size: size,
+                                              reduceMotion: reduceMotion)
             for star in Self.stars {
-                let center = CGPoint(x: star.x * size.width, y: star.y * size.height)
-                let rect = CGRect(x: center.x - star.radius, y: center.y - star.radius, width: star.radius * 2, height: star.radius * 2)
+                let x = wrapped(star.x * size.width + offset.width, extent: size.width)
+                let y = wrapped(star.y * size.height + offset.height, extent: size.height)
+                let rect = CGRect(x: x - star.radius, y: y - star.radius, width: star.radius * 2, height: star.radius * 2)
                 context.fill(Path(ellipseIn: rect), with: .color(color.opacity(star.alpha)))
             }
         }
         .allowsHitTesting(false)
+    }
+
+    private func wrapped(_ value: CGFloat, extent: CGFloat) -> CGFloat {
+        guard extent > 0 else { return value }
+        let remainder = value.truncatingRemainder(dividingBy: extent)
+        return remainder < 0 ? remainder + extent : remainder
     }
 
     /// Deterministic SplitMix64 so the sky is the same every time the picker opens.
