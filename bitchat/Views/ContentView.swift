@@ -516,7 +516,10 @@ struct ContentView: View {
             showVerifySheet: $showVerifySheet
         )
         #if os(macOS)
-        .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 380)
+        // Wide enough for the title bar's traffic lights, sidebar toggle and
+        // the profile, settings and QR buttons; narrower and macOS moves the
+        // buttons into an overflow menu at the far end of the chat toolbar.
+        .navigationSplitViewColumnWidth(min: 280, ideal: 300, max: 420)
         #endif
     }
 
