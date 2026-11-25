@@ -66,8 +66,6 @@ enum ConversationInfoPolicy {
         case bookmark
         /// Share an invite to the location channel.
         case share
-        /// Open the channel list to go to another channel.
-        case channels
         /// Add the person to favorites, or remove them.
         case favorite
         /// Show the fingerprints to verify the encryption.
@@ -108,7 +106,7 @@ enum ConversationInfoPolicy {
         case .meshChannel:
             return Layout(
                 headerAction: nil,
-                quickActions: [.notices, .channels],
+                quickActions: [.notices],
                 rows: [.background, .people],
                 footerAction: nil
             )
@@ -116,7 +114,7 @@ enum ConversationInfoPolicy {
         case .locationChannel:
             return Layout(
                 headerAction: nil,
-                quickActions: [.notices, .bookmark, .share, .channels],
+                quickActions: [.notices, .bookmark, .share],
                 rows: [.background, .people],
                 footerAction: nil
             )

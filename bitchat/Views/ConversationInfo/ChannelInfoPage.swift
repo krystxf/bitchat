@@ -138,14 +138,6 @@ struct ChannelInfoPage: View {
                     requestShare(forGeohash: location.geohash)
                 }
             }
-        case .channels:
-            ConversationQuickAction(
-                title: Strings.channels,
-                systemImage: "number",
-                accessibilityLabel: Strings.locationChannels
-            ) {
-                appChromeModel.isLocationChannelsSheetPresented = true
-            }
         case .favorite, .verify, .createGroup, .addPeople:
             // Not offered for a channel (see ConversationInfoPolicy).
             EmptyView()
@@ -398,8 +390,6 @@ private enum Strings {
     static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
     static let share = String(localized: "conversation_info.action.share", defaultValue: "Share", comment: "Short label of the button on a location channel's details page that shares an invite to the channel")
     static let shareChannel = String(localized: "channel.share.action", defaultValue: "share channel", comment: "Accessibility label for sharing the active location channel")
-    static let channels = String(localized: "sidebar.section.channels", defaultValue: "channels", comment: "Sidebar section header above the public channels and private groups")
-    static let locationChannels = String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button")
     static let people = String(localized: "conversation_info.row.people", defaultValue: "People", comment: "Row on a channel's details page, and the title of the page it opens, listing the people in the channel")
     static let blocked = String(localized: "mesh_peers.state.blocked", comment: "State label for a blocked peer")
     static let openDMHint = String(localized: "mesh_peers.accessibility.open_dm_hint", comment: "Accessibility hint on a peer row explaining activation opens a private chat")

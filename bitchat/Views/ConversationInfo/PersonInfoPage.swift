@@ -141,7 +141,7 @@ private struct PersonInfoContent: View {
                 // this page.
                 personActions?.perform(.createGroup, person.actionTarget)
             }
-        case .notices, .bookmark, .share, .channels, .addPeople:
+        case .notices, .bookmark, .share, .addPeople:
             // Not offered for a person (see ConversationInfoPolicy).
             EmptyView()
         }

@@ -34,7 +34,7 @@ struct ConversationInfoPolicyTests {
 
     @Test func meshHasNoBookmarkOrShare() {
         let layout = Policy.layout(for: .meshChannel)
-        #expect(layout.quickActions == [.notices, .channels])
+        #expect(layout.quickActions == [.notices])
         #expect(layout.rows == [.background, .people])
         #expect(layout.headerAction == nil)
         #expect(layout.footerAction == nil)
@@ -42,7 +42,7 @@ struct ConversationInfoPolicyTests {
 
     @Test func aLocationChannelCanBeBookmarkedAndShared() {
         let layout = Policy.layout(for: .locationChannel)
-        #expect(layout.quickActions == [.notices, .bookmark, .share, .channels])
+        #expect(layout.quickActions == [.notices, .bookmark, .share])
         #expect(layout.rows == [.background, .people])
         #expect(layout.headerAction == nil)
         #expect(layout.footerAction == nil)

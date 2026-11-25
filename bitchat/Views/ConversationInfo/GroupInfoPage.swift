@@ -87,7 +87,7 @@ struct GroupInfoPage: View {
             ) {
                 showsAddPeople = true
             }
-        case .notices, .bookmark, .share, .channels, .favorite, .verify, .createGroup:
+        case .notices, .bookmark, .share, .favorite, .verify, .createGroup:
             // Not offered for a group (see ConversationInfoPolicy).
             EmptyView()
         }
