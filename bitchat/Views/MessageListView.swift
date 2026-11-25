@@ -258,6 +258,7 @@ struct MessageListView: View {
                             // A run of bubbles from one sender reads as a
                             // group: tight within, a wider gap above it.
                             .padding(.top, item.startsRun ? 8 : 2)
+                            .padding(.bottom, item.endsRun ? 6 : 1)
                             // No row background: bubbles sit straight on the
                             // backdrop. Archived echoes are told apart by
                             // their dimming (messageRow) alone.
