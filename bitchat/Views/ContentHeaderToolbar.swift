@@ -111,9 +111,6 @@ struct ContentHeaderToolbar: ViewModifier {
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
-            if locationChannelsModel.gatewayEnabled {
-                gatewayButton
-            }
             if carriedMailCount > 0 {
                 carriedMailIndicator
             }
@@ -194,23 +191,6 @@ struct ContentHeaderToolbar: ViewModifier {
             }
         }
         .help(String(localized: "app_info.tab.settings", comment: "Settings"))
-    }
-
-    private var gatewayButton: some View {
-        // The gateway toggle lives in the App Info settings pane, so the
-        // indicator deep-links there.
-        Button(action: { appChromeModel.presentAppInfo() }) {
-            Image(systemName: "globe")
-        }
-        .accessibilityLabel(
-            String(localized: "content.accessibility.gateway_active", defaultValue: "Internet gateway active, sharing your connection with the mesh", comment: "Accessibility label for the internet gateway indicator")
-        )
-        .accessibilityHint(
-            String(localized: "content.accessibility.gateway_settings_hint", defaultValue: "Opens settings to turn the gateway on or off", comment: "Accessibility hint for the internet gateway indicator explaining a tap opens the settings sheet")
-        )
-        .help(
-            String(localized: "content.header.gateway_active", defaultValue: "Sharing your internet connection with nearby mesh peers", comment: "Tooltip for the internet gateway indicator")
-        )
     }
 
     private var carriedMailIndicator: some View {
