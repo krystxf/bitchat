@@ -61,6 +61,18 @@ struct BitchatApp: App {
                 #endif
         }
         #if os(macOS)
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button {
+                    runtime.appChromeModel.presentAppInfo()
+                } label: {
+                    Text(verbatim: String(localized: "app_info.tab.settings", comment: "Settings") + "…")
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
+        }
+        #endif
+        #if os(macOS)
         .windowResizability(.contentSize)
         #endif
     }
