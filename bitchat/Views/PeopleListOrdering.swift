@@ -30,3 +30,30 @@ enum PeopleListOrdering {
         return ordered
     }
 }
+
+/// Remembers the order a roster was last shown in, so a section keeps its
+/// rows in place without lifecycle callbacks.
+///
+/// A `List` builds rows lazily, so `onAppear` on a section runs once per
+/// row as rows scroll into view. It can't seed the order once, and
+/// reseeding mid-scroll moved rows under the user's finger. Asking this
+/// memory for the order on every render needs no callback: the result
+/// depends only on the previous result and the current ids, so repeated
+/// renders with the same ids return the same order.
+@MainActor
+final class PeopleListOrderMemory {
+    private var shownIDs: [String] = []
+    private var generation: Int?
+
+    /// Returns `current` in stable order and remembers that order. A
+    /// `generation` different from the last call's forgets the remembered
+    /// order first, so the roster shows in the producer's order again.
+    func order(_ current: [String], generation: Int = 0) -> [String] {
+        if generation != self.generation {
+            self.generation = generation
+            shownIDs = []
+        }
+        shownIDs = PeopleListOrdering.stableOrder(previous: shownIDs, current: current)
+        return shownIDs
+    }
+}
