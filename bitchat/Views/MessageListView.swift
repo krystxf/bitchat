@@ -156,7 +156,8 @@ struct MessageListView: View {
                             isSelf: isSelf,
                             showsSenderName: item.startsRun && showsSender,
                             avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
-                            maxBubbleWidth: maxBubbleWidth
+                            maxBubbleWidth: maxBubbleWidth,
+                            endsRun: item.endsRun
                         )
                             .onAppear {
                                 // Callbacks lag a timeline switch: the new
@@ -707,17 +708,18 @@ private extension MessageListView {
         isSelf: Bool,
         showsSenderName: Bool,
         avatar: AvatarSlot,
-        maxBubbleWidth: CGFloat
+        maxBubbleWidth: CGFloat,
+        endsRun: Bool
     ) -> some View {
         Group {
             if avatar == .absent {
-                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth)
+                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun)
             } else {
                 // The avatar lines up with the bottom of the bubble, as in
                 // Messages, not with anything below it (payment chips).
                 HStack(alignment: .messageBubbleBottom, spacing: MessageBubbleStyle.avatarSpacing) {
                     senderAvatar(for: message, isShown: avatar == .shown)
-                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth)
+                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun)
                 }
             }
         }
@@ -733,7 +735,8 @@ private extension MessageListView {
         for message: BitchatMessage,
         isSelf: Bool,
         showsSenderName: Bool,
-        maxBubbleWidth: CGFloat
+        maxBubbleWidth: CGFloat,
+        endsRun: Bool
     ) -> some View {
         if message.sender == "system" {
             systemMessageRow(message)
@@ -751,7 +754,8 @@ private extension MessageListView {
                 message: message,
                 isSelf: isSelf,
                 showsSenderName: showsSenderName,
-                maxBubbleWidth: maxBubbleWidth
+                maxBubbleWidth: maxBubbleWidth,
+                hasTail: endsRun
             )
         }
     }

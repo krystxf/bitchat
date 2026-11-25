@@ -29,20 +29,24 @@ struct TextMessageView: View {
     /// Whether the sender's name goes above the bubble.
     private let showsSenderName: Bool
     private let maxBubbleWidth: CGFloat
+    private let hasTail: Bool
     @State private var expandedMessageIDs: Set<String> = []
     @State private var showDeliveryDetail = false
+    @AppStorage(MessageBubbleColorSettings.key) private var bubbleColorRawValue = MessageBubbleColor.blue.rawValue
 
     init(
         message: BitchatMessage,
         isSelf: Bool? = nil,
         showsSenderName: Bool = false,
-        maxBubbleWidth: CGFloat = .infinity
+        maxBubbleWidth: CGFloat = .infinity,
+        hasTail: Bool = true
     ) {
         self.message = message
         self.deliveryStatus = message.deliveryStatus
         self.isSelf = isSelf
         self.showsSenderName = showsSenderName
         self.maxBubbleWidth = maxBubbleWidth
+        self.hasTail = hasTail
     }
 
     var body: some View {
@@ -112,8 +116,15 @@ struct TextMessageView: View {
                 .foregroundColor(isSelf ? Color.white.opacity(0.85) : palette.accentBlue)
             }
         }
+        .frame(minWidth: 44, alignment: .leading)
         .padding(MessageBubbleStyle.textInsets)
-        .messageBubbleBackground(isSelf: isSelf, palette: palette)
+        .padding(.bottom, hasTail ? 7 : 0)
+        .messageBubbleBackground(
+            isSelf: isSelf,
+            palette: palette,
+            hasTail: hasTail,
+            selfFill: MessageBubbleColor(rawValue: bubbleColorRawValue)?.color ?? MessageBubbleColor.blue.color
+        )
         // Links take the tint: white on my accent bubble.
         .tint(isSelf ? .white : palette.accentBlue)
     }

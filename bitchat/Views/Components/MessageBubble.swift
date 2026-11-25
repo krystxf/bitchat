@@ -28,8 +28,8 @@ enum MessageBubbleStyle {
     /// Gap between that avatar and the bubble.
     static let avatarSpacing: CGFloat = 8
 
-    static var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    static func shape(isSelf: Bool, hasTail: Bool = true) -> MessageBubbleShape {
+        MessageBubbleShape(cornerRadius: cornerRadius, isSelf: isSelf, hasTail: hasTail)
     }
 
     /// Widest bubble in a row of `rowWidth`.
@@ -54,11 +54,43 @@ enum MessageBubbleStyle {
 extension View {
     /// Draws a chat bubble behind the view: the accent color behind mine,
     /// a neutral fill behind everyone else's.
-    func messageBubbleBackground(isSelf: Bool, palette: ThemePalette) -> some View {
+    func messageBubbleBackground(isSelf: Bool, palette: ThemePalette, hasTail: Bool = true, selfFill: Color? = nil) -> some View {
         background(
-            MessageBubbleStyle.shape
-                .fill(isSelf ? palette.accent : MessageBubbleStyle.incomingFill)
+            MessageBubbleStyle.shape(isSelf: isSelf, hasTail: hasTail)
+                .fill(isSelf ? (selfFill ?? palette.accent) : MessageBubbleStyle.incomingFill)
         )
+    }
+}
+
+/// A continuous rounded message shape with the small lower-corner tail used
+/// by Messages. The tail is part of the fill, so it remains clean on any
+/// conversation background.
+struct MessageBubbleShape: Shape {
+    var cornerRadius: CGFloat
+    var isSelf: Bool
+    var hasTail: Bool = true
+
+    func path(in rect: CGRect) -> Path {
+        let tailHeight: CGFloat = hasTail ? 7 : 0
+        let body = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: max(0, rect.height - tailHeight))
+        let r = min(cornerRadius, min(body.width, body.height) / 2)
+        var path = Path(roundedRect: body, cornerSize: CGSize(width: r, height: r), style: .continuous)
+        if hasTail {
+            let tail = Path { tailPath in
+                if isSelf {
+                    tailPath.move(to: CGPoint(x: body.maxX - r - 10, y: body.maxY - 2))
+                    tailPath.addQuadCurve(to: CGPoint(x: body.maxX - r + 2, y: rect.maxY), control: CGPoint(x: body.maxX - r - 1, y: rect.maxY - 1))
+                    tailPath.addQuadCurve(to: CGPoint(x: body.maxX - r - 3, y: body.maxY - 1), control: CGPoint(x: body.maxX - r + 2, y: body.maxY + 1))
+                } else {
+                    tailPath.move(to: CGPoint(x: body.minX + r + 10, y: body.maxY - 2))
+                    tailPath.addQuadCurve(to: CGPoint(x: body.minX + r - 2, y: rect.maxY), control: CGPoint(x: body.minX + r + 1, y: rect.maxY - 1))
+                    tailPath.addQuadCurve(to: CGPoint(x: body.minX + r + 3, y: body.maxY - 1), control: CGPoint(x: body.minX + r - 2, y: body.maxY + 1))
+                }
+                tailPath.closeSubpath()
+            }
+            path.addPath(tail)
+        }
+        return path
     }
 }
 
