@@ -71,10 +71,62 @@ struct LocationProofOfWorkSettingsTests {
         let defaults = isolatedDefaults()
         LocationProofOfWorkSettings.setEnabled(false, in: defaults)
         LocationProofOfWorkSettings.setDifficultyBits(24, in: defaults)
+        LocationProofOfWorkSettings.setHidesMessagesWithoutWork(true, in: defaults)
 
         LocationProofOfWorkSettings.reset(in: defaults)
 
         #expect(LocationProofOfWorkSettings.isEnabled(in: defaults))
         #expect(LocationProofOfWorkSettings.difficultyBits(in: defaults) == LocationProofOfWorkSettings.defaultDifficultyBits)
+        #expect(!LocationProofOfWorkSettings.hidesMessagesWithoutWork(in: defaults))
+    }
+
+    // MARK: - Receive filter
+
+    @Test func hidingMessagesWithoutWorkIsOffByDefault() {
+        // On by default it would hide everyone on clients that mine nothing.
+        #expect(!LocationProofOfWorkSettings.hidesMessagesWithoutWork(in: isolatedDefaults()))
+    }
+
+    @Test func hidingMessagesWithoutWorkRoundTripsIndependentlyOfSending() {
+        let defaults = isolatedDefaults()
+        LocationProofOfWorkSettings.setHidesMessagesWithoutWork(true, in: defaults)
+        LocationProofOfWorkSettings.setEnabled(false, in: defaults)
+        #expect(LocationProofOfWorkSettings.hidesMessagesWithoutWork(in: defaults))
+        #expect(LocationProofOfWorkSettings.sendTargetBits(in: defaults) == 0)
+
+        LocationProofOfWorkSettings.setHidesMessagesWithoutWork(false, in: defaults)
+        #expect(!LocationProofOfWorkSettings.hidesMessagesWithoutWork(in: defaults))
+        #expect(!LocationProofOfWorkSettings.isEnabled(in: defaults))
+    }
+
+    @Test func theIncomingMinimumMatchesTheRateLimitBypass() {
+        #expect(LocationProofOfWorkSettings.minimumIncomingBits == NostrPoW.rateLimitBypassBits)
+        #expect(LocationProofOfWorkSettings.minimumIncomingBits <= LocationProofOfWorkSettings.defaultDifficultyBits)
+    }
+
+    @Test func filterHidesOnlyMessagesBelowTheMinimum() async throws {
+        let sender = try NostrIdentity.generate()
+
+        let unmined = try NostrProtocol.createEphemeralGeohashEvent(content: "hi", geohash: "u4pruy", senderIdentity: sender)
+        #expect(LocationProofOfWorkSettings.filterHides(unmined))
+
+        let mined = try await NostrProtocol.createMinedEphemeralGeohashEvent(
+            content: "hi", geohash: "u4pruy", senderIdentity: sender, powTargetBits: 8
+        )
+        try #require(NostrPoW.validatedDifficulty(idHex: mined.id, tags: mined.tags) == 8)
+        #expect(!LocationProofOfWorkSettings.filterHides(mined))
+
+        let weak = try await NostrProtocol.createMinedEphemeralGeohashEvent(
+            content: "hi", geohash: "u4pruy", senderIdentity: sender, powTargetBits: 4
+        )
+        #expect(LocationProofOfWorkSettings.filterHides(weak))
+
+        // Not messages: presence heartbeats and empty teleport markers.
+        let presence = try NostrProtocol.createGeohashPresenceEvent(geohash: "u4pruy", senderIdentity: sender)
+        #expect(!LocationProofOfWorkSettings.filterHides(presence))
+        let teleportMarker = try NostrProtocol.createEphemeralGeohashEvent(
+            content: "  ", geohash: "u4pruy", senderIdentity: sender, teleported: true
+        )
+        #expect(!LocationProofOfWorkSettings.filterHides(teleportMarker))
     }
 }

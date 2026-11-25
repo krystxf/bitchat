@@ -6,6 +6,7 @@
 // For more information, see <https://unlicense.org>
 //
 
+import BitFoundation
 import Foundation
 
 /// User preference for NIP-13 proof of work on location-channel messages
@@ -26,9 +27,16 @@ import Foundation
 ///
 /// Off means no mining at all: the message is signed and sent immediately,
 /// with no nonce tag.
+///
+/// A separate receive-side switch can hide incoming location messages that
+/// carry no proof of work. It is off by default and independent of the send
+/// side: Android ties both to one switch, so turning it on there also drops
+/// every message from people on older clients, which splits a channel in
+/// two without the people in it knowing.
 enum LocationProofOfWorkSettings {
     private static let enabledKey = "locationPoW.enabled"
     private static let difficultyBitsKey = "locationPoW.difficultyBits"
+    private static let hidesMessagesWithoutWorkKey = "locationPoW.hideMessagesWithoutWork"
 
     static let defaultDifficultyBits = NostrPoW.targetBits
 
@@ -50,10 +58,34 @@ enum LocationProofOfWorkSettings {
         set { setDifficultyBits(newValue, in: .standard) }
     }
 
+    static var hidesMessagesWithoutWork: Bool {
+        get { hidesMessagesWithoutWork(in: .standard) }
+        set { setHidesMessagesWithoutWork(newValue, in: .standard) }
+    }
+
+    /// Proof of work an incoming location message needs while
+    /// `hidesMessagesWithoutWork` is on: the same 8 bits that let a sender
+    /// skip the per-sender rate limit, and what this app mines by default.
+    static let minimumIncomingBits = NostrPoW.rateLimitBypassBits
+
     /// The NIP-13 target the next location-channel send commits to: the
     /// chosen difficulty, or 0 (no mining, no nonce tag) when off.
     static func sendTargetBits(in defaults: UserDefaults = .standard) -> Int {
         isEnabled(in: defaults) ? difficultyBits(in: defaults) : 0
+    }
+
+    /// Whether the "hide messages without proof of work" filter drops this
+    /// inbound event: a kind-20000 message with text whose validated NIP-13
+    /// difficulty is below `minimumIncomingBits`. Presence heartbeats and
+    /// empty teleport markers carry no message, so they always pass. Callers
+    /// let the user's own messages through.
+    static func filterHides(_ event: NostrEvent) -> Bool {
+        guard event.kind == NostrProtocol.EventKind.ephemeralEvent.rawValue,
+              !event.content.trimmed.isEmpty
+        else {
+            return false
+        }
+        return NostrPoW.validatedDifficulty(idHex: event.id, tags: event.tags) < minimumIncomingBits
     }
 
     // MARK: - Store-injecting forms
@@ -85,10 +117,19 @@ enum LocationProofOfWorkSettings {
         defaults.set(level, forKey: difficultyBitsKey)
     }
 
+    static func hidesMessagesWithoutWork(in defaults: UserDefaults) -> Bool {
+        defaults.object(forKey: hidesMessagesWithoutWorkKey) as? Bool ?? false
+    }
+
+    static func setHidesMessagesWithoutWork(_ hides: Bool, in defaults: UserDefaults) {
+        defaults.set(hides, forKey: hidesMessagesWithoutWorkKey)
+    }
+
     /// Panic-wipe hook. Removing the keys restores the defaults, so a wiped
     /// device behaves like a fresh install.
     static func reset(in defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: enabledKey)
         defaults.removeObject(forKey: difficultyBitsKey)
+        defaults.removeObject(forKey: hidesMessagesWithoutWorkKey)
     }
 }

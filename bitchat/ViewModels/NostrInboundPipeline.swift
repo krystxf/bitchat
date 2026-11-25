@@ -99,6 +99,10 @@ final class NostrInboundPipeline {
     private weak var context: (any NostrInboundPipelineContext)?
     private let presence: GeoPresenceTracker
     private var geoEventLogCount = 0
+    /// "hide messages without proof of work" (off by default; see
+    /// `LocationProofOfWorkSettings`). Read per event so a change in
+    /// settings applies to the next message.
+    private let hidesMessagesWithoutWork: () -> Bool
 
     /// Monotonic panic-wipe generation for this pipeline. A panic wipe clears
     /// relay handlers so no NEW events flow, but a detached decrypt task
@@ -116,9 +120,31 @@ final class NostrInboundPipeline {
         wipeGeneration &+= 1
     }
 
-    init(context: any NostrInboundPipelineContext, presence: GeoPresenceTracker) {
+    init(
+        context: any NostrInboundPipelineContext,
+        presence: GeoPresenceTracker,
+        hidesMessagesWithoutWork: @escaping () -> Bool = { LocationProofOfWorkSettings.hidesMessagesWithoutWork }
+    ) {
         self.context = context
         self.presence = presence
+        self.hidesMessagesWithoutWork = hidesMessagesWithoutWork
+    }
+
+    /// True when "hide messages without proof of work" drops this event.
+    /// Checked before the event is recorded as processed: a hidden message
+    /// neither counts its sender as present nor blocks a later copy, so
+    /// once the filter is off, the next replay of the channel shows it.
+    /// The user's own messages always show.
+    @MainActor
+    private func isHiddenForMissingWork(_ event: NostrEvent) -> Bool {
+        guard hidesMessagesWithoutWork(), LocationProofOfWorkSettings.filterHides(event) else { return false }
+        if let context,
+           let geohash = context.currentGeohash,
+           let mine = try? context.deriveNostrIdentity(forGeohash: geohash),
+           mine.publicKeyHex.lowercased() == event.pubkey.lowercased() {
+            return false
+        }
+        return true
     }
 
     /// `isHistoryReplay` marks events relays return from storage before EOSE.
@@ -137,6 +163,7 @@ final class NostrInboundPipeline {
         else {
             return
         }
+        if isHiddenForMissingWork(event) { return }
 
         context.recordProcessedNostrEvent(event.id)
 
@@ -223,6 +250,7 @@ final class NostrInboundPipeline {
             return
         }
         if context.hasProcessedNostrEvent(event.id) { return }
+        if isHiddenForMissingWork(event) { return }
         context.recordProcessedNostrEvent(event.id)
 
         let powBits = NostrPoW.validatedDifficulty(idHex: event.id, tags: event.tags)

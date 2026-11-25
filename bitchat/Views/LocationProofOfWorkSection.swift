@@ -8,9 +8,10 @@
 
 import SwiftUI
 
-/// Settings section for proof of work on location-channel messages (see
+/// Settings sections for proof of work on location-channel messages (see
 /// `LocationProofOfWorkSettings`): the switch, and while it is on, the
-/// difficulty with an estimated mining time for each level.
+/// difficulty with an estimated mining time for each level; then the
+/// separate receive-side filter, with its cost spelled out in its footer.
 ///
 /// The Android app has the same option as a switch and a 0–32 bit slider.
 /// Here the switch covers 0, and the picker offers Android's named levels
@@ -18,8 +19,14 @@ import SwiftUI
 struct LocationProofOfWorkSection: View {
     @State private var isEnabled = LocationProofOfWorkSettings.isEnabled
     @State private var difficultyBits = LocationProofOfWorkSettings.difficultyBits
+    @State private var hidesMessagesWithoutWork = LocationProofOfWorkSettings.hidesMessagesWithoutWork
 
     var body: some View {
+        sendSection
+        receiveSection
+    }
+
+    private var sendSection: some View {
         Section {
             Toggle(isOn: enabledBinding) {
                 Text(verbatim: Strings.title)
@@ -44,6 +51,24 @@ struct LocationProofOfWorkSection: View {
             if isEnabled {
                 Text(verbatim: Strings.footer)
             }
+        }
+    }
+
+    /// Off by default: most people in a channel run clients that mine
+    /// nothing, and hiding them is invisible to them.
+    private var receiveSection: some View {
+        Section {
+            Toggle(isOn: Binding(
+                get: { hidesMessagesWithoutWork },
+                set: { newValue in
+                    hidesMessagesWithoutWork = newValue
+                    LocationProofOfWorkSettings.hidesMessagesWithoutWork = newValue
+                }
+            )) {
+                Text(verbatim: Strings.hideUnprovenTitle)
+            }
+        } footer: {
+            Text(verbatim: Strings.hideUnprovenFooter)
         }
     }
 
@@ -102,6 +127,9 @@ extension LocationProofOfWorkSection {
         static let subtitle = String(localized: "app_info.settings.pow.subtitle", defaultValue: "your device does a little extra work before each location channel message. it takes you a moment but makes flooding a channel slow for spammers, and apps that check it let your messages past their spam limits. on by default.", comment: "Subtitle explaining what proof of work on location channel messages does and why")
         static let difficulty = String(localized: "app_info.settings.pow.difficulty", defaultValue: "difficulty", comment: "Label of the picker that chooses how much proof of work each location channel message carries")
         static let footer = String(localized: "app_info.settings.pow.footer", defaultValue: "each step takes 16 times the work of the one before. times are estimates for an older phone. a message never waits more than a minute: if mining runs long, or you send again, it goes out with the work done so far.", comment: "Footer under the proof of work settings explaining the difficulty levels, the time estimates, and the one-minute limit")
+
+        static let hideUnprovenTitle = String(localized: "app_info.settings.pow.hide_unproven.title", defaultValue: "hide messages without proof of work", comment: "Title of the setting that hides incoming location channel messages that carry no proof of work")
+        static let hideUnprovenFooter = String(localized: "app_info.settings.pow.hide_unproven.footer", defaultValue: "hides location channel messages that carry no proof of work. many apps don't add it, including older versions of this one, so with this on you stop seeing the people who use them, and they can't tell. off by default.", comment: "Footer explaining that hiding messages without proof of work also hides everyone on older or other clients, without them knowing")
 
         /// One picker option: "16 bits · under a second".
         static func level(_ bits: Int) -> String {

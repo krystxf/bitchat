@@ -67,9 +67,15 @@ final class GeoPresenceTracker {
     private weak var context: (any GeoPresenceContext)?
     private var recentGeoSamplingEventIDs = Set<String>()
     private var recentGeoSamplingEventIDOrder: [String] = []
+    /// "hide messages without proof of work"; see `NostrInboundPipeline`.
+    private let hidesMessagesWithoutWork: () -> Bool
 
-    init(context: any GeoPresenceContext) {
+    init(
+        context: any GeoPresenceContext,
+        hidesMessagesWithoutWork: @escaping () -> Bool = { LocationProofOfWorkSettings.hidesMessagesWithoutWork }
+    ) {
         self.context = context
+        self.hidesMessagesWithoutWork = hidesMessagesWithoutWork
     }
 
     /// True when the event carries a `["t", "teleport"]` tag.
@@ -129,6 +135,10 @@ final class GeoPresenceTracker {
            my.publicKeyHex.lowercased() == event.pubkey.lowercased() {
             return
         }
+        // A message the open channel would hide must not reach the nearby
+        // conversation hint or a notification either. Its sender still
+        // counts as present, as recorded above.
+        if hidesMessagesWithoutWork(), LocationProofOfWorkSettings.filterHides(event) { return }
 
         // Non-empty content on a sampled event means an actual chat message
         // (presence events are empty) — feed the nearby-conversation hint.

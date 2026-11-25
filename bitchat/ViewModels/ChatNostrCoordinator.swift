@@ -50,10 +50,19 @@ final class ChatNostrCoordinator {
     let inbound: NostrInboundPipeline
     let subscriptions: GeohashSubscriptionManager
 
-    init(context: any ChatNostrContext) {
+    /// `hidesMessagesWithoutWork` is injected so tests do not depend on the
+    /// shared preferences.
+    init(
+        context: any ChatNostrContext,
+        hidesMessagesWithoutWork: @escaping () -> Bool = { LocationProofOfWorkSettings.hidesMessagesWithoutWork }
+    ) {
         self.context = context
-        let presence = GeoPresenceTracker(context: context)
-        let inbound = NostrInboundPipeline(context: context, presence: presence)
+        let presence = GeoPresenceTracker(context: context, hidesMessagesWithoutWork: hidesMessagesWithoutWork)
+        let inbound = NostrInboundPipeline(
+            context: context,
+            presence: presence,
+            hidesMessagesWithoutWork: hidesMessagesWithoutWork
+        )
         self.presence = presence
         self.inbound = inbound
         self.subscriptions = GeohashSubscriptionManager(context: context, inbound: inbound, presence: presence)

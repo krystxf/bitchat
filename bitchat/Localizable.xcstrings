@@ -4217,6 +4217,378 @@
         }
       }
     },
+    "app_info.settings.pow.hide_unproven.footer" : {
+      "comment" : "Footer explaining that hiding messages without proof of work also hides everyone on older or other clients, without them knowing",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يخفي رسائل قنوات الموقع التي لا تحمل إثبات عمل. كثير من التطبيقات لا تضيفه، ومنها الإصدارات الأقدم من هذا التطبيق، لذا عند تفعيل هذا الخيار لن ترى الأشخاص الذين يستخدمونها، ولن يعرفوا ذلك. متوقف افتراضيًا."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রুফ অফ ওয়ার্ক ছাড়া আসা লোকেশন চ্যানেল বার্তা লুকিয়ে রাখে। অনেক অ্যাপ এটি যোগ করে না, এই অ্যাপের পুরোনো সংস্করণও না, তাই এটি চালু থাকলে যারা সেগুলো ব্যবহার করেন তাদের আপনি আর দেখবেন না, আর তারা তা বুঝতেও পারবেন না। ডিফল্টভাবে বন্ধ।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "blendet nachrichten in standort-kanälen aus, die keinen arbeitsnachweis tragen. viele apps fügen ihn nicht hinzu, auch ältere versionen dieser app. ist das an, siehst du die leute nicht mehr, die sie nutzen, und sie merken es nicht. standardmäßig aus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hides location channel messages that carry no proof of work. many apps don't add it, including older versions of this one, so with this on you stop seeing the people who use them, and they can't tell. off by default."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "oculta los mensajes de canales de ubicación que no llevan prueba de trabajo. muchas apps no la añaden, incluidas versiones antiguas de esta, así que con esto activado dejas de ver a quienes las usan, y ellos no lo notan. desactivado por defecto."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پیام‌های کانال‌های موقعیت را که اثبات کار ندارند پنهان می‌کند. بسیاری از برنامه‌ها، از جمله نسخه‌های قدیمی‌تر همین برنامه، آن را اضافه نمی‌کنند، پس با روشن بودن این گزینه افرادی را که از آن‌ها استفاده می‌کنند دیگر نمی‌بینید و آن‌ها هم متوجه نمی‌شوند. به‌طور پیش‌فرض خاموش است."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "itinatago ang mga mensahe sa location channel na walang proof of work. maraming app ang hindi nagdadagdag nito, kasama ang mga lumang bersyon ng app na ito, kaya kapag naka-on ito, hindi mo na makikita ang mga taong gumagamit ng mga iyon, at hindi nila ito malalaman. naka-off bilang default."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "masque les messages des canaux de localisation qui n'ont pas de preuve de travail. beaucoup d'apps n'en ajoutent pas, y compris les anciennes versions de celle-ci : avec ceci activé, tu ne vois plus les personnes qui les utilisent, et elles ne le savent pas. désactivé par défaut."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מסתיר הודעות בערוצי מיקום שאין בהן הוכחת עבודה. אפליקציות רבות לא מוסיפות אותה, כולל גרסאות ישנות של האפליקציה הזו, כך שכשזה מופעל לא תראה את מי שמשתמש בהן, והם לא יידעו. כבוי כברירת מחדל."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बिना प्रूफ़ ऑफ़ वर्क वाले लोकेशन चैनल संदेशों को छिपाता है। कई ऐप इसे नहीं जोड़ते, इस ऐप के पुराने संस्करण भी नहीं, इसलिए इसे चालू रखने पर आप उनका इस्तेमाल करने वाले लोगों को नहीं देख पाएँगे, और उन्हें पता भी नहीं चलेगा। डिफ़ॉल्ट रूप से बंद।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menyembunyikan pesan kanal lokasi yang tidak membawa bukti kerja. banyak aplikasi tidak menambahkannya, termasuk versi lama aplikasi ini, jadi jika ini aktif kamu tidak lagi melihat orang yang memakainya, dan mereka tidak tahu. nonaktif secara default."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nasconde i messaggi dei canali posizione che non hanno una prova di lavoro. molte app non la aggiungono, comprese le versioni precedenti di questa, quindi con questa opzione attiva smetti di vedere chi le usa, e loro non lo sanno. disattivato per impostazione predefinita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プルーフ・オブ・ワークのないロケーションチャンネルのメッセージを隠します。このアプリの古いバージョンを含め、多くのアプリはこれを付けないため、オンにするとそれらを使う人のメッセージが見えなくなり、相手もそれに気づきません。初期設定はオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "작업 증명이 없는 위치 채널 메시지를 숨깁니다. 이 앱의 이전 버전을 포함해 많은 앱이 이를 추가하지 않으므로, 켜면 그런 앱을 쓰는 사람들의 메시지가 보이지 않고 상대방도 알지 못합니다. 기본값은 꺼짐입니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menyembunyikan mesej kanal lokasi yang tiada bukti kerja. banyak apl tidak menambahkannya, termasuk versi lama apl ini, jadi apabila ini dihidupkan anda tidak lagi melihat orang yang menggunakannya, dan mereka tidak tahu. dimatikan secara lalai."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रुफ अफ वर्क नभएका स्थान च्यानल सन्देशहरू लुकाउँछ। यो एपका पुराना संस्करणसहित धेरै एपहरूले यसलाई थप्दैनन्, त्यसैले यो सक्रिय हुँदा तिनीहरू प्रयोग गर्ने मानिसहरू तपाईंले देख्नुहुन्न, र उनीहरूलाई थाहा पनि हुँदैन। पूर्वनिर्धारित रूपमा बन्द।"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "verbergt berichten in locatiekanalen zonder proof of work. veel apps voegen het niet toe, ook oudere versies van deze, dus als dit aan staat zie je de mensen die ze gebruiken niet meer, en zij merken dat niet. standaard uit."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ukrywa wiadomości na kanałach lokalizacji, które nie mają dowodu pracy. wiele aplikacji go nie dodaje, w tym starsze wersje tej, więc po włączeniu przestajesz widzieć osoby, które z nich korzystają, a one o tym nie wiedzą. domyślnie wyłączone."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "oculta as mensagens dos canais de localização que não trazem prova de trabalho. muitas apps não a adicionam, incluindo versões antigas desta, por isso, com isto ativado, deixas de ver as pessoas que as usam, e elas não sabem. desativado por predefinição."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "oculta as mensagens dos canais de localização que não trazem prova de trabalho. muitos apps não a adicionam, incluindo versões antigas deste, então, com isto ativado, você deixa de ver as pessoas que os usam, e elas não ficam sabendo. desativado por padrão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "скрывает сообщения в каналах локации без доказательства работы. многие приложения его не добавляют, включая старые версии этого, поэтому, если это включено, вы перестанете видеть тех, кто ими пользуется, а они об этом не узнают. по умолчанию выключено."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "döljer meddelanden i platskanaler som saknar arbetsbevis. många appar lägger inte till det, även äldre versioner av den här, så när detta är på slutar du se dem som använder dem, och de märker det inte. av som standard."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வேலைச் சான்று இல்லாத இட சேனல் செய்திகளை மறைக்கிறது. இந்த ஆப்பின் பழைய பதிப்புகள் உட்பட பல ஆப்கள் இதைச் சேர்ப்பதில்லை, எனவே இது இயக்கத்தில் இருக்கும்போது அவற்றைப் பயன்படுத்துபவர்களை நீங்கள் பார்க்க மாட்டீர்கள், அவர்களுக்கும் அது தெரியாது. இயல்பாக முடக்கப்பட்டுள்ளது."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ซ่อนข้อความในช่องตามตำแหน่งที่ไม่มีหลักฐานการทำงาน แอปจำนวนมากไม่ได้เพิ่มสิ่งนี้ รวมถึงแอปนี้รุ่นเก่า เมื่อเปิดไว้ คุณจะไม่เห็นคนที่ใช้แอปเหล่านั้นอีก และพวกเขาจะไม่รู้ตัว ปิดอยู่ตามค่าเริ่มต้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iş kanıtı taşımayan konum kanalı mesajlarını gizler. bu uygulamanın eski sürümleri dahil birçok uygulama bunu eklemez, bu yüzden bu açıkken onları kullanan kişileri artık görmezsin ve onlar bunu fark etmez. varsayılan olarak kapalı."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "приховує повідомлення в каналах локації без доказу роботи. багато застосунків його не додають, зокрема старі версії цього, тож коли це увімкнено, ви перестанете бачити тих, хто ними користується, а вони про це не знатимуть. типово вимкнено."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بغیر پروف آف ورک والے لوکیشن چینل پیغامات چھپاتا ہے۔ کئی ایپس اسے شامل نہیں کرتیں، اس ایپ کے پرانے ورژن بھی نہیں، اس لیے اسے آن رکھنے پر آپ انہیں استعمال کرنے والے لوگوں کو نہیں دیکھ پائیں گے، اور انہیں پتا بھی نہیں چلے گا۔ بطور ڈیفالٹ بند۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ẩn các tin nhắn trong kênh vị trí không có bằng chứng công việc. nhiều ứng dụng không thêm nó, kể cả các phiên bản cũ của ứng dụng này, nên khi bật tùy chọn này bạn sẽ không còn thấy những người dùng các ứng dụng đó, và họ cũng không biết. tắt theo mặc định."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏不带工作量证明的位置频道消息。许多应用（包括本应用的旧版本）不会添加它，因此开启后你将看不到使用这些应用的人，而他们也不会知道。默认关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏不帶工作量證明的位置頻道訊息。許多 App（包括本 App 的舊版本）不會加入它，因此開啟後你將看不到使用這些 App 的人，而他們也不會知道。預設為關閉。"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.hide_unproven.title" : {
+      "comment" : "Title of the setting that hides incoming location channel messages that carry no proof of work",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إخفاء الرسائل التي بلا إثبات عمل"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রুফ অফ ওয়ার্ক ছাড়া বার্তা লুকান"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nachrichten ohne arbeitsnachweis ausblenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hide messages without proof of work"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ocultar mensajes sin prueba de trabajo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پنهان کردن پیام‌های بدون اثبات کار"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "itago ang mga mensaheng walang proof of work"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "masquer les messages sans preuve de travail"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסתרת הודעות ללא הוכחת עבודה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बिना प्रूफ़ ऑफ़ वर्क वाले संदेश छिपाएँ"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sembunyikan pesan tanpa bukti kerja"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nascondi i messaggi senza prova di lavoro"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プルーフ・オブ・ワークのないメッセージを隠す"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "작업 증명 없는 메시지 숨기기"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sembunyikan mesej tanpa bukti kerja"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रुफ अफ वर्क नभएका सन्देशहरू लुकाउनुहोस्"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "berichten zonder proof of work verbergen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ukrywaj wiadomości bez dowodu pracy"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ocultar mensagens sem prova de trabalho"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ocultar mensagens sem prova de trabalho"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "скрывать сообщения без доказательства работы"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dölj meddelanden utan arbetsbevis"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வேலைச் சான்று இல்லாத செய்திகளை மறை"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ซ่อนข้อความที่ไม่มีหลักฐานการทำงาน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iş kanıtı olmayan mesajları gizle"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "приховувати повідомлення без доказу роботи"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پروف آف ورک کے بغیر پیغامات چھپائیں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ẩn tin nhắn không có bằng chứng công việc"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏没有工作量证明的消息"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏沒有工作量證明的訊息"
+          }
+        }
+      }
+    },
     "app_info.settings.relays.add" : {
       "comment" : "Button that adds the typed relay address to the list",
       "extractionState" : "manual",
