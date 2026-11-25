@@ -579,7 +579,7 @@ struct ContentView: View {
     }
 }
 
-private extension View {
+extension View {
     /// Floating chrome over the message list. On OS 26+ a safe-area bar, so
     /// the list gets the system's scroll edge effect under the floating glass
     /// controls; a plain safe-area inset below.
