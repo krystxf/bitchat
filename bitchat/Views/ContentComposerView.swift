@@ -11,7 +11,6 @@ struct ContentComposerView: View {
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @ObservedObject private var bridgeService = BridgeService.shared
-    @Environment(\.appTheme) private var theme
     @ThemedPalette private var palette
 
     @Binding var messageText: String
@@ -110,9 +109,8 @@ struct ContentComposerView: View {
                     // dismissed keyboard, so it stays out of this.
                     isTextFieldFocused.wrappedValue = true
                 }
-                .padding(.vertical, theme.usesGlassChrome ? 8 : 4)
+                .padding(.vertical, 8)
                 .padding(.horizontal, 6)
-                .themedInputBackground()
                 .modifier(FocusEffectDisabledModifier())
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .onChange(of: messageText) { newValue in
@@ -139,7 +137,7 @@ struct ContentComposerView: View {
             }
         }
         .padding(.horizontal, 6)
-        .padding(.top, theme.usesGlassChrome ? 8 : 6)
+        .padding(.top, 8)
         .padding(.bottom, 8)
         .themedChromePanel(edge: .bottom)
         .onDisappear {

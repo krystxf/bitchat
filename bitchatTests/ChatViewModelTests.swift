@@ -706,10 +706,10 @@ struct ChatViewModelFormattingTests {
             senderPeerID: PeerID(str: "00000000000000b3")
         )
 
-        // The full text is cached first under the same scheme, theme and
-        // sender flags; the header lookup must not pick it up.
-        let fullText = viewModel.formatMessageAsText(message, colorScheme: .dark, theme: .matrix)
-        let header = viewModel.formatMessageHeader(message, colorScheme: .dark, theme: .matrix)
+        // The full text is cached first under the same scheme and sender
+        // flags; the header lookup must not pick it up.
+        let fullText = viewModel.formatMessageAsText(message, colorScheme: .dark)
+        let header = viewModel.formatMessageHeader(message, colorScheme: .dark)
 
         #expect(String(header.characters) == "<@Alice#a1b2> ")
         #expect(String(fullText.characters).hasPrefix("<@Alice#a1b2> hello"))
@@ -721,8 +721,8 @@ struct ChatViewModelFormattingTests {
             ) == header
         )
         // Later lookups are answered from each one's own cache entry.
-        #expect(viewModel.formatMessageHeader(message, colorScheme: .dark, theme: .matrix) == header)
-        #expect(viewModel.formatMessageAsText(message, colorScheme: .dark, theme: .matrix) == fullText)
+        #expect(viewModel.formatMessageHeader(message, colorScheme: .dark) == header)
+        #expect(viewModel.formatMessageAsText(message, colorScheme: .dark) == fullText)
     }
 }
 

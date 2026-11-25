@@ -300,7 +300,6 @@ struct NoticesView: View {
                 composer
             }
         }
-        .themedSurface()
         #if os(macOS)
         .frame(minWidth: 420, idealWidth: 440, minHeight: 620, idealHeight: 680)
         #endif
@@ -371,7 +370,6 @@ struct NoticesView: View {
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .padding(.bottom, 12)
-        .themedSurface()
     }
 
     private var scopeTitle: String {
@@ -444,7 +442,6 @@ struct NoticesView: View {
             .padding(.vertical, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .themedSurface()
     }
 
     private var locationUnavailableSection: some View {
@@ -464,7 +461,6 @@ struct NoticesView: View {
             .padding(.vertical, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .themedSurface()
     }
 
     private var composer: some View {
@@ -525,7 +521,6 @@ struct NoticesView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .themedSurface()
         .overlay(Divider(), alignment: .top)
     }
 
@@ -640,7 +635,6 @@ private struct NoticesList: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .themedSurface()
     }
 
     /// Notes may still be loading or unreachable; only claim "no notices yet"

@@ -29,7 +29,6 @@ struct MeshTopologyDisplayModel {
 /// the center), drawn with Canvas so it stays cheap at any peer count.
 struct MeshTopologyView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.appTheme) private var appTheme
     @ThemedPalette private var palette
 
     /// Fetches a fresh model; called on appear and on manual refresh.
@@ -52,7 +51,6 @@ struct MeshTopologyView: View {
                 .foregroundColor(palette.primary)
             }
             .padding()
-            .themedSurface(opacity: 0.95)
 
             content
         }
@@ -137,7 +135,7 @@ struct MeshTopologyView: View {
     private var graphCanvas: some View {
         Canvas { context, size in
             let positions = Self.layout(nodes: model.nodes, in: size)
-            let fontDesign = appTheme.bodyFontDesign
+            let fontDesign = Font.Design.default
 
             // Edges first so nodes draw on top.
             for (fromID, toID) in model.edges {

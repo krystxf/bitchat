@@ -163,8 +163,6 @@ struct BlockRevealImageView: View {
                                     Image(systemName: "eye.slash.fill")
                                         .font(.bitchatSystem(size: 24, weight: .semibold))
                                     Text(verbatim: Strings.tapToReveal)
-                                        // Themed: monospaced under matrix,
-                                        // system under liquid glass.
                                         .bitchatFont(size: 12, weight: .medium)
                                 }
                                 .foregroundColor(.white.opacity(0.85))

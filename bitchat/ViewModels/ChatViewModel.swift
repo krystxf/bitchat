@@ -170,7 +170,6 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     }
     private var visibleMessagesCache: [BitchatMessage]?
     @Published var currentColorScheme: ColorScheme = .light
-    @Published var currentTheme: AppTheme = .matrix
     @Published var isConnected = false
     @Published private(set) var panicRecoveryBlocked = false
     var networkActivationAllowed: Bool { !panicRecoveryBlocked }
@@ -1831,13 +1830,13 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     // MARK: - Message Formatting
 
     @MainActor
-    func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme? = nil) -> AttributedString {
-        messageFormatter.formatMessageAsText(message, colorScheme: colorScheme, theme: theme ?? currentTheme)
+    func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatMessageAsText(message, colorScheme: colorScheme)
     }
 
     @MainActor
-    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme? = nil) -> AttributedString {
-        messageFormatter.formatMessageHeader(message, colorScheme: colorScheme, theme: theme ?? currentTheme)
+    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatMessageHeader(message, colorScheme: colorScheme)
     }
 
     // MARK: - Noise Protocol Support

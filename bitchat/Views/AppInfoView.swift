@@ -1,13 +1,12 @@
 import SwiftUI
 
 /// The sheet behind the "bitchat/" logo: a segmented Settings/Info surface.
-/// Settings gathers every user preference (appearance, voice, connectivity
+/// Settings gathers every user preference (language, voice, connectivity
 /// toggles, panic wipe); Info keeps the about content (how-to, features,
 /// privacy, symbols legend).
 struct AppInfoView: View {
     @Environment(\.dismiss) var dismiss
     @ThemedPalette private var palette
-    @AppStorage(AppTheme.storageKey) private var appThemeRawValue = AppTheme.matrix.rawValue
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @ObservedObject private var bridgeService = BridgeService.shared
 
@@ -40,10 +39,6 @@ struct AppInfoView: View {
         case info
     }
 
-    private var selectedTheme: AppTheme {
-        AppTheme(rawValue: appThemeRawValue) ?? .matrix
-    }
-
     private var textColor: Color { palette.primary }
 
     private var secondaryTextColor: Color { palette.secondary }
@@ -52,7 +47,6 @@ struct AppInfoView: View {
     private enum Strings {
         static let appName: LocalizedStringKey = "app_info.app_name"
         static let tagline: LocalizedStringKey = "app_info.tagline"
-        static let appearanceTitle: LocalizedStringKey = "app_info.appearance.title"
 
         /// New keys carry their English copy inline (defaultValue) until the
         /// i18n pass lands them in the catalog; moved keys keep their homes.
@@ -262,7 +256,6 @@ struct AppInfoView: View {
                 .foregroundColor(textColor)
                 .padding()
             }
-            .themedSurface(opacity: 0.95)
 
             VStack(spacing: 0) {
                 panePicker
@@ -333,30 +326,6 @@ struct AppInfoView: View {
     @ViewBuilder
     private var settingsContent: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // Appearance — single row: label left, theme chips right
-            HStack(spacing: 12) {
-                SectionHeader(Strings.appearanceTitle)
-                Spacer()
-                ForEach(AppTheme.allCases) { theme in
-                    Button {
-                        appThemeRawValue = theme.rawValue
-                    } label: {
-                        Text(theme.displayNameKey)
-                            .bitchatFont(size: 13, weight: selectedTheme == theme ? .semibold : .regular)
-                            .foregroundColor(selectedTheme == theme ? palette.accent : secondaryTextColor)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(selectedTheme == theme ? palette.accent.opacity(0.15) : Color.clear)
-                            )
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(selectedTheme == theme ? .isSelected : [])
-                }
-            }
-
             // Language — an in-app override so the UI language can differ
             // from the device language (takes effect on next launch).
             VStack(alignment: .leading, spacing: 12) {

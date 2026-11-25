@@ -174,7 +174,6 @@ struct LocationChannelsSheet: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .themedSurface()
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarHidden(true)
@@ -386,9 +385,7 @@ struct LocationChannelsSheet: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 6)
-            .themedSurface()
         }
-        .themedSurface()
     }
 
     private var sectionDivider: some View {

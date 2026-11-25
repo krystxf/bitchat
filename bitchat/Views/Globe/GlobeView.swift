@@ -38,7 +38,6 @@ struct GlobeView: View {
     let world: GlobeWorldData
 
     @Environment(\.displayScale) private var displayScale
-    @Environment(\.appTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     #if os(iOS)
@@ -62,7 +61,7 @@ struct GlobeView: View {
                     colors: colors,
                     world: world,
                     pixel: 1 / max(displayScale, 1),
-                    fontDesign: theme.bodyFontDesign
+                    fontDesign: .default
                 )
                 Canvas(rendersAsynchronously: false) { context, size in
                     renderer.draw(in: &context, size: size)

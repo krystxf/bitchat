@@ -101,12 +101,12 @@ struct GeohashPickerView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .frame(maxWidth: .infinity)
-                .geohashPickerPanel()
+                .themedOverlayPanel()
 
             SheetCloseButton(action: onCancel)
                 .foregroundColor(palette.primary)
                 .frame(width: 40, height: 40)
-                .geohashPickerPanel(cornerRadius: 20)
+                .themedOverlayPanel()
         }
     }
 
@@ -124,7 +124,7 @@ struct GeohashPickerView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .geohashPickerPanel()
+            .themedOverlayPanel()
             .accessibilityElement(children: .combine)
 
             HStack(spacing: 10) {
@@ -214,31 +214,7 @@ struct GeohashPickerView: View {
 
 // MARK: - Styling
 
-private struct GeohashPickerPanel: ViewModifier {
-    @Environment(\.appTheme) private var theme
-    @ThemedPalette private var palette
-    let cornerRadius: CGFloat
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if theme.usesGlassChrome {
-            content.themedOverlayPanel()
-        } else {
-            let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            content
-                .background(shape.fill(palette.background.opacity(0.85)))
-                .overlay(shape.stroke(palette.divider, lineWidth: 1))
-                .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 2)
-        }
-    }
-}
-
 private extension View {
-    /// Floating translucent surface for the picker's hint, readout and close button.
-    func geohashPickerPanel(cornerRadius: CGFloat = 12) -> some View {
-        modifier(GeohashPickerPanel(cornerRadius: cornerRadius))
-    }
-
     /// Pill button body sized like a standard 40pt-tall button.
     func pickerCapsule(fill: Color) -> some View {
         self

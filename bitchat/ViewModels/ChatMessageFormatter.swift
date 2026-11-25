@@ -28,8 +28,8 @@ final class ChatMessageFormatter {
         self.viewModel = viewModel
     }
 
-    func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme = .matrix) -> AttributedString {
-        let design = theme.bodyFontDesign
+    func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        let design = Font.Design.default
         let isSelf: Bool = {
             if let spid = message.senderPeerID {
                 if case .location(let channel) = viewModel.activeChannel, spid.isGeoChat {
@@ -56,7 +56,7 @@ final class ChatMessageFormatter {
 
         let isDark = colorScheme == .dark
         let isVerifiedSender = !isSelf && isVerifiedSender(of: message)
-        let cacheVariant = theme.formatCacheVariant + (isVerifiedSender ? "-vf" : "")
+        let cacheVariant = isVerifiedSender ? "-vf" : ""
         if let cachedText = message.getCachedFormattedText(isDark: isDark, isSelf: isSelf, variant: cacheVariant) {
             return cachedText
         }
@@ -366,8 +366,8 @@ final class ChatMessageFormatter {
     /// variant starts with it, so the two caches can't collide.
     static let headerCacheNamespace = "hdr:"
 
-    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme = .matrix) -> AttributedString {
-        let design = theme.bodyFontDesign
+    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        let design = Font.Design.default
         let isSelf: Bool = {
             if let spid = message.senderPeerID {
                 if case .location(let channel) = viewModel.activeChannel, spid.id.hasPrefix("nostr:"),
@@ -385,7 +385,7 @@ final class ChatMessageFormatter {
         let isVerifiedSender = !isSelf && isVerifiedSender(of: message)
         // Same key ingredients as the full-text cache, in a namespace of its
         // own so a header and a full text never answer each other's lookups.
-        let cacheVariant = Self.headerCacheNamespace + theme.formatCacheVariant + (isVerifiedSender ? "-vf" : "")
+        let cacheVariant = Self.headerCacheNamespace + (isVerifiedSender ? "-vf" : "")
         if let cachedHeader = message.getCachedFormattedText(isDark: isDark, isSelf: isSelf, variant: cacheVariant) {
             return cachedHeader
         }

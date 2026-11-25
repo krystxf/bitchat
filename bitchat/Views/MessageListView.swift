@@ -52,7 +52,6 @@ struct MessageListView: View {
     @ObservedObject private var nearbyNotes = NearbyNotesCounter.shared
 
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.appTheme) private var theme
 
     let privatePeer: PeerID?
     @Binding var isAtBottom: Bool
@@ -614,7 +613,7 @@ private extension MessageListView {
 
     @ViewBuilder
     func systemMessageRow(_ message: BitchatMessage) -> some View {
-        Text(conversationUIModel.formatMessage(message, colorScheme: colorScheme, theme: theme))
+        Text(conversationUIModel.formatMessage(message, colorScheme: colorScheme))
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
     }

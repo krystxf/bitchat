@@ -10,7 +10,6 @@ import BitFoundation
 
 struct MediaMessageView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.appTheme) private var theme
     @ThemedPalette private var palette
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
     let message: BitchatMessage
@@ -59,7 +58,7 @@ struct MediaMessageView: View {
             }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .center, spacing: 4) {
-                    Text(conversationUIModel.formatMessageHeader(message, colorScheme: colorScheme, theme: theme))
+                    Text(conversationUIModel.formatMessageHeader(message, colorScheme: colorScheme))
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     // Delivery status indicator for private messages. Tappable:

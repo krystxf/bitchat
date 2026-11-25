@@ -367,7 +367,6 @@ private struct ContentPeopleListView: View {
             .padding(.horizontal, 16)
             .padding(.top, 16)
             .padding(.bottom, 12)
-            .themedSurface()
 
             ScrollView {
                 // spacing 0: every section supplies its own rhythm (header
@@ -481,7 +480,6 @@ private struct ContentPrivateChatSheetView: View {
     var isTextFieldFocused: FocusState<Bool>.Binding
     @ObservedObject var voiceRecordingVM: VoiceRecordingViewModel
     @Binding var autocompleteDebounceTimer: Timer?
-    @Environment(\.appTheme) private var theme
     @ThemedPalette private var palette
 
     let headerHeight: CGFloat
@@ -558,7 +556,9 @@ private struct ContentPrivateChatSheetView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 10)
                 .padding(.bottom, 12)
-                .modifier(PrivateHeaderChrome())
+                // The same floating panel as the main header. The DM signature
+                // is carried by the orange lock, caption, and composer accents.
+                .themedChromePanel(edge: .top)
             }
 
             MessageListView(
@@ -573,17 +573,12 @@ private struct ContentPrivateChatSheetView: View {
                 showSidebar: $showSidebar,
                 isTextFieldFocused: isTextFieldFocused
             )
-            .themedSurface()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             // Swipe-right-to-leave lives on the message list only. On the
             // whole sheet it preempted the composer's press-and-hold mic
             // gesture (a high-priority ancestor drag cancels child gestures
             // within milliseconds — same starvation as the image-reveal bug).
             .highPriorityGesture(swipeToLeaveGesture)
-
-            if !theme.usesGlassChrome {
-                Divider()
-            }
 
             privacyCaption
 
@@ -645,7 +640,6 @@ private struct ContentPrivateChatSheetView: View {
         // The orange text is signature enough; a tinted band here reads as a
         // stray strip against the untinted composer chrome below it, so the
         // caption sits on the same surface as the rest of the bottom chrome.
-        .themedSurface()
         .accessibilityElement(children: .combine)
     }
 
@@ -672,28 +666,6 @@ private struct ContentPrivateChatSheetView: View {
             return String(localized: "content.private.caption_encrypted", comment: "Caption above the private chat composer once the session is end-to-end encrypted")
         }
         return String(localized: "content.private.caption", comment: "Caption above the private chat composer before encryption is established")
-    }
-}
-
-/// Chrome for the private-chat header. Matrix keeps its orange privacy wash
-/// over an opaque themed surface. Glass gets the same floating panel as the
-/// main header instead: an orange wash over the backdrop gradient reads as a
-/// muddy gray-beige band, and the DM signature is already carried by the
-/// orange lock, caption, and composer accents.
-private struct PrivateHeaderChrome: ViewModifier {
-    @Environment(\.appTheme) private var theme
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if theme.usesGlassChrome {
-            content.themedChromePanel(edge: .top)
-        } else {
-            // Orange tint before themedSurface so it layers in front of the
-            // opaque themed background rather than behind it.
-            content
-                .background(Color.orange.opacity(0.06))
-                .themedSurface()
-        }
     }
 }
 

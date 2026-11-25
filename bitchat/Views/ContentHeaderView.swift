@@ -8,7 +8,6 @@ struct ContentHeaderView: View {
     @EnvironmentObject private var boardAlertsModel: BoardAlertsModel
     @ObservedObject private var bridgeService = BridgeService.shared
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.appTheme) private var theme
     @ThemedPalette private var palette
 
     @Binding var showSidebar: Bool
@@ -281,7 +280,7 @@ struct ContentHeaderView: View {
                         // and grouping, and no letterless key for Xcode's
                         // localization export to add back to the catalog.
                         Text(headerOtherPeersCount, format: .number)
-                            .font(.system(size: headerPeerCountFontSize, weight: .regular, design: theme.bodyFontDesign))
+                            .font(.system(size: headerPeerCountFontSize, weight: .regular))
                             .accessibilityHidden(true)
                     }
                     .foregroundColor(headerCountColor)

@@ -13,8 +13,7 @@ struct MyQRView: View {
     let qrString: String
     @Environment(\.colorScheme) var colorScheme
     @ThemedPalette private var palette
-    // Palette-tinted so the box follows the theme (green under matrix)
-    // instead of a fixed gray band over the glass gradient.
+    // Palette-tinted instead of a fixed gray band over the glass gradient.
     private var boxColor: Color { palette.secondary.opacity(0.1) }
 
     private enum Strings {

@@ -103,7 +103,6 @@ struct ContentView: View {
     @State private var activeDraftKey: ComposerDraftStore.Key = .mesh
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.appTheme) private var appTheme
     @Environment(\.scenePhase) private var scenePhase
     @State private var showSidebar = false
     @State private var selectedMessageSender: String?
@@ -139,8 +138,6 @@ struct ContentView: View {
             activeChannel: locationChannelsModel.selectedChannel
         )
     }
-
-    private var usesGlassLayout: Bool { appTheme.usesGlassChrome }
 
     private var isPeopleSheetPresented: Bool {
         showSidebar || selectedPrivatePeerID != nil
@@ -230,7 +227,6 @@ struct ContentView: View {
         mainContent
             .onAppear { [conversationUIModel, voiceRecordingVM] in
                 conversationUIModel.setCurrentColorScheme(colorScheme)
-                conversationUIModel.setCurrentTheme(appTheme)
                 voiceRecordingVM.sessionProvider = { [weak conversationUIModel] in
                     conversationUIModel?.makeVoiceCaptureSession() ?? VoiceNoteCaptureSession()
                 }
@@ -258,9 +254,6 @@ struct ContentView: View {
             }
             .onChange(of: colorScheme) { newValue in
                 conversationUIModel.setCurrentColorScheme(newValue)
-            }
-            .onChange(of: appTheme) { newValue in
-                conversationUIModel.setCurrentTheme(newValue)
             }
         .background(ThemedRootBackground())
         .foregroundColor(palette.primary)
@@ -488,43 +481,19 @@ struct ContentView: View {
         }
     }
 
-    /// Matrix: classic opaque bars with dividers. Glass: full-bleed message
-    /// list scrolling underneath floating chrome panels (safe-area insets),
-    /// so the translucency gains usable space instead of losing it.
-    @ViewBuilder
+    /// Full-bleed message list scrolling underneath floating chrome panels
+    /// (safe-area insets), so the translucency gains usable space instead of
+    /// losing it.
     private var mainContent: some View {
-        if usesGlassLayout {
-            publicMessageList
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    headerView
-                }
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if selectedPrivatePeerID == nil {
-                        composerView
-                    }
-                }
-        } else {
-            VStack(spacing: 0) {
+        publicMessageList
+            .safeAreaInset(edge: .top, spacing: 0) {
                 headerView
-
-                Divider()
-
-                GeometryReader { geometry in
-                    VStack(spacing: 0) {
-                        publicMessageList
-                            .background(palette.background)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                }
-
-                Divider()
-
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 if selectedPrivatePeerID == nil {
                     composerView
                 }
             }
-        }
     }
 
     private var headerView: some View {

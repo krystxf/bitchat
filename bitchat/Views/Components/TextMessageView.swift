@@ -11,7 +11,6 @@ import BitFoundation
 
 struct TextMessageView: View {
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @Environment(\.appTheme) private var theme
     @ThemedPalette private var palette
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
 
@@ -66,7 +65,7 @@ struct TextMessageView: View {
                             String(localized: "content.accessibility.bridged_message", defaultValue: "Arrived across a mesh bridge", comment: "Accessibility label for the glyph marking a message that arrived across a mesh bridge")
                         )
                 }
-                Text(conversationUIModel.formatMessage(message, colorScheme: colorScheme, theme: theme))
+                Text(conversationUIModel.formatMessage(message, colorScheme: colorScheme))
                     .fixedSize(horizontal: false, vertical: true)
                     .lineLimit(scan.isLongForDisplay && !isExpanded ? TransportConfig.uiLongMessageLineLimit : nil)
                     .frame(maxWidth: .infinity, alignment: .leading)

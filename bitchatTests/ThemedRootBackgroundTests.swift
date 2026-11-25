@@ -5,12 +5,12 @@ import Testing
 
 /// The themed backdrop has to cover the safe-area insets too. If it stops at
 /// the safe area, a sheet's own background shows through the home-indicator
-/// inset: a dark-gray band under the Matrix people list in dark mode.
+/// inset: a dark-gray band under the people list in dark mode.
 @Suite("ThemedRootBackground")
 @MainActor
 struct ThemedRootBackgroundTests {
-    @Test(arguments: AppTheme.allCases, ColorScheme.allCases)
-    func sheetBackground_fillsBottomSafeAreaInset(theme: AppTheme, colorScheme: ColorScheme) throws {
+    @Test(arguments: ColorScheme.allCases)
+    func sheetBackground_fillsBottomSafeAreaInset(colorScheme: ColorScheme) throws {
         // A SwiftUI safe-area inset stands in for the home indicator: it
         // reserves the bottom 20 pt, the way a sheet's bottom inset does.
         let view = Color.clear
@@ -19,7 +19,6 @@ struct ThemedRootBackgroundTests {
                 Color.clear.frame(height: 20)
             }
             .frame(width: 40, height: 100)
-            .environment(\.appTheme, theme)
             .environment(\.colorScheme, colorScheme)
 
         let image = try RenderedPixels(view)
