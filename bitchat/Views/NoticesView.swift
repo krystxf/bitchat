@@ -293,11 +293,23 @@ struct NoticesView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerSection
-            contentSection
-            if activeGeohash != nil {
-                composer
+        NavigationStack {
+            VStack(spacing: 0) {
+                headerSection
+                contentSection
+                if activeGeohash != nil {
+                    composer
+                }
+            }
+            .navigationTitle(Text(verbatim: scopeTitle))
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    SheetCloseToolbarButton { dismiss() }
+                        .accessibilityLabel(Strings.closeHint)
+                }
             }
         }
         #if os(macOS)
@@ -348,13 +360,6 @@ struct NoticesView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                Text(verbatim: scopeTitle)
-                    .bitchatFont(size: 18)
-                Spacer()
-                SheetCloseButton { dismiss() }
-                    .accessibilityLabel(Strings.closeHint)
-            }
             Picker(Strings.scopePicker, selection: $tab) {
                 Text(Strings.geoTab).tag(Tab.geo)
                 Text(Strings.meshTab).tag(Tab.mesh)
