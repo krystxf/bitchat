@@ -251,6 +251,13 @@ final class ConversationUIModel: ObservableObject {
     }
 
     /// Whether this message is a live voice burst still streaming in.
+    /// Whether the message came from someone marked as a favorite, which
+    /// lets their images skip the blur when the user allows it.
+    func isFavoriteSender(of message: BitchatMessage) -> Bool {
+        guard let peerID = message.senderPeerID else { return false }
+        return chatViewModel.isFavorite(peerID: peerID)
+    }
+
     func isLiveVoiceMessage(_ message: BitchatMessage) -> Bool {
         chatViewModel.liveVoiceCoordinator.isLiveVoiceMessage(message)
     }

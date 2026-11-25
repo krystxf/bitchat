@@ -25,6 +25,8 @@ struct MediaMessageView: View {
     private let showsSenderName: Bool
     private let maxBubbleWidth: CGFloat
     @State private var showDeliveryDetail = false
+    /// Settings toggle: images from favorite contacts skip the blur.
+    @AppStorage(MediaRevealSettings.autoRevealFavoritesKey) private var autoRevealFavorites = false
 
     @Binding var imagePreviewURL: URL?
 
@@ -106,7 +108,7 @@ struct MediaMessageView: View {
                 revealProgress: state.progress,
                 isSending: state.isSending,
                 onCancel: cancelAction,
-                initiallyBlurred: !isFromMe,
+                initiallyBlurred: !isFromMe && !(autoRevealFavorites && conversationUIModel.isFavoriteSender(of: message)),
                 onOpen: {
                     if !state.isSending {
                         imagePreviewURL = url

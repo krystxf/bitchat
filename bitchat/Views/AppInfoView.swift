@@ -27,6 +27,7 @@ struct AppInfoView: View {
     @State private var liveVoiceEnabled = PTTSettings.liveVoiceEnabled
     @State private var locationNotesEnabled = LocationNotesSettings.enabled
     @State private var hideMessagePreviews = NotificationPrivacySettings.hideMessagePreviews
+    @State private var autoRevealFavoriteImages = MediaRevealSettings.autoRevealFavorites
     @State private var customRelays = NostrRelaySettings.customRelays()
     @State private var relayInput = ""
     @State private var relayError: String?
@@ -115,6 +116,8 @@ struct AppInfoView: View {
             static let privacyTitle = String(localized: "app_info.settings.privacy.title", defaultValue: "PRIVACY", comment: "Section header (uppercase) for privacy settings such as hiding notification previews")
             static let hidePreviewsTitle = String(localized: "app_info.settings.hide_previews.title", defaultValue: "hide message previews", comment: "Title of the setting that keeps message text, sender names, and geohashes out of lock-screen notifications")
             static let hidePreviewsSubtitle = String(localized: "app_info.settings.hide_previews.subtitle", defaultValue: "notifications say that something arrived without showing the message, who sent it, or which location channel it came from. anyone holding your locked phone learns nothing from the lock screen. on by default.", comment: "Subtitle explaining what hiding notification message previews does")
+            static let autoRevealFavoritesTitle = String(localized: "app_info.settings.auto_reveal_favorites.title", defaultValue: "show images from favorites", comment: "Title of the setting that shows images from favorite contacts without the tap-to-reveal blur")
+            static let autoRevealFavoritesSubtitle = String(localized: "app_info.settings.auto_reveal_favorites.subtitle", defaultValue: "images from people you marked as favorites show right away. images from everyone else stay blurred until you tap them. off by default.", comment: "Subtitle explaining that only favorite contacts' images skip the blur")
 
             static let dangerTitle = String(localized: "app_info.settings.danger.title", defaultValue: "DANGER ZONE", comment: "Section header (uppercase) for destructive actions in settings")
             static let panicButton = String(localized: "app_info.settings.danger.panic_button", defaultValue: "panic wipe", comment: "Button in the settings danger zone that erases all local data after confirmation")
@@ -480,6 +483,18 @@ struct AppInfoView: View {
                             set: { newValue in
                                 hideMessagePreviews = newValue
                                 NotificationPrivacySettings.hideMessagePreviews = newValue
+                            }
+                        )
+                    )
+
+                    settingToggle(
+                        title: Text(verbatim: Strings.Settings.autoRevealFavoritesTitle),
+                        subtitle: Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle),
+                        isOn: Binding(
+                            get: { autoRevealFavoriteImages },
+                            set: { newValue in
+                                autoRevealFavoriteImages = newValue
+                                MediaRevealSettings.autoRevealFavorites = newValue
                             }
                         )
                     )

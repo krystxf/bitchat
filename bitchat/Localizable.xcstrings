@@ -29056,6 +29056,378 @@
         }
       }
     },
+    "app_info.settings.auto_reveal_favorites.subtitle" : {
+      "comment" : "Subtitle explaining that only favorite contacts' images skip the blur",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تظهر الصور من الأشخاص الذين وضعتهم في المفضلة فورًا. تبقى الصور من الآخرين مموهة حتى تنقر عليها. متوقف افتراضيًا."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "যাদের প্রিয় হিসেবে চিহ্নিত করেছেন তাদের ছবি সঙ্গে সঙ্গে দেখা যায়। অন্য সবার ছবি ট্যাপ না করা পর্যন্ত ঝাপসা থাকে। ডিফল্টভাবে বন্ধ।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bilder von personen, die du als favoriten markiert hast, erscheinen sofort. bilder von allen anderen bleiben unscharf, bis du sie antippst. standardmäßig aus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "images from people you marked as favorites show right away. images from everyone else stay blurred until you tap them. off by default."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "las imágenes de las personas que marcaste como favoritas se muestran al instante. las del resto siguen difuminadas hasta que las toques. desactivado por defecto."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تصاویر افرادی که برگزیده کرده‌اید بلافاصله نمایش داده می‌شوند. تصاویر بقیه تا زمانی که روی آن‌ها ضربه بزنید تار می‌مانند. به‌طور پیش‌فرض خاموش است."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "agad na lumalabas ang mga larawan mula sa mga taong minarkahan mong paborito. nananatiling malabo ang mga larawan mula sa iba hanggang i-tap mo. naka-off bilang default."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "les images des personnes que tu as mises en favoris s'affichent tout de suite. celles des autres restent floutées jusqu'à ce que tu les touches. désactivé par défaut."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תמונות מאנשים שסימנת כמועדפים מוצגות מיד. תמונות מכל השאר נשארות מטושטשות עד שתקיש עליהן. כבוי כברירת מחדל."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "जिन लोगों को आपने पसंदीदा चिह्नित किया है उनकी तस्वीरें तुरंत दिखती हैं। बाकी सभी की तस्वीरें टैप करने तक धुंधली रहती हैं। डिफ़ॉल्ट रूप से बंद।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gambar dari orang yang kamu tandai sebagai favorit langsung tampil. gambar dari orang lain tetap buram sampai kamu mengetuknya. nonaktif secara default."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "le immagini delle persone che hai segnato come preferite si vedono subito. quelle di tutti gli altri restano sfocate finché non le tocchi. disattivato per impostazione predefinita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お気に入りに登録した人の画像はすぐに表示されます。それ以外の人の画像は、タップするまでぼかしたままです。初期設定はオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "즐겨찾기로 표시한 사람의 이미지는 바로 표시됩니다. 다른 사람의 이미지는 탭할 때까지 흐리게 유지됩니다. 기본값은 꺼짐입니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "imej daripada orang yang anda tandakan sebagai kegemaran dipaparkan serta-merta. imej daripada orang lain kekal kabur sehingga anda mengetiknya. dimatikan secara lalai."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "तपाईंले मनपर्ने भनी चिन्ह लगाएका मानिसहरूका तस्बिरहरू तुरुन्तै देखिन्छन्। अरू सबैका तस्बिरहरू ट्याप नगरेसम्म धमिलो रहन्छन्। पूर्वनिर्धारित रूपमा बन्द।"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "afbeeldingen van mensen die je als favoriet hebt gemarkeerd, verschijnen meteen. afbeeldingen van anderen blijven wazig tot je erop tikt. standaard uit."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "obrazy od osób oznaczonych jako ulubione pojawiają się od razu. obrazy od pozostałych są rozmyte, dopóki ich nie stukniesz. domyślnie wyłączone."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "as imagens das pessoas que marcaste como favoritas aparecem logo. as dos restantes ficam desfocadas até lhes tocares. desativado por predefinição."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "as imagens das pessoas que você marcou como favoritas aparecem na hora. as dos demais ficam desfocadas até você tocar nelas. desativado por padrão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "изображения от людей, отмеченных как избранные, показываются сразу. изображения от остальных остаются размытыми, пока вы не коснётесь их. по умолчанию выключено."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bilder från personer du har markerat som favoriter visas direkt. bilder från alla andra förblir suddiga tills du trycker på dem. av som standard."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "நீங்கள் பிடித்தவர்களாகக் குறித்தவர்களின் படங்கள் உடனே தெரியும். மற்ற அனைவரின் படங்களும் நீங்கள் தட்டும் வரை மங்கலாக இருக்கும். இயல்பாக முடக்கப்பட்டுள்ளது."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รูปภาพจากคนที่คุณทำเครื่องหมายเป็นรายการโปรดจะแสดงทันที รูปภาพจากคนอื่นจะเบลออยู่จนกว่าคุณจะแตะ ปิดอยู่ตามค่าเริ่มต้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "favori olarak işaretlediğin kişilerden gelen resimler hemen görünür. diğer herkesin resimleri dokunana kadar bulanık kalır. varsayılan olarak kapalı."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "зображення від людей, позначених як обрані, показуються одразу. зображення від інших лишаються розмитими, доки ви їх не торкнетеся. типово вимкнено."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جن لوگوں کو آپ نے پسندیدہ نشان زد کیا ہے ان کی تصاویر فوراً دکھائی دیتی ہیں۔ باقی سب کی تصاویر ٹیپ کرنے تک دھندلی رہتی ہیں۔ بطور ڈیفالٹ بند۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hình ảnh từ những người bạn đánh dấu là yêu thích sẽ hiện ngay. hình ảnh từ những người khác vẫn bị làm mờ cho đến khi bạn chạm vào. tắt theo mặc định."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你标为收藏的人发来的图片会直接显示。其他人的图片在你点按之前保持模糊。默认关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你標為最愛的人傳來的圖片會直接顯示。其他人的圖片在你點按前保持模糊。預設為關閉。"
+          }
+        }
+      }
+    },
+    "app_info.settings.auto_reveal_favorites.title" : {
+      "comment" : "Title of the setting that shows images from favorite contacts without the tap-to-reveal blur",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عرض الصور من المفضلين"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রিয়দের ছবি দেখান"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bilder von favoriten anzeigen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "show images from favorites"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mostrar imágenes de favoritos"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نمایش تصاویر از برگزیده‌ها"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ipakita ang mga larawan mula sa mga paborito"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "afficher les images des favoris"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הצגת תמונות ממועדפים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "पसंदीदा लोगों की तस्वीरें दिखाएँ"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tampilkan gambar dari favorit"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mostra le immagini dei preferiti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お気に入りの画像を表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "즐겨찾기의 이미지 표시"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tunjukkan imej daripada kegemaran"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मनपर्नेहरूका तस्बिरहरू देखाउनुहोस्"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "afbeeldingen van favorieten tonen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pokazuj obrazy od ulubionych"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mostrar imagens dos favoritos"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mostrar imagens dos favoritos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "показывать изображения от избранных"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "visa bilder från favoriter"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "பிடித்தவர்களின் படங்களைக் காட்டு"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แสดงรูปภาพจากรายการโปรด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "favorilerden gelen resimleri göster"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "показувати зображення від обраних"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پسندیدہ لوگوں کی تصاویر دکھائیں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hiện hình ảnh từ mục yêu thích"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示收藏联系人的图片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示最愛聯絡人的圖片"
+          }
+        }
+      }
+    },
     "app_info.settings.bridge.cell" : {
       "extractionState" : "manual",
       "localizations" : {
