@@ -101,6 +101,7 @@ struct ContentView: View {
     /// Conversation the current `messageText` belongs to, so a channel switch
     /// can save under the previous key before loading the next draft.
     @State private var activeDraftKey: ComposerDraftStore.Key = .mesh
+    @State private var chatBackgroundOption: ChatBackgroundOption = .default
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.scenePhase) private var scenePhase
@@ -251,6 +252,7 @@ struct ContentView: View {
                     fingerprint: selectedPrivatePeerID.flatMap { conversationUIModel.getFingerprint(for: $0) },
                     channel: locationChannelsModel.selectedChannel
                 )
+                chatBackgroundOption = ChatBackgroundStore.shared.option(for: activeDraftKey)
                 messageText = ComposerDraftStore.load(activeDraftKey)
                 sidebarSelection = currentSidebarItem
             }
@@ -307,6 +309,9 @@ struct ContentView: View {
             if !showsDetail, isCompact {
                 sidebarSelection = nil
             }
+        }
+        .onChange(of: activeDraftKey) { key in
+            chatBackgroundOption = ChatBackgroundStore.shared.option(for: key)
         }
         #if os(iOS)
         .onChange(of: horizontalSizeClass) { _ in
@@ -635,8 +640,14 @@ struct ContentView: View {
             .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in
                 conversationUIModel.processSelectedImage(from: url)
             }
-            .background(ThemedRootBackground())
-            .modifier(ContentHeaderToolbar(onShowPeople: togglePeople))
+            .background {
+                ChatConversationBackground(option: chatBackgroundOption)
+                    .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
+            }
+            .modifier(ContentHeaderToolbar(
+                onShowPeople: togglePeople,
+                backgroundOption: $chatBackgroundOption
+            ))
     }
 
     private var publicMessageList: some View {

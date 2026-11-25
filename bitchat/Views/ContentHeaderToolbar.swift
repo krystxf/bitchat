@@ -16,6 +16,7 @@ struct ContentHeaderToolbar: ViewModifier {
 
     /// Reveals the people in the sidebar.
     let onShowPeople: () -> Void
+    @Binding var backgroundOption: ChatBackgroundOption
 
     /// Courier envelopes this device is carrying for offline third parties.
     @State private var carriedMailCount = 0
@@ -141,6 +142,15 @@ struct ContentHeaderToolbar: ViewModifier {
                 Image(systemName: "number")
             }
         }
+
+        ChatBackgroundPickerMenu(
+            conversationKey: ComposerDraftStore.Key.from(
+                peerID: nil,
+                fingerprint: nil,
+                channel: locationChannelsModel.selectedChannel
+            ),
+            selection: $backgroundOption
+        )
 
         if case .location(let channel) = locationChannelsModel.selectedChannel {
             Button {
