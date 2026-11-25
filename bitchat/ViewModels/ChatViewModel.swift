@@ -1793,6 +1793,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         NotificationPrivacySettings.reset()
         MediaRevealSettings.reset()
         MessageBubbleColorSettings.reset()
+        ConversationMessageColorStore.shared.reset()
+        DefaultChatBackgroundSettings.reset()
         ExtremeSecuritySettings.reset()
         LocationProofOfWorkSettings.reset()
         ChatBackgroundStore.shared.reset()

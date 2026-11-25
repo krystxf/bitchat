@@ -8,6 +8,25 @@ final class ChatBackgroundStoreTests: XCTestCase {
         return (ChatBackgroundStore(defaults: defaults), defaults)
     }
 
+    func testDefaultBackgroundChoiceRoundTripsAndReset() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        XCTAssertEqual(DefaultChatBackgroundSettings.selected(in: defaults), .default)
+        DefaultChatBackgroundSettings.set(.oled, in: defaults)
+        XCTAssertEqual(DefaultChatBackgroundSettings.selected(in: defaults), .oled)
+        DefaultChatBackgroundSettings.reset(in: defaults)
+        XCTAssertEqual(DefaultChatBackgroundSettings.selected(in: defaults), .default)
+    }
+
+    func testConversationOverrideTakesPrecedenceAndDefaultFollowsSettings() {
+        let (store, defaults) = makeStore()
+        DefaultChatBackgroundSettings.set(.ocean, in: defaults)
+        XCTAssertEqual(store.resolvedOption(for: .mesh), .ocean)
+        store.set(.dusk, for: .mesh)
+        XCTAssertEqual(store.resolvedOption(for: .mesh), .dusk)
+        store.set(.default, for: .mesh)
+        XCTAssertEqual(store.resolvedOption(for: .mesh), .ocean)
+    }
+
     func testRoundTripsOptionsPerConversation() {
         let (store, _) = makeStore()
         let mesh = ComposerDraftStore.Key.mesh

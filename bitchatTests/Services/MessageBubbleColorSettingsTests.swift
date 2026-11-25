@@ -28,4 +28,27 @@ struct MessageBubbleColorSettingsTests {
             #expect(color.whiteContrastRatio >= 4.5, "\(color.rawValue) contrast was \(color.whiteContrastRatio)")
         }
     }
+
+    @Test func conversationOverrideResolvesAndDefaultClearsOverride() {
+        let defaults = makeDefaults()
+        MessageBubbleColorSettings.set(.green, in: defaults)
+        let store = ConversationMessageColorStore(defaults: defaults)
+        let key = ComposerDraftStore.Key.mesh
+        #expect(store.resolvedColor(for: key) == .green)
+        store.set(.pink, for: key)
+        #expect(store.resolvedColor(for: key) == .pink)
+        store.set(nil, for: key)
+        #expect(store.override(for: key) == nil)
+        #expect(store.resolvedColor(for: key) == .green)
+        store.set(.orange, for: key)
+        store.reset()
+        #expect(store.override(for: key) == nil)
+    }
+
+    @Test func legacySelectionIsRetainedAsDefault() {
+        let defaults = makeDefaults()
+        defaults.set("teal", forKey: MessageBubbleColorSettings.key)
+        #expect(MessageBubbleColorSettings.selected(in: defaults) == .teal)
+        #expect(defaults.bool(forKey: MessageBubbleColorSettings.migrationKey))
+    }
 }

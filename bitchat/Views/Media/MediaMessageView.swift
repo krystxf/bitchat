@@ -10,6 +10,8 @@ import BitFoundation
 
 struct MediaMessageView: View {
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
+    @Environment(\.resolvedMessageBubbleColor) private var bubbleColor
+    @ThemedPalette private var palette
     let message: BitchatMessage
     let media: BitchatMessage.Media
     /// Value snapshot of the message's mutable delivery status, captured at
@@ -58,6 +60,8 @@ struct MediaMessageView: View {
             }
             MessageBubbleLayout(isSelf: isFromMe, maxBubbleWidth: maxBubbleWidth) {
                 mediaContent(isFromMe: isFromMe, state: state)
+                    .padding(4)
+                    .messageBubbleBackground(isSelf: isFromMe, palette: palette, hasTail: false, selfFill: bubbleColor.color)
                 MessageMetaView(
                     message: message,
                     showsVerifiedSeal: !isFromMe && conversationUIModel.showsVerifiedSeal(for: message),

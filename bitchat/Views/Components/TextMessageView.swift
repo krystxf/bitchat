@@ -13,6 +13,7 @@ struct TextMessageView: View {
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @ThemedPalette private var palette
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
+    @Environment(\.resolvedMessageBubbleColor) private var bubbleColor
 
     let message: BitchatMessage
     /// Value snapshot of the message's mutable delivery status, captured at
@@ -32,7 +33,6 @@ struct TextMessageView: View {
     private let hasTail: Bool
     @State private var expandedMessageIDs: Set<String> = []
     @State private var showDeliveryDetail = false
-    @AppStorage(MessageBubbleColorSettings.key) private var bubbleColorRawValue = MessageBubbleColor.blue.rawValue
 
     init(
         message: BitchatMessage,
@@ -123,7 +123,7 @@ struct TextMessageView: View {
             isSelf: isSelf,
             palette: palette,
             hasTail: hasTail,
-            selfFill: MessageBubbleColor(rawValue: bubbleColorRawValue)?.color ?? MessageBubbleColor.blue.color
+            selfFill: bubbleColor.color
         )
         // Links take the tint: white on my accent bubble.
         .tint(isSelf ? .white : palette.accentBlue)

@@ -20,6 +20,7 @@ import UIKit
 /// (favorite, verify, background, group members). The split view supplies
 /// the way back.
 struct PrivateChatDetailView: View {
+    @AppStorage(DefaultChatBackgroundSettings.key) private var defaultChatBackgroundRawValue = ChatBackgroundOption.default.rawValue
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
 
@@ -71,7 +72,7 @@ struct PrivateChatDetailView: View {
             conversationUIModel.processSelectedImage(from: url)
         }
         .background {
-            ChatConversationBackground(option: chatBackgroundOption, conversationKey: chatBackgroundConversationKey)
+            ChatConversationBackground(option: resolvedChatBackground, conversationKey: chatBackgroundConversationKey)
                 .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
         }
         .foregroundColor(palette.primary)
@@ -160,6 +161,11 @@ struct PrivateChatDetailView: View {
 
     private func loadChatBackground() {
         chatBackgroundOption = ChatBackgroundStore.shared.option(for: chatBackgroundConversationKey)
+    }
+
+    private var resolvedChatBackground: ChatBackgroundOption {
+        let choice = ChatBackgroundStore.shared.option(for: chatBackgroundConversationKey)
+        return choice == .default ? (ChatBackgroundOption(rawValue: defaultChatBackgroundRawValue) ?? .default) : choice
     }
 
     /// The status under the name: how the peer is reachable and, once a

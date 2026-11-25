@@ -18,6 +18,33 @@ enum ChatBackgroundOption: String, CaseIterable, Identifiable {
     case image = "image"
 
     var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .default: String(localized: "chat.background.default", comment: "The default chat background option")
+        case .dusk: String(localized: "chat.background.dusk", comment: "The dusk chat background option")
+        case .ocean: String(localized: "chat.background.ocean", comment: "The ocean chat background option")
+        case .forest: String(localized: "chat.background.forest", comment: "The forest chat background option")
+        case .oled: String(localized: "chat.background.oled", comment: "The OLED black chat background option")
+        case .image: String(localized: "chat.background.image", comment: "Custom image chat background")
+        }
+    }
+}
+
+enum DefaultChatBackgroundSettings {
+    static let key = "chat.defaultBackground"
+    static var selected: ChatBackgroundOption {
+        get { selected(in: .standard) }
+        set { set(newValue, in: .standard) }
+    }
+    static func selected(in defaults: UserDefaults) -> ChatBackgroundOption {
+        guard let raw = defaults.string(forKey: key), let value = ChatBackgroundOption(rawValue: raw), value != .image else { return .default }
+        return value
+    }
+    static func set(_ value: ChatBackgroundOption, in defaults: UserDefaults) {
+        defaults.set(value == .image ? ChatBackgroundOption.default.rawValue : value.rawValue, forKey: key)
+    }
+    static func reset(in defaults: UserDefaults = .standard) { defaults.removeObject(forKey: key) }
 }
 
 /// Persists a stable option ID for each conversation's ComposerDraftStore key.
@@ -40,6 +67,11 @@ struct ChatBackgroundStore {
               let option = ChatBackgroundOption(rawValue: id) else { return .default }
         if option == .image && !images.exists(for: conversation) { return .default }
         return option
+    }
+
+    func resolvedOption(for conversation: ComposerDraftStore.Key) -> ChatBackgroundOption {
+        let stored = option(for: conversation)
+        return stored == .default ? DefaultChatBackgroundSettings.selected(in: defaults) : stored
     }
 
     func set(_ option: ChatBackgroundOption, for conversation: ComposerDraftStore.Key) {

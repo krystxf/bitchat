@@ -102,6 +102,9 @@ struct ContentView: View {
     /// Conversation the current `messageText` belongs to, so a channel switch
     /// can save under the previous key before loading the next draft.
     @State private var activeDraftKey: ComposerDraftStore.Key = .mesh
+    @State private var conversationMessageColorRevision = 0
+    @AppStorage(MessageBubbleColorSettings.key) private var defaultBubbleColorRawValue = MessageBubbleColor.blue.rawValue
+    @AppStorage(DefaultChatBackgroundSettings.key) private var defaultChatBackgroundRawValue = ChatBackgroundOption.default.rawValue
     @State private var chatBackgroundOption: ChatBackgroundOption = .default
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.colorScheme) var colorScheme
@@ -229,6 +232,10 @@ struct ContentView: View {
 
     var body: some View {
         splitView
+            .environment(\.resolvedMessageBubbleColor, resolvedBubbleColor)
+            .onReceive(NotificationCenter.default.publisher(for: .conversationMessageColorChanged)) { _ in
+                conversationMessageColorRevision &+= 1
+            }
             .onReceive(BoardStore.shared.$postsSnapshot) { boardPosts = $0 }
             .onAppear { [conversationUIModel, voiceRecordingVM] in
                 conversationUIModel.setCurrentColorScheme(colorScheme)
@@ -475,6 +482,19 @@ struct ContentView: View {
         }
     }
 
+    private var resolvedBubbleColor: MessageBubbleColor {
+        _ = conversationMessageColorRevision
+        MessageBubbleColorSettings.migrateLegacySelection(in: .standard)
+        return ConversationMessageColorStore.shared.override(for: activeDraftKey)
+            ?? MessageBubbleColor(rawValue: defaultBubbleColorRawValue)
+            ?? .blue
+    }
+
+    private var resolvedChatBackground: ChatBackgroundOption {
+        let choice = ChatBackgroundStore.shared.option(for: activeDraftKey)
+        return choice == .default ? (ChatBackgroundOption(rawValue: defaultChatBackgroundRawValue) ?? .default) : choice
+    }
+
     // MARK: - Split view
 
     /// Channels and people in the sidebar, the selected conversation as the
@@ -668,7 +688,7 @@ struct ContentView: View {
                 conversationUIModel.processSelectedImage(from: url)
             }
             .background {
-                ChatConversationBackground(option: chatBackgroundOption, conversationKey: activeDraftKey)
+                ChatConversationBackground(option: resolvedChatBackground, conversationKey: activeDraftKey)
                     .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
             }
             .modifier(ContentHeaderToolbar(backgroundOption: $chatBackgroundOption))

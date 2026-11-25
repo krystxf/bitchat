@@ -47,6 +47,7 @@ enum MessageBubbleColor: String, CaseIterable, Identifiable {
 
 enum MessageBubbleColorSettings {
     static let key = "appearance.messageBubbleColor"
+    static let migrationKey = "appearance.messageBubbleColor.migratedToDefault"
 
     static var selected: MessageBubbleColor {
         get { selected(in: .standard) }
@@ -54,9 +55,17 @@ enum MessageBubbleColorSettings {
     }
 
     static func selected(in defaults: UserDefaults) -> MessageBubbleColor {
+        migrateLegacySelection(in: defaults)
         guard let rawValue = defaults.string(forKey: key),
               let value = MessageBubbleColor(rawValue: rawValue) else { return .blue }
         return value
+    }
+
+    static func migrateLegacySelection(in defaults: UserDefaults) {
+        guard !defaults.bool(forKey: migrationKey) else { return }
+        // The old key already stores the app-wide selection. Preserve it as
+        // the default before conversation-specific colors are introduced.
+        defaults.set(true, forKey: migrationKey)
     }
 
     static func set(_ color: MessageBubbleColor, in defaults: UserDefaults) {
@@ -65,5 +74,56 @@ enum MessageBubbleColorSettings {
 
     static func reset(in defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: key)
+        defaults.set(true, forKey: migrationKey)
     }
+}
+
+private struct ResolvedMessageBubbleColorKey: EnvironmentKey {
+    static let defaultValue = MessageBubbleColor.blue
+}
+
+extension EnvironmentValues {
+    var resolvedMessageBubbleColor: MessageBubbleColor {
+        get { self[ResolvedMessageBubbleColorKey.self] }
+        set { self[ResolvedMessageBubbleColorKey.self] = newValue }
+    }
+}
+
+/// Device-local color overrides indexed by the same stable keys as drafts
+/// and chat backgrounds.
+struct ConversationMessageColorStore {
+    private let defaults: UserDefaults
+    private let storageKey: String
+    static let shared = ConversationMessageColorStore(defaults: .standard)
+
+    init(defaults: UserDefaults, storageKey: String = "chat.messageColors") {
+        self.defaults = defaults
+        self.storageKey = storageKey
+    }
+
+    func override(for conversation: ComposerDraftStore.Key) -> MessageBubbleColor? {
+        guard let raw = (defaults.dictionary(forKey: storageKey) as? [String: String])?[conversation.storageString] else { return nil }
+        return MessageBubbleColor(rawValue: raw)
+    }
+
+    func resolvedColor(for conversation: ComposerDraftStore.Key) -> MessageBubbleColor {
+        override(for: conversation) ?? MessageBubbleColorSettings.selected(in: defaults)
+    }
+
+    func set(_ color: MessageBubbleColor?, for conversation: ComposerDraftStore.Key) {
+        var values = defaults.dictionary(forKey: storageKey) as? [String: String] ?? [:]
+        if let color { values[conversation.storageString] = color.rawValue }
+        else { values.removeValue(forKey: conversation.storageString) }
+        defaults.set(values, forKey: storageKey)
+        NotificationCenter.default.post(name: .conversationMessageColorChanged, object: conversation.storageString)
+    }
+
+    func reset() {
+        defaults.removeObject(forKey: storageKey)
+        NotificationCenter.default.post(name: .conversationMessageColorChanged, object: nil)
+    }
+}
+
+extension Notification.Name {
+    static let conversationMessageColorChanged = Notification.Name("conversationMessageColorChanged")
 }
