@@ -26,7 +26,8 @@ struct MessageWipeOperations {
     let deletePublicArchive: () -> Void
     /// Removes delivered and queued notifications, which can quote messages.
     let removeNotifications: () -> Void
-    /// Empties the decoded image thumbnails kept in memory.
+    /// Empties the decoded image thumbnails kept in memory, and the GIF
+    /// cache in memory and on disk (loads in flight are cancelled).
     let clearMediaCaches: () -> Void
 
     static let live = MessageWipeOperations(
@@ -38,7 +39,10 @@ struct MessageWipeOperations {
         },
         deletePublicArchive: { GossipMessageArchive.wipeDefault() },
         removeNotifications: { NotificationService.shared.removeAllNotifications() },
-        clearMediaCaches: { ChatImageCache.removeAll() }
+        clearMediaCaches: {
+            ChatImageCache.removeAll()
+            GifMediaStore.shared.removeAll()
+        }
     )
 
     /// No side effects outside the view model unless a test supplies them.
