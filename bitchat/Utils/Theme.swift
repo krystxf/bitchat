@@ -104,6 +104,91 @@ struct ThemedRootBackground: View {
     }
 }
 
+/// Conversation-specific backdrop. OLED mode is pure black in dark mode and
+/// the system window background in light mode so foreground controls retain
+/// their normal contrast.
+struct ChatConversationBackground: View {
+    let option: ChatBackgroundOption
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var isDark: Bool { colorScheme == .dark }
+
+    var body: some View {
+        Group {
+            if option == .default {
+                ThemedRootBackground()
+            } else if option == .oled {
+                (isDark ? Color.black : systemBackground).ignoresSafeArea()
+            } else {
+                ZStack {
+                    LinearGradient(
+                        colors: gradientColors,
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    RadialGradient(
+                        colors: [glowColor.opacity(isDark ? 0.22 : 0.12), .clear],
+                        center: .topLeading,
+                        startRadius: 0,
+                        endRadius: 600
+                    )
+                    RadialGradient(
+                        colors: [secondaryGlow.opacity(isDark ? 0.14 : 0.08), .clear],
+                        center: .bottomTrailing,
+                        startRadius: 0,
+                        endRadius: 500
+                    )
+                }
+                .ignoresSafeArea()
+            }
+        }
+    }
+
+    private var gradientColors: [Color] {
+        switch option {
+        case .default, .oled: []
+        case .dusk:
+            isDark
+                ? [Color(red: 0.13, green: 0.09, blue: 0.16), Color(red: 0.05, green: 0.04, blue: 0.08)]
+                : [Color(red: 0.97, green: 0.92, blue: 0.97), Color(red: 0.99, green: 0.96, blue: 0.97)]
+        case .ocean:
+            isDark
+                ? [Color(red: 0.06, green: 0.12, blue: 0.17), Color(red: 0.03, green: 0.05, blue: 0.09)]
+                : [Color(red: 0.88, green: 0.95, blue: 0.98), Color(red: 0.96, green: 0.98, blue: 0.99)]
+        case .forest:
+            isDark
+                ? [Color(red: 0.07, green: 0.13, blue: 0.12), Color(red: 0.03, green: 0.06, blue: 0.06)]
+                : [Color(red: 0.90, green: 0.96, blue: 0.92), Color(red: 0.97, green: 0.99, blue: 0.97)]
+        }
+    }
+
+    private var glowColor: Color {
+        switch option {
+        case .dusk: .purple
+        case .ocean: .cyan
+        case .forest: .green
+        case .default, .oled: .blue
+        }
+    }
+
+    private var secondaryGlow: Color {
+        switch option {
+        case .dusk: .pink
+        case .ocean: .blue
+        case .forest: .mint
+        case .default, .oled: .purple
+        }
+    }
+
+    private var systemBackground: Color {
+        #if os(iOS)
+        Color(UIColor.systemBackground)
+        #else
+        Color(NSColor.windowBackgroundColor)
+        #endif
+    }
+}
+
 /// Wraps glass-shape content in real Liquid Glass on OS 26+, with a material
 /// fallback below that keeps the frosted look.
 private struct GlassPanel<S: Shape>: ViewModifier {
