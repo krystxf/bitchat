@@ -22,14 +22,17 @@ import AppKit
 struct GifPlaybackView: View {
     let asset: GifAsset
     let isPlaying: Bool
+    /// How large GIF and WebP frames decode; MP4 plays as it is.
+    let profile: GifDecodeProfile
 
     @State private var frames: GifFrames?
     @State private var decodeFailed = false
 
-    init(asset: GifAsset, isPlaying: Bool) {
+    init(asset: GifAsset, isPlaying: Bool, profile: GifDecodeProfile = .message) {
         self.asset = asset
         self.isPlaying = isPlaying
-        _frames = State(initialValue: asset.format.isVideo ? nil : GifFrameCache.cachedFrames(for: asset.fileURL))
+        self.profile = profile
+        _frames = State(initialValue: asset.format.isVideo ? nil : GifFrameCache.cachedFrames(for: asset.fileURL, profile: profile))
     }
 
     var body: some View {
@@ -53,10 +56,11 @@ struct GifPlaybackView: View {
                 }
                 .task(id: asset.fileURL) {
                     let url = asset.fileURL
+                    let profile = profile
                     // Decoding every frame takes a moment: keep it off the
                     // main thread.
                     let decoded = await Task.detached(priority: .userInitiated) {
-                        GifFrameCache.loadFrames(for: url)
+                        GifFrameCache.loadFrames(for: url, profile: profile)
                     }.value
                     guard !Task.isCancelled else { return }
                     frames = decoded

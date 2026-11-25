@@ -67,6 +67,31 @@ struct GifFrameDecoderTests {
         #expect(plan.pixelSize >= GifFrameDecoder.minPixelSize)
     }
 
+    @Test(arguments: [(300, 500, 500), (60, 240, 240), (1_000, 1920, 1080)])
+    func previewsStayWithinTheirSmallerBudget(frameCount: Int, width: Int, height: Int) throws {
+        let profile = GifDecodeProfile.preview
+        let plan = try #require(GifFrameDecoder.plan(frameCount: frameCount, width: width, height: height, profile: profile))
+        let kept = (frameCount + plan.stride - 1) / plan.stride
+        let scale = min(1, Double(plan.pixelSize) / Double(max(width, height)))
+        let frameBytes = Int((Double(width) * scale).rounded()) * Int((Double(height) * scale).rounded()) * 4
+        #expect(plan.pixelSize <= profile.maxPixelSize)
+        #expect(kept <= profile.maxFrames)
+        #expect(kept * frameBytes <= profile.maxDecodedBytes)
+    }
+
+    @Test func previewAndMessageFramesAreCachedApart() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("gif-profiles-\(UUID().uuidString).gif")
+        try makeAnimatedGIF(width: 400, height: 200, frames: 2, delay: 0.1).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let full = try #require(GifFrameCache.loadFrames(for: url))
+        let preview = try #require(GifFrameCache.loadFrames(for: url, profile: .preview))
+
+        #expect(full.images.first?.width == 400)
+        #expect(preview.images.first?.width == GifDecodeProfile.preview.maxPixelSize)
+        #expect(GifFrameCache.cachedFrames(for: url, profile: .preview) === preview)
+    }
+
     @Test(arguments: [(0, 100, 100), (10, 0, 100), (GifFrameDecoder.maxSourceFrames + 1, 100, 100), (1, 5000, 5000)])
     func implausibleFilesAreRejected(frameCount: Int, width: Int, height: Int) {
         #expect(GifFrameDecoder.plan(frameCount: frameCount, width: width, height: height) == nil)

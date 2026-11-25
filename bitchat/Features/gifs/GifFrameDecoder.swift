@@ -31,6 +31,34 @@ final class GifFrames {
     }
 }
 
+/// How large and how many frames a decode may produce.
+struct GifDecodeProfile: Hashable, Sendable {
+    /// Longest side of a decoded frame.
+    let maxPixelSize: Int
+    /// Frames are never shrunk below this side to fit the budget; frames
+    /// are skipped instead.
+    let minPixelSize: Int
+    let maxFrames: Int
+    let maxDecodedBytes: Int
+
+    /// A GIF in a chat bubble.
+    static let message = GifDecodeProfile(
+        maxPixelSize: GifFrameDecoder.maxPixelSize,
+        minPixelSize: GifFrameDecoder.minPixelSize,
+        maxFrames: GifFrameDecoder.maxFrames,
+        maxDecodedBytes: GifFrameDecoder.maxDecodedBytes
+    )
+
+    /// A cell in the GIF picker's grid: about 120 pt wide at 2x, and many
+    /// on screen at once, so each gets a fraction of a bubble's budget.
+    static let preview = GifDecodeProfile(
+        maxPixelSize: 240,
+        minPixelSize: 96,
+        maxFrames: 60,
+        maxDecodedBytes: 4 * 1_048_576
+    )
+}
+
 /// Decodes GIF and WebP frames through ImageIO, downsampled and within a
 /// memory budget: a GIF can hold hundreds of frames, and decoding each at
 /// full size would cost hundreds of megabytes for one chat row.
@@ -56,23 +84,23 @@ enum GifFrameDecoder {
     }
 
     /// How to decode `frameCount` frames of `width` x `height` within the
-    /// limits. Nil when the file claims more than any GIF should.
-    static func plan(frameCount: Int, width: Int, height: Int) -> Plan? {
+    /// profile's limits. Nil when the file claims more than any GIF should.
+    static func plan(frameCount: Int, width: Int, height: Int, profile: GifDecodeProfile = .message) -> Plan? {
         guard frameCount > 0, width > 0, height > 0,
               frameCount <= maxSourceFrames,
               width * height <= maxSourcePixelArea
         else { return nil }
         let longest = max(width, height)
-        var stride = max(1, Int((Double(frameCount) / Double(maxFrames)).rounded(.up)))
+        var stride = max(1, Int((Double(frameCount) / Double(profile.maxFrames)).rounded(.up)))
         var kept = keptFrames(frameCount, stride: stride)
-        var pixelSize = min(maxPixelSize, longest)
-        if kept * bytes(width: width, height: height, pixelSize: pixelSize) > maxDecodedBytes {
+        var pixelSize = min(profile.maxPixelSize, longest)
+        if kept * bytes(width: width, height: height, pixelSize: pixelSize) > profile.maxDecodedBytes {
             // The pixel count a frame may have, then the side that gives it.
-            let perFrame = Double(maxDecodedBytes) / Double(kept * 4)
+            let perFrame = Double(profile.maxDecodedBytes) / Double(kept * 4)
             let scale = (perFrame / Double(width * height)).squareRoot()
-            pixelSize = min(pixelSize, max(min(minPixelSize, longest), Int(Double(longest) * scale)))
+            pixelSize = min(pixelSize, max(min(profile.minPixelSize, longest), Int(Double(longest) * scale)))
         }
-        while kept > 1, kept * bytes(width: width, height: height, pixelSize: pixelSize) > maxDecodedBytes {
+        while kept > 1, kept * bytes(width: width, height: height, pixelSize: pixelSize) > profile.maxDecodedBytes {
             stride += 1
             kept = keptFrames(frameCount, stride: stride)
         }
@@ -87,14 +115,15 @@ enum GifFrameDecoder {
     }
 
     /// Decodes the frames. Call it off the main thread.
-    static func decode(url: URL) -> GifFrames? {
+    static func decode(url: URL, profile: GifDecodeProfile = .message) -> GifFrames? {
         let options = [kCGImageSourceShouldCache: false] as CFDictionary
         guard let source = CGImageSourceCreateWithURL(url as CFURL, options),
               let size = pixelSize(of: source),
               let plan = plan(
                 frameCount: CGImageSourceGetCount(source),
                 width: Int(size.width),
-                height: Int(size.height)
+                height: Int(size.height),
+                profile: profile
               )
         else { return nil }
         let count = CGImageSourceGetCount(source)
@@ -163,21 +192,26 @@ enum GifFrameDecoder {
 /// once. Bounded by decoded bytes; the system may also evict under memory
 /// pressure.
 enum GifFrameCache {
-    private static let cache: NSCache<NSURL, GifFrames> = {
-        let cache = NSCache<NSURL, GifFrames>()
+    private static let cache: NSCache<NSString, GifFrames> = {
+        let cache = NSCache<NSString, GifFrames>()
         cache.totalCostLimit = 96 * 1_048_576
         return cache
     }()
 
-    static func cachedFrames(for url: URL) -> GifFrames? {
-        cache.object(forKey: url as NSURL)
+    /// One file decodes differently per profile, so both form the key.
+    private static func key(_ url: URL, _ profile: GifDecodeProfile) -> NSString {
+        "\(profile.maxPixelSize)/\(profile.maxDecodedBytes)|\(url.absoluteString)" as NSString
+    }
+
+    static func cachedFrames(for url: URL, profile: GifDecodeProfile = .message) -> GifFrames? {
+        cache.object(forKey: key(url, profile))
     }
 
     /// Decodes and caches. Call it off the main thread.
-    static func loadFrames(for url: URL) -> GifFrames? {
-        if let cached = cachedFrames(for: url) { return cached }
-        guard let frames = GifFrameDecoder.decode(url: url) else { return nil }
-        cache.setObject(frames, forKey: url as NSURL, cost: frames.byteCount)
+    static func loadFrames(for url: URL, profile: GifDecodeProfile = .message) -> GifFrames? {
+        if let cached = cachedFrames(for: url, profile: profile) { return cached }
+        guard let frames = GifFrameDecoder.decode(url: url, profile: profile) else { return nil }
+        cache.setObject(frames, forKey: key(url, profile), cost: frames.byteCount)
         return frames
     }
 
