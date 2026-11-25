@@ -544,9 +544,9 @@ private struct ContentPrivateChatSheetView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 10)
                 .padding(.bottom, 12)
-                // The same floating panel as the main header. The DM signature
-                // is carried by the orange lock, caption, and composer accents.
-                .themedChromePanel(edge: .top)
+                // No panel: the header sits on the sheet's own surface. The DM
+                // signature is carried by the orange lock, caption, and
+                // composer accents.
             }
 
             MessageListView(
