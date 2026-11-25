@@ -1,65 +1,7 @@
 import SwiftUI
 import PhotosUI
 
-/// Shared submenu for choosing the backdrop of a single conversation.
-struct ChatBackgroundPickerMenu: View {
-    let conversationKey: ComposerDraftStore.Key
-    @Binding var selection: ChatBackgroundOption
-    @State private var pickedPhoto: PhotosPickerItem?
-
-    var body: some View {
-        Menu {
-            Picker(
-                String(localized: "chat.background.title", comment: "Menu title for choosing a chat conversation background"),
-                selection: $selection
-            ) {
-                ForEach(ChatBackgroundOption.allCases.filter { $0 != .image }) { option in
-                    Label {
-                        Text(option.label)
-                    } icon: {
-                        Circle()
-                            .fill(option.swatch)
-                            .frame(width: 11, height: 11)
-                            .overlay(Circle().stroke(Color.primary.opacity(0.25), lineWidth: 0.5))
-                    }
-                    .tag(option)
-                }
-            }
-            PhotosPicker(selection: $pickedPhoto, matching: .images) {
-                Label(String(localized: "chat.background.choose_image", comment: "Choose a local chat background photo"), systemImage: "photo")
-            }
-            if selection == .image {
-                Label {
-                    Text(String(localized: "chat.background.image", comment: "Custom image chat background"))
-                } icon: {
-                    ChatBackgroundMenuThumbnail(url: ChatBackgroundImageStore.shared.fileURL(for: conversationKey))
-                        .overlay(alignment: .bottomTrailing) { Image(systemName: "checkmark.circle.fill").font(.system(size: 9)).foregroundStyle(.green) }
-                }
-                Button(role: .destructive) {
-                    ChatBackgroundImageStore.shared.remove(for: conversationKey)
-                    selection = .default
-                } label: {
-                    Label(String(localized: "chat.background.remove_image", comment: "Remove the custom chat background image"), systemImage: "trash")
-                }
-            }
-        } label: {
-            Label {
-                Text(String(localized: "chat.background.title", comment: "Menu title for choosing a chat conversation background"))
-            } icon: {
-                Image(systemName: "circle.lefthalf.filled")
-            }
-        }
-        .onChange(of: selection) { option in
-            ChatBackgroundStore.shared.set(option, for: conversationKey)
-        }
-        .task(id: pickedPhoto) {
-            guard let pickedPhoto, let data = try? await pickedPhoto.loadTransferable(type: Data.self),
-                  (try? ChatBackgroundImageStore.shared.save(data, for: conversationKey)) != nil else { return }
-            selection = .image
-        }
-    }
-}
-
+/// A small preview of the conversation's background photo.
 struct ChatBackgroundMenuThumbnail: View {
     let url: URL
     @State private var image: Image?

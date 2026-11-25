@@ -365,11 +365,25 @@ struct ContentView: View {
             VerificationSheetView(isPresented: $showVerifySheet)
                 .environmentObject(verificationModel)
         }
-        // Hosted at the root: the sidebar and the chat toolbar both open it.
+        // Hosted at the root: the sidebar and the channel info page both
+        // open it.
         .sheet(isPresented: $appChromeModel.isLocationChannelsSheetPresented) {
             LocationChannelsSheet(isPresented: $appChromeModel.isLocationChannelsSheetPresented)
                 .environmentObject(locationChannelsModel)
                 .environmentObject(peerListModel)
+        }
+        // Hosted at the root: the pinned notices bar and the channel info
+        // page both open it, and the page can cover the chat.
+        .sheet(
+            isPresented: $appChromeModel.isNoticesSheetPresented,
+            onDismiss: { appChromeModel.noticesSheetPrefersGeoTab = false }
+        ) {
+            NoticesView(
+                senderNickname: appChromeModel.nickname,
+                board: appChromeModel.boardManager,
+                initialTab: initialNoticesTab
+            )
+            .environmentObject(locationChannelsModel)
         }
         #if os(iOS)
         .fullScreenCover(isPresented: $showImagePicker) {
@@ -636,19 +650,6 @@ struct ContentView: View {
         privateConversationModel.endConversation()
     }
 
-    /// Reveals the people: the sidebar in the compact split view, or the
-    /// sidebar column shown or hidden in regular width.
-    private func togglePeople() {
-        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-            if isCompact {
-                showsDetailWhenCompact = false
-                sidebarSelection = nil
-            } else {
-                columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
-            }
-        }
-    }
-
     // MARK: - Detail
 
     /// Full-bleed message list under the native title bar, with the status
@@ -681,10 +682,20 @@ struct ContentView: View {
                 ChatConversationBackground(option: chatBackgroundOption, conversationKey: activeDraftKey)
                     .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
             }
-            .modifier(ContentHeaderToolbar(
-                onShowPeople: togglePeople,
-                backgroundOption: $chatBackgroundOption
-            ))
+            .modifier(ContentHeaderToolbar(backgroundOption: $chatBackgroundOption))
+    }
+
+    /// Open the notices sheet on the tab matching the current channel: the
+    /// geohash channel's notices, or the mesh-local board in mesh chat. An
+    /// explicit geo-tab request (the "notes left here" hint) wins.
+    private var initialNoticesTab: NoticesView.Tab {
+        if appChromeModel.noticesSheetPrefersGeoTab {
+            return .geo
+        }
+        if case .location = locationChannelsModel.selectedChannel {
+            return .geo
+        }
+        return .mesh
     }
 
     private var activeNoticesGeoScope: String? {
