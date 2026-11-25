@@ -116,8 +116,6 @@ struct ContentView: View {
     #if os(iOS)
     @State private var showImagePicker = false
     @State private var imagePickerSourceType: UIImagePickerController.SourceType = .camera
-    #else
-    @State private var showMacImagePicker = false
     #endif
     @ScaledMetric(relativeTo: .body) private var headerHeight: CGFloat = 44
     @ScaledMetric(relativeTo: .subheadline) private var headerPeerIconSize: CGFloat = 11
@@ -149,7 +147,8 @@ struct ContentView: View {
         #if os(iOS)
         let isMediaPickerPresented = showImagePicker
         #else
-        let isMediaPickerPresented = showMacImagePicker
+        // The macOS open panel is window-modal and needs no flag.
+        let isMediaPickerPresented = false
         #endif
 
         return ContentRootModalPresentationState(
@@ -354,8 +353,7 @@ struct ContentView: View {
                 voiceRecordingVM: voiceRecordingVM,
                 autocompleteDebounceTimer: $autocompleteDebounceTimer,
                 headerHeight: headerHeight,
-                onSendMessage: sendMessage,
-                showMacImagePicker: $showMacImagePicker
+                onSendMessage: sendMessage
             )
             .environmentObject(appChromeModel)
             .environmentObject(privateConversationModel)
@@ -397,21 +395,6 @@ struct ContentView: View {
                 conversationUIModel.processSelectedImage(image)
             }
             .ignoresSafeArea()
-        }
-        #endif
-        #if os(macOS)
-        .sheet(isPresented: Binding(
-            get: { showMacImagePicker && !showSidebar && selectedPrivatePeerID == nil },
-            set: { newValue in
-                if !newValue {
-                    showMacImagePicker = false
-                }
-            }
-        )) {
-            MacImagePickerView { url in
-                showMacImagePicker = false
-                conversationUIModel.processSelectedImage(from: url)
-            }
         }
         #endif
         .sheet(isPresented: Binding(
@@ -572,8 +555,7 @@ struct ContentView: View {
             isTextFieldFocused: $isTextFieldFocused,
             voiceRecordingVM: voiceRecordingVM,
             autocompleteDebounceTimer: $autocompleteDebounceTimer,
-            onSendMessage: sendMessage,
-            showMacImagePicker: $showMacImagePicker
+            onSendMessage: sendMessage
         )
         #endif
     }

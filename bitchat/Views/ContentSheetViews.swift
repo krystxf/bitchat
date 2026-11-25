@@ -49,8 +49,6 @@ struct ContentPeopleSheetView: View {
     #if os(iOS)
     @Binding var showImagePicker: Bool
     @Binding var imagePickerSourceType: UIImagePickerController.SourceType
-    #else
-    @Binding var showMacImagePicker: Bool
     #endif
 
     private func modalPresentationState(
@@ -59,7 +57,8 @@ struct ContentPeopleSheetView: View {
         #if os(iOS)
         let isMediaPickerPresented = showImagePicker
         #else
-        let isMediaPickerPresented = showMacImagePicker
+        // The macOS open panel is window-modal and needs no flag.
+        let isMediaPickerPresented = false
         #endif
 
         return ContentPeopleSheetModalPresentationState(
@@ -159,8 +158,7 @@ struct ContentPeopleSheetView: View {
                         voiceRecordingVM: voiceRecordingVM,
                         autocompleteDebounceTimer: $autocompleteDebounceTimer,
                         headerHeight: headerHeight,
-                        onSendMessage: onSendMessage,
-                        showMacImagePicker: $showMacImagePicker
+                        onSendMessage: onSendMessage
                     )
                     #endif
                 } else {
@@ -272,14 +270,6 @@ struct ContentPeopleSheetView: View {
                 conversationUIModel.processSelectedImage(image)
             }
             .ignoresSafeArea()
-        }
-        #endif
-        #if os(macOS)
-        .sheet(isPresented: $showMacImagePicker) {
-            MacImagePickerView { url in
-                showMacImagePicker = false
-                conversationUIModel.processSelectedImage(from: url)
-            }
         }
         #endif
         .alert(Text(String(localized: "voice.error.title", defaultValue: "recording error", comment: "Title of the voice recording error alert")), isPresented: voiceAlertBinding, actions: {
@@ -488,8 +478,6 @@ private struct ContentPrivateChatSheetView: View {
     #if os(iOS)
     @Binding var showImagePicker: Bool
     @Binding var imagePickerSourceType: UIImagePickerController.SourceType
-    #else
-    @Binding var showMacImagePicker: Bool
     #endif
 
     var body: some View {
@@ -598,8 +586,7 @@ private struct ContentPrivateChatSheetView: View {
                 isTextFieldFocused: isTextFieldFocused,
                 voiceRecordingVM: voiceRecordingVM,
                 autocompleteDebounceTimer: $autocompleteDebounceTimer,
-                onSendMessage: onSendMessage,
-                showMacImagePicker: $showMacImagePicker
+                onSendMessage: onSendMessage
             )
             #endif
         }

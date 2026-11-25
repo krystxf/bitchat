@@ -4,6 +4,7 @@ import UIKit
 #endif
 #if os(macOS)
 import AppKit
+import UniformTypeIdentifiers
 #endif
 
 struct ContentComposerView: View {
@@ -23,8 +24,6 @@ struct ContentComposerView: View {
     #if os(iOS)
     @Binding var showImagePicker: Bool
     @Binding var imagePickerSourceType: UIImagePickerController.SourceType
-    #else
-    @Binding var showMacImagePicker: Bool
     #endif
 
     var body: some View {
@@ -296,7 +295,7 @@ private extension ContentComposerView {
                 showImagePicker = true
             }
         #else
-        Button(action: { showMacImagePicker = true }) {
+        Button(action: presentImageOpenPanel) {
             Image(systemName: "photo")
                 .font(.bitchatSystem(size: 17, weight: .medium))
                 .foregroundColor(composerAccentColor)
@@ -310,6 +309,32 @@ private extension ContentComposerView {
         )
         #endif
     }
+
+    #if os(macOS)
+    /// Opens the system open panel straight away, attached to the window,
+    /// with no intermediate dialog.
+    func presentImageOpenPanel() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.image]
+        panel.message = String(localized: "mac.image_picker.panel_message", comment: "Message shown in the macOS NSOpenPanel when picking an image")
+
+        let model = conversationUIModel
+        let handleResponse: (NSApplication.ModalResponse) -> Void = { response in
+            guard response == .OK, let url = panel.url else { return }
+            Task { @MainActor in
+                model.processSelectedImage(from: url)
+            }
+        }
+        if let window = NSApp.keyWindow {
+            panel.beginSheetModal(for: window, completionHandler: handleResponse)
+        } else {
+            handleResponse(panel.runModal())
+        }
+    }
+    #endif
 
     @ViewBuilder
     var sendOrMicButton: some View {

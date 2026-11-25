@@ -139,8 +139,6 @@ private struct ContentPeopleSheetHarness: View {
     #if os(iOS)
     @State private var showImagePicker = false
     @State private var imagePickerSourceType: UIImagePickerController.SourceType = .photoLibrary
-    #else
-    @State private var showMacImagePicker = false
     #endif
 
     var body: some View {
@@ -176,8 +174,7 @@ private struct ContentPeopleSheetHarness: View {
             voiceRecordingVM: voiceRecordingVM,
             autocompleteDebounceTimer: $autocompleteDebounceTimer,
             headerHeight: 44,
-            onSendMessage: {},
-            showMacImagePicker: $showMacImagePicker
+            onSendMessage: {}
         )
         #endif
     }
