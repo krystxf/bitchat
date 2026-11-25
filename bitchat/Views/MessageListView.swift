@@ -15,6 +15,9 @@ private struct MessageDisplayItem: Identifiable {
     /// Whether the row opens a run of bubbles from one sender (see
     /// `MessageRunPolicy`).
     let startsRun: Bool
+    /// Whether the row opens a time group, which shows the time above it
+    /// (see `MessageTimeLabel`).
+    let startsTimeGroup: Bool
 }
 
 /// What the list's change detection keys on. The count alone stops moving
@@ -189,10 +192,16 @@ struct MessageListView: View {
                                     cancelFollowScroll()
                                 }
                             }
+                            .messageExactTimeHelp(message.timestamp)
                             // The menu belongs to the bubble, not the empty
                             // side of the row.
                             .contentShape(Rectangle())
                             .contextMenu {
+                                // The exact time, which no longer sits beside
+                                // each bubble.
+                                Section {
+                                    Text(verbatim: MessageTimeLabel.exactLabel(for: message.timestamp))
+                                }
                                 let showsUserActions = message.sender != "system" && !isSelf
                                 if showsUserActions {
                                     // Mention and DM are redundant inside a 1:1 conversation:
@@ -246,6 +255,7 @@ struct MessageListView: View {
                             // Archived echoes read as one tinted block, not
                             // just faded rows.
                             .background(message.isArchivedEcho ? palette.secondary.opacity(0.08) : Color.clear)
+                            .messageTimeHeader(item.startsTimeGroup ? message.timestamp : nil)
                     }
                 }
                 .padding(.vertical, 6)
@@ -622,8 +632,9 @@ private extension MessageListView {
     }
 
     /// The rows of the rendered window, each marked with whether it opens a
-    /// run. The message just above the window decides that for its first
-    /// row, so a window that grows or shrinks never regroups a row.
+    /// run and a time group. The message just above the window decides both
+    /// for its first row, so a window that grows or shrinks never regroups
+    /// a row.
     func displayItems(
         for windowedMessages: [BitchatMessage],
         of messages: [BitchatMessage],
@@ -638,7 +649,8 @@ private extension MessageListView {
             items.append(MessageDisplayItem(
                 id: "\(contextKey)|\(message.id)",
                 message: message,
-                startsRun: MessageRunPolicy.startsRun(message, after: previous)
+                startsRun: MessageRunPolicy.startsRun(message, after: previous),
+                startsTimeGroup: MessageTimeLabel.startsTimeGroup(message, after: previous)
             ))
             previous = message
         }

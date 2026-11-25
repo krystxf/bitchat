@@ -57,14 +57,14 @@ extension View {
     }
 }
 
-/// Puts a bubble and its meta (time, status) side by side, bottom-aligned,
+/// Puts a bubble and its meta (status glyphs) side by side, bottom-aligned,
 /// with the meta on the inner side: right of other people's bubbles, left
 /// of mine. The bubble hugs its content up to `maxBubbleWidth`; the meta
 /// keeps its ideal size.
 ///
 /// Stacks can't do this. An HStack offers a wrapping text only a share of
 /// the width, and a `maxWidth` frame grows to its maximum, which pushes the
-/// meta away from a short bubble.
+/// meta away from a short bubble. Empty meta takes no room.
 struct MessageBubbleLayout: Layout {
     let isSelf: Bool
     let maxBubbleWidth: CGFloat
@@ -113,12 +113,11 @@ struct MessageBubbleLayout: Layout {
 }
 
 /// What sits beside a bubble: the private lock, the verified seal, the
-/// bridge glyph, the time, and the delivery status of my private messages.
+/// bridge glyph, and the delivery status of my private messages. The time
+/// is not here: it heads each time group instead (`MessageTimeHeader`).
 /// The status is tappable: `.help()` tooltips only exist on macOS, so iOS
 /// users get its description as a caption under the bubble instead.
 struct MessageMetaView: View {
-    @ThemedPalette private var palette
-
     let message: BitchatMessage
     let showsVerifiedSeal: Bool
     /// The delivery status to show, or nil for none.
@@ -149,9 +148,6 @@ struct MessageMetaView: View {
                         String(localized: "content.accessibility.bridged_message", defaultValue: "Arrived across a mesh bridge", comment: "Accessibility label for the glyph marking a message that arrived across a mesh bridge")
                     )
             }
-            Text(verbatim: message.formattedTimestamp)
-                .font(.bitchatSystem(size: 10).monospacedDigit())
-                .foregroundColor(palette.secondary)
             if let deliveryStatus {
                 Button {
                     showsDeliveryDetail.toggle()
