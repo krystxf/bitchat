@@ -580,8 +580,16 @@ struct AppInfoView: View {
                     }
                 }
             ))
+            Picker(String(localized: "appearance.default_chat_background", defaultValue: "Default Chat Background"), selection: Binding(
+                get: { DefaultChatBackgroundSettings.selected },
+                set: { DefaultChatBackgroundSettings.selected = $0 }
+            )) {
+                ForEach(ChatBackgroundOption.allCases.filter { $0 != .image }) { option in
+                    Text(option.displayName).tag(option)
+                }
+            }
         } header: {
-            sectionHeader(String(localized: "app_info.settings.appearance.title", defaultValue: "appearance", comment: "Settings section for the user's outgoing message bubble color"))
+            sectionHeader(String(localized: "app_info.settings.appearance.title", defaultValue: "appearance", comment: "Settings section for chat appearance defaults"))
         }
     }
 

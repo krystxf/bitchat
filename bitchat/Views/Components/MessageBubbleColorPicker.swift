@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// Compact reusable palette picker for the global outgoing bubble color.
+/// Compact reusable palette picker for the default outgoing bubble color.
 struct MessageBubbleColorPicker: View {
     @Binding var selection: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(String(localized: "app_info.settings.bubble_color.title", defaultValue: "my message color", comment: "Label for the global outgoing message bubble color picker"))
+            Text(String(localized: "appearance.default_message_color", defaultValue: "Default Message Color"))
             HStack(spacing: 7) {
                 ForEach(MessageBubbleColor.allCases) { option in
                     Button {
