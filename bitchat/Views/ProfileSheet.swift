@@ -67,6 +67,9 @@ struct ProfileSheet: View {
                 Text(verbatim: Strings.nicknameHeader.localizedCapitalized)
             } footer: {
                 Text(verbatim: Strings.nicknameFooter)
+                    // Wrap once at the given width; a footer whose height
+                    // depends on a width that depends on its height shakes.
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             // My QR code and the scanner, to verify encryption in person.
@@ -106,7 +109,12 @@ struct ProfileSheet: View {
         // Swipe-to-dismiss skips the close button; save on the way out too.
         .onDisappear { appChromeModel.validateAndSaveNickname() }
         #if os(macOS)
-        .frame(minWidth: 380, idealWidth: 420, minHeight: 320)
+        // A fixed width and room for every row: when the content is about
+        // as tall as the sheet, a legacy scroll bar appears and disappears,
+        // the text re-wraps each time and the footer shakes.
+        .scrollIndicators(.never)
+        .frame(width: 440)
+        .frame(minHeight: 480, idealHeight: 520)
         #endif
     }
 
