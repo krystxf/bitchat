@@ -411,25 +411,30 @@ struct VerificationSheetView: View {
     private var boxColor: Color { palette.secondary.opacity(0.1) }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Top header (always at top)
-            HStack {
-                Text("verification.sheet.title")
-                    .bitchatFont(size: 14, weight: .bold)
-                    .foregroundColor(accentColor)
-                Spacer()
-                SheetCloseButton {
-                    showingScanner = false
-                    isPresented = false
+        NavigationStack {
+            sheetContent
+                .navigationTitle(Text(verbatim: title))
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    SheetCloseToolbarItem {
+                        showingScanner = false
+                        isPresented = false
+                    }
                 }
-                .foregroundColor(accentColor)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+        }
+        .onDisappear { showingScanner = false }
+    }
 
-            Divider()
+    /// The catalog keeps this title in capitals; show it in lower case like
+    /// the other sheet titles.
+    private var title: String {
+        String(localized: "verification.sheet.title").lowercased()
+    }
 
+    private var sheetContent: some View {
+        VStack(spacing: 0) {
             // Content area
             Group {
                 if showingScanner {
@@ -488,6 +493,5 @@ struct VerificationSheetView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
         }
-        .onDisappear { showingScanner = false }
     }
 }
