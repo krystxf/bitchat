@@ -235,6 +235,9 @@ struct ContentView: View {
                 voiceRecordingVM.sessionProvider = { [weak conversationUIModel] in
                     conversationUIModel?.makeVoiceCaptureSession() ?? VoiceNoteCaptureSession()
                 }
+                voiceRecordingVM.sendAtTimeLimit = { [weak conversationUIModel] url in
+                    conversationUIModel?.sendVoiceNote(at: url)
+                }
                 appChromeModel.setWipePreparation { [weak voiceRecordingVM] scope in
                     voiceRecordingVM?.panicWipe()
                     // Drop in-memory composer text before ChatViewModel resets

@@ -77,6 +77,14 @@ final class VoiceRecordingViewModel: ObservableObject {
     static let levelSampleInterval: Duration = .milliseconds(40)
     private var levelSampling: Task<Void, Never>?
 
+    /// The longest recording. Both capture backends stop here, so the
+    /// recording sends itself instead of counting time it does not record.
+    var timeLimit: TimeInterval = VoiceRecorder.maxRecordingDuration
+    /// Sends a recording that reached `timeLimit`. The chat screen sets it.
+    /// Without it, a recording at the limit is discarded.
+    var sendAtTimeLimit: ((URL) -> Void)?
+    private var timeLimitTask: Task<Void, Never>?
+
     /// Supplies the capture backend per press. `ChatViewModel` swaps in a
     /// live push-to-talk session when the current DM peer can hear it now.
     var sessionProvider: () -> VoiceCaptureSession = { VoiceNoteCaptureSession() }
@@ -254,6 +262,7 @@ final class VoiceRecordingViewModel: ObservableObject {
                 state = .recording(startDate: Date())
                 isLiveStreaming = session.isLive
                 startLevelSampling(from: session)
+                startTimeLimit(for: generation)
             } catch VoiceRecorder.RecorderError.recordingInProgress {
                 // The previous classic hold may still be in its intentional
                 // finalize-padding window. This press owns no recorder, so
@@ -295,6 +304,7 @@ final class VoiceRecordingViewModel: ObservableObject {
                         state = .recording(startDate: Date())
                         isLiveStreaming = false
                         startLevelSampling(from: fallback)
+                        startTimeLimit(for: generation)
                         return
                     } catch {
                         SecureLogger.error("Voice recording fallback failed to start: \(error)", category: .session)
@@ -321,6 +331,7 @@ final class VoiceRecordingViewModel: ObservableObject {
         state = .idle
         isLiveStreaming = false
         stopLevelSampling()
+        stopTimeLimit()
         let session = activeSession
         let generation = holdGeneration
         activeSession = nil
@@ -376,6 +387,7 @@ final class VoiceRecordingViewModel: ObservableObject {
     func panicWipe() {
         holdGeneration &+= 1
         stopLevelSampling()
+        stopTimeLimit()
         touchActive = false
         clearTransientFeedback()
         let session = activeSession
@@ -404,6 +416,29 @@ final class VoiceRecordingViewModel: ObservableObject {
     private func stopLevelSampling() {
         levelSampling?.cancel()
         levelSampling = nil
+    }
+
+    /// Sends the recording when it reaches `timeLimit`, held or hands free.
+    /// A finger still on the mic then lifts onto an idle gesture, which
+    /// does nothing.
+    private func startTimeLimit(for generation: UInt64) {
+        timeLimitTask?.cancel()
+        let limit = timeLimit
+        timeLimitTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(limit))
+            guard !Task.isCancelled,
+                  let self,
+                  generation == self.holdGeneration,
+                  case .recording = self.state
+            else { return }
+            SecureLogger.info("Voice recording reached its time limit; sending it", category: .session)
+            self.finish(completion: self.sendAtTimeLimit)
+        }
+    }
+
+    private func stopTimeLimit() {
+        timeLimitTask?.cancel()
+        timeLimitTask = nil
     }
 
     private func isValidRecording(at url: URL, duration: TimeInterval) -> Bool {

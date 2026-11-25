@@ -118,7 +118,7 @@ final class PTTInputLevelQueue: @unchecked Sendable {
 final class PTTCaptureEngine: @unchecked Sendable {
     /// Hard cap matching `VoiceRecorder.maxRecordingDuration`: past it the
     /// engine keeps running (the UI owns the gesture) but stops encoding.
-    private static let maxCaptureDuration: TimeInterval = 120
+    private static let maxCaptureDuration: TimeInterval = VoiceRecorder.maxRecordingDuration
 
     /// Recreated on every `start()`: an engine whose input unit was
     /// instantiated against an earlier (playback-only or inactive) audio

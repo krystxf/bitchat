@@ -213,4 +213,32 @@ struct VoiceRecordingGestureFlowTests {
         await beginHold()
         #expect(viewModel.formattedElapsed(for: Date().addingTimeInterval(75)) == "1:15")
     }
+
+    @Test func handsFreeRecordingSendsItselfAtTheTimeLimit() async {
+        viewModel.timeLimit = 0.05
+        viewModel.sendAtTimeLimit = { _ in }
+
+        viewModel.startHandsFree(canRecord: true)
+
+        await waitUntil { session.finishCount == 1 }
+        #expect(viewModel.gesturePhase == .idle)
+        #expect(session.cancelCount == 0)
+    }
+
+    @Test func heldRecordingSendsAtTheTimeLimitAndTheLaterReleaseDoesNothing() async {
+        viewModel.timeLimit = 0.05
+        viewModel.sendAtTimeLimit = { _ in }
+        await beginHold()
+
+        await waitUntil { session.finishCount == 1 }
+        #expect(viewModel.gesturePhase == .idle)
+
+        // The finger lifts after the recording already went out.
+        viewModel.pressEnded(completion: { _ in
+            Issue.record("a release after the time limit must not send again")
+        })
+        #expect(viewModel.gesturePhase == .idle)
+        #expect(session.finishCount == 1)
+        #expect(session.cancelCount == 0)
+    }
 }

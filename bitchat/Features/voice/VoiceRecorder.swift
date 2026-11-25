@@ -45,6 +45,9 @@ actor VoiceRecorder {
     static let shared = VoiceRecorder()
 
     static let minRecordingDuration: TimeInterval = 1
+    /// The longest voice message. Capture stops here; the recording bar
+    /// then sends what it has (`VoiceRecordingViewModel.timeLimit`).
+    static let maxRecordingDuration: TimeInterval = 120
 
     /// Identity of one press/hold. Every lifecycle mutation must present the
     /// same owner that started the recorder, so a stale finish or cancel from
@@ -82,7 +85,7 @@ actor VoiceRecorder {
         recorderFactory: any VoiceAudioRecorderCreating = SystemVoiceAudioRecorderFactory(),
         permissionGranted: (() -> Bool)? = nil,
         paddingInterval: TimeInterval = 0.5,
-        maxRecordingDuration: TimeInterval = 120,
+        maxRecordingDuration: TimeInterval = VoiceRecorder.maxRecordingDuration,
         outputDirectory: URL? = nil,
         testingHooks: TestingHooks = TestingHooks()
     ) {
