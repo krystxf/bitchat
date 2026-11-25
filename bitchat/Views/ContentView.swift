@@ -477,6 +477,10 @@ struct ContentView: View {
                     composerView
                 }
             }
+            // macOS: drop an image anywhere on the chat to send it.
+            .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in
+                conversationUIModel.processSelectedImage(from: url)
+            }
     }
 
     private var headerView: some View {
