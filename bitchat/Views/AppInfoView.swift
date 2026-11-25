@@ -241,56 +241,45 @@ struct AppInfoView: View {
     }
 
     var body: some View {
-        #if os(macOS)
-        VStack(spacing: 0) {
-            // Custom header for macOS
-            HStack {
-                Spacer()
-                Button("app_info.done") {
-                    dismiss()
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(textColor)
-                .padding()
-            }
-
+        // NavigationStack, not NavigationView: on macOS a NavigationView is a
+        // two-column split view and squeezes this content into its sidebar.
+        NavigationStack {
             VStack(spacing: 0) {
+                #if os(macOS)
+                // A macOS sheet does not show principal toolbar items, so the
+                // pane picker stays at the top of the content there.
                 panePicker
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+                #endif
 
                 ScrollView {
                     paneContent
                 }
             }
-        }
-        .frame(width: 600, height: 700)
-        .sheet(isPresented: $showTopology) {
-            if let topologyProvider {
-                MeshTopologyView(provider: topologyProvider)
-            }
-        }
-        #else
-        NavigationView {
-            VStack(spacing: 0) {
-                panePicker
-
-                ScrollView {
-                    paneContent
-                }
-            }
+            .navigationTitle(Text(Strings.appName))
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    SheetCloseButton { dismiss() }
-                        .foregroundColor(textColor)
+                SheetCloseToolbarItem { dismiss() }
+                #if os(iOS)
+                // A segmented control in the title slot, as in the system
+                // apps; it replaces the title on screen.
+                ToolbarItem(placement: .principal) {
+                    panePicker
                 }
+                #endif
             }
         }
+        #if os(macOS)
+        .frame(width: 600, height: 700)
+        #endif
         .sheet(isPresented: $showTopology) {
             if let topologyProvider {
                 MeshTopologyView(provider: topologyProvider)
             }
         }
-        #endif
     }
 
     // MARK: - Pane switching
@@ -302,8 +291,6 @@ struct AppInfoView: View {
         }
         .pickerStyle(.segmented)
         .labelsHidden()
-        .padding(.horizontal)
-        .padding(.top, 12)
     }
 
     @ViewBuilder
