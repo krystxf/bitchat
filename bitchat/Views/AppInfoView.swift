@@ -46,10 +46,6 @@ struct AppInfoView: View {
         case info
     }
 
-    private var textColor: Color { palette.primary }
-
-    private var secondaryTextColor: Color { palette.secondary }
-
     // MARK: - Constants
     private enum Strings {
         static let appName: LocalizedStringKey = "app_info.app_name"
@@ -127,7 +123,7 @@ struct AppInfoView: View {
         }
 
         enum Features {
-            static let title: LocalizedStringKey = "app_info.features.title"
+            static let title = String(localized: "app_info.features.title")
             static let offlineComm = AppInfoFeatureInfo(
                 icon: "wifi.slash",
                 title: "app_info.features.offline.title",
@@ -166,7 +162,7 @@ struct AppInfoView: View {
         }
 
         enum Legend {
-            static let title: LocalizedStringKey = "app_info.legend.title"
+            static let title = String(localized: "app_info.legend.title")
             /// Every glyph the peer lists and headers use, in one place —
             /// nothing else in the app defines them. A nil color renders in
             /// the theme's primary text color.
@@ -202,7 +198,7 @@ struct AppInfoView: View {
         }
 
         enum Network {
-            static let title: LocalizedStringKey = "app_info.network.title"
+            static let title = String(localized: "app_info.network.title")
             static let topology = AppInfoFeatureInfo(
                 icon: "point.3.connected.trianglepath.dotted",
                 title: "app_info.network.topology.title",
@@ -211,7 +207,7 @@ struct AppInfoView: View {
         }
 
         enum Privacy {
-            static let title: LocalizedStringKey = "app_info.privacy.title"
+            static let title = String(localized: "app_info.privacy.title")
             static let noTracking = AppInfoFeatureInfo(
                 icon: "eye.slash",
                 title: "app_info.privacy.no_tracking.title",
@@ -230,21 +226,22 @@ struct AppInfoView: View {
         }
 
         enum HowToUse {
-            static let title: LocalizedStringKey = "app_info.how_to_use.title"
-            /// The instruction strings flowed into one comma-separated
-            /// paragraph. The translations carry their legacy bullet-list
-            /// prefix ("• "), so it is stripped here.
-            static var paragraph: String {
-                [
-                    String(localized: "app_info.how_to_use.set_nickname"),
-                    String(localized: "app_info.how_to_use.change_channels"),
-                    String(localized: "app_info.how_to_use.open_sidebar"),
-                    String(localized: "app_info.how_to_use.start_dm"),
-                    String(localized: "app_info.how_to_use.clear_chat"),
-                    String(localized: "app_info.how_to_use.commands")
+            static let title = String(localized: "app_info.how_to_use.title")
+            /// One row per instruction, with an icon for each.
+            static var items: [(icon: String, text: String)] {
+                // The translations carry their legacy bullet-list prefix
+                // ("• "), so it is stripped here.
+                func item(_ icon: String, _ text: String) -> (icon: String, text: String) {
+                    (icon, text.hasPrefix("• ") ? String(text.dropFirst(2)) : text)
+                }
+                return [
+                    item("person.crop.circle", String(localized: "app_info.how_to_use.set_nickname")),
+                    item("number", String(localized: "app_info.how_to_use.change_channels")),
+                    item("person.2", String(localized: "app_info.how_to_use.open_sidebar")),
+                    item("bubble.left.and.bubble.right", String(localized: "app_info.how_to_use.start_dm")),
+                    item("hand.tap", String(localized: "app_info.how_to_use.clear_chat")),
+                    item("slash.circle", String(localized: "app_info.how_to_use.commands"))
                 ]
-                .map { $0.hasPrefix("• ") ? String($0.dropFirst(2)) : $0 }
-                .joined(separator: ", ")
             }
         }
 
@@ -288,9 +285,7 @@ struct AppInfoView: View {
         case .settings:
             settingsContent
         case .info:
-            ScrollView {
-                infoContent
-            }
+            infoContent
         }
     }
 
@@ -677,106 +672,104 @@ struct AppInfoView: View {
 
     // MARK: - Info pane
 
-    @ViewBuilder
+    /// The about content as a native grouped form: the app name, then one
+    /// section each for how to use, network diagnostics, features, privacy
+    /// and the symbols legend, every entry a label row.
     private var infoContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            // Header
-            VStack(alignment: .center, spacing: 8) {
-                Text(Strings.appName)
-                    .bitchatFont(size: 32, weight: .bold)
-                    .foregroundColor(textColor)
-
-                Text(Strings.tagline)
-                    .bitchatFont(size: 16)
-                    .foregroundColor(secondaryTextColor)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical)
-
-            // How to Use
-            VStack(alignment: .leading, spacing: 16) {
-                SectionHeader(Strings.HowToUse.title)
-
-                Text(verbatim: Strings.HowToUse.paragraph)
-                    .bitchatFont(size: 14)
-                    .foregroundColor(textColor)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            // Network diagnostics
-            if topologyProvider != nil {
-                VStack(alignment: .leading, spacing: 16) {
-                    SectionHeader(Strings.Network.title)
-
-                    Button {
-                        showTopology = true
-                    } label: {
-                        HStack(spacing: 0) {
-                            FeatureRow(info: Strings.Network.topology)
-                            Image(systemName: "chevron.right")
-                                .font(.bitchatSystem(size: 12))
-                                .foregroundColor(secondaryTextColor)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint(Text("app_info.network.topology.hint"))
+        Form {
+            Section {
+                VStack(spacing: 4) {
+                    Text(Strings.appName)
+                        .font(.largeTitle.bold())
+                    Text(Strings.tagline)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
+                .listRowBackground(Color.clear)
             }
 
-            // Features
-            VStack(alignment: .leading, spacing: 16) {
-                SectionHeader(Strings.Features.title)
-
-                FeatureRow(info: Strings.Features.offlineComm)
-
-                FeatureRow(info: Strings.Features.encryption)
-
-                FeatureRow(info: Strings.Features.extendedRange)
-
-                FeatureRow(info: Strings.Features.bridge)
-
-                FeatureRow(info: Strings.Features.favorites)
-
-                FeatureRow(info: Strings.Features.geohash)
-
-                FeatureRow(info: Strings.Features.mentions)
-            }
-
-            // Privacy
-            VStack(alignment: .leading, spacing: 16) {
-                SectionHeader(Strings.Privacy.title)
-
-                FeatureRow(info: Strings.Privacy.noTracking)
-
-                FeatureRow(info: Strings.Privacy.ephemeral)
-
-                FeatureRow(info: Strings.Privacy.panic)
-            }
-
-            // Symbols legend
-            VStack(alignment: .leading, spacing: 10) {
-                SectionHeader(Strings.Legend.title)
-
-                ForEach(Strings.Legend.items, id: \.icon) { item in
-                    HStack(alignment: .top, spacing: 12) {
+            Section {
+                ForEach(Strings.HowToUse.items, id: \.icon) { item in
+                    Label {
+                        Text(verbatim: item.text)
+                    } icon: {
                         Image(systemName: item.icon)
-                            .font(.bitchatSystem(size: 14))
-                            .foregroundColor(item.color ?? textColor)
-                            .frame(width: 30)
-
-                        Text(item.text)
-                            .bitchatFont(size: 13)
-                            .foregroundColor(secondaryTextColor)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Spacer()
                     }
-                    .accessibilityElement(children: .combine)
                 }
+            } header: {
+                sectionHeader(Strings.HowToUse.title)
+            }
+
+            if topologyProvider != nil {
+                Section {
+                    topologyRow
+                } header: {
+                    sectionHeader(Strings.Network.title)
+                }
+            }
+
+            Section {
+                FeatureRow(info: Strings.Features.offlineComm)
+                FeatureRow(info: Strings.Features.encryption)
+                FeatureRow(info: Strings.Features.extendedRange)
+                FeatureRow(info: Strings.Features.bridge)
+                FeatureRow(info: Strings.Features.favorites)
+                FeatureRow(info: Strings.Features.geohash)
+                FeatureRow(info: Strings.Features.mentions)
+            } header: {
+                sectionHeader(Strings.Features.title)
+            }
+
+            Section {
+                FeatureRow(info: Strings.Privacy.noTracking)
+                FeatureRow(info: Strings.Privacy.ephemeral)
+                FeatureRow(info: Strings.Privacy.panic)
+            } header: {
+                sectionHeader(Strings.Privacy.title)
+            }
+
+            Section {
+                ForEach(Strings.Legend.items, id: \.icon) { item in
+                    Label {
+                        Text(verbatim: item.text)
+                    } icon: {
+                        Image(systemName: item.icon)
+                            .foregroundStyle(item.color ?? Color.primary)
+                    }
+                }
+            } header: {
+                sectionHeader(Strings.Legend.title)
             }
         }
-        .padding()
+        .formStyle(.grouped)
+    }
+
+    /// Opens the mesh topology map in a sheet of its own.
+    private var topologyRow: some View {
+        Button {
+            showTopology = true
+        } label: {
+            HStack {
+                FeatureRow(info: Strings.Network.topology)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .contentShape(Rectangle())
+        }
+        #if os(macOS)
+        // A macOS form draws a push button; this is a row.
+        .buttonStyle(.plain)
+        #else
+        // A row, not an accent-colored action.
+        .tint(.primary)
+        #endif
+        .accessibilityHint(Text("app_info.network.topology.hint"))
     }
 }
 
@@ -801,56 +794,21 @@ struct AppInfoFeatureInfo {
     }
 }
 
-struct SectionHeader: View {
-    private let title: Text
-    @ThemedPalette private var palette
-
-    private var textColor: Color { palette.primary }
-
-    init(_ title: LocalizedStringKey) {
-        self.title = Text(title)
-    }
-
-    /// For pre-resolved strings (new keys with inline defaultValue).
-    init(verbatim title: String) {
-        self.title = Text(title)
-    }
-
-    var body: some View {
-        title
-            .bitchatFont(size: 16, weight: .bold)
-            .foregroundColor(textColor)
-            .padding(.top, 8)
-    }
-}
-
+/// A feature or fact in the info pane: a label row with the title and its
+/// description as secondary text, in system text styles.
 struct FeatureRow: View {
     let info: AppInfoFeatureInfo
-    @ThemedPalette private var palette
-
-    private var textColor: Color { palette.primary }
-
-    private var secondaryTextColor: Color { palette.secondary }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: info.icon)
-                .font(.bitchatSystem(size: 20))
-                .foregroundColor(textColor)
-                .frame(width: 30)
-
-            VStack(alignment: .leading, spacing: 4) {
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
                 info.title
-                    .bitchatFont(size: 14, weight: .semibold)
-                    .foregroundColor(textColor)
-
                 info.description
-                    .bitchatFont(size: 12)
-                    .foregroundColor(secondaryTextColor)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-
-            Spacer()
+        } icon: {
+            Image(systemName: info.icon)
         }
     }
 }

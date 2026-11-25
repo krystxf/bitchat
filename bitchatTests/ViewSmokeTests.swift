@@ -500,12 +500,10 @@ struct ViewSmokeTests {
         // environment, so it can only render mounted with one installed.
         let appInfo = AppInfoView()
             .environmentObject(LocationChannelsModel(manager: makeSmokeLocationManager()))
-        let header = SectionHeader("app_info.features.title")
         let featureRow = FeatureRow(info: feature)
         let paymentCashu = PaymentChipView(paymentType: .cashu("cashuA_test-token"))
         let paymentLightning = PaymentChipView(paymentType: .lightning("lightning:lnbc1test"))
 
-        _ = header.body
         _ = featureRow.body
         _ = paymentCashu.body
         _ = paymentLightning.body
@@ -516,7 +514,6 @@ struct ViewSmokeTests {
         _ = DeliveryStatusView(status: .failed(reason: "offline")).body
         _ = DeliveryStatusView(status: .partiallyDelivered(reached: 2, total: 3)).body
         _ = mount(appInfo)
-        _ = mount(header)
         _ = mount(featureRow)
         _ = mount(paymentCashu)
         _ = mount(paymentLightning)
