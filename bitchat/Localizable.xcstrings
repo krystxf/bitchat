@@ -1896,6 +1896,1850 @@
         }
       }
     },
+    "app_info.settings.location_channels.title" : {
+      "comment" : "Section header (uppercase) for location channel settings such as proof of work",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قنوات الموقع"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "লোকেশন চ্যানেল"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "STANDORT-KANÄLE"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LOCATION CHANNELS"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CANALES DE UBICACIÓN"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کانال‌های موقعیت"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MGA CHANNEL NG LOKASYON"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CANAUX DE LOCALISATION"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ערוצי מיקום"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लोकेशन चैनल"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KANAL LOKASI"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CANALI POSIZIONE"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ロケーションチャンネル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "위치 채널"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KANAL LOKASI"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "स्थान च्यानल"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LOCATIEKANALEN"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KANAŁY LOKALIZACJI"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CANAIS DE LOCALIZAÇÃO"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CANAIS DE LOCALIZAÇÃO"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "КАНАЛЫ ЛОКАЦИИ"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PLATSKANALER"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இட சேனல்கள்"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ช่องตามตำแหน่ง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KONUM KANALLARI"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "КАНАЛИ ЛОКАЦІЇ"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لوکیشن چینلز"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KÊNH VỊ TRÍ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置频道"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置頻道"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.bits" : {
+      "comment" : "Proof of work difficulty in leading zero bits, shown in the difficulty picker; %lld is the number of bits",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@n@"
+          },
+          "substitutions" : {
+            "n" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld بتات"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld بتًا"
+                    }
+                  },
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld بت"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld بت"
+                    }
+                  },
+                  "two" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld بت"
+                    }
+                  },
+                  "zero" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld بت"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld বিট"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@n@"
+          },
+          "substitutions" : {
+            "n" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld bit"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld bits"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bits"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld بیت"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bits"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bits"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld ביטים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld बिट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bit"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bit"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldビット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld비트"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bit"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld बिट"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bits"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@n@"
+          },
+          "substitutions" : {
+            "n" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld bity"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld bitów"
+                    }
+                  },
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld bit"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld bita"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bits"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bits"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@n@"
+          },
+          "substitutions" : {
+            "n" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld бита"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld бит"
+                    }
+                  },
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld бит"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld бита"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bitar"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld பிட்கள்"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld บิต"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bit"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@n@"
+          },
+          "substitutions" : {
+            "n" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld біти"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld бітів"
+                    }
+                  },
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld біт"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%lld біта"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld بٹس"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 位"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 位元"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.difficulty" : {
+      "comment" : "Label of the picker that chooses how much proof of work each location channel message carries",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الصعوبة"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "কাঠিন্য"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "schwierigkeit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "difficulty"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dificultad"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دشواری"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "antas ng hirap"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "difficulté"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קושי"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कठिनाई"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tingkat kesulitan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "difficoltà"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "難易度"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "난이도"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tahap kesukaran"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कठिनाइ"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "moeilijkheid"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trudność"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dificuldade"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dificuldade"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "сложность"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "svårighet"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "கடினத்தன்மை"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ระดับความยาก"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "zorluk"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "складність"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دشواری"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "độ khó"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "难度"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "難度"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.footer" : {
+      "comment" : "Footer under the proof of work settings explaining the difficulty levels, the time estimates, and the one-minute limit",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كل مستوى يتطلب 16 ضعف عمل المستوى الذي قبله. الأوقات تقديرية لهاتف قديم. لا تنتظر الرسالة أكثر من دقيقة: إذا طال الحساب أو أرسلت رسالة أخرى، تُرسل بالعمل المنجز حتى الآن."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রতিটি ধাপে আগেরটির চেয়ে 16 গুণ কাজ লাগে। সময়গুলো একটি পুরোনো ফোনের জন্য অনুমান। কোনো বার্তা এক মিনিটের বেশি অপেক্ষা করে না: হিসাব বেশি সময় নিলে বা আপনি আবার পাঠালে, এ পর্যন্ত করা কাজ নিয়েই এটি চলে যায়।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jede stufe braucht 16-mal so viel arbeit wie die vorherige. die zeiten sind schätzungen für ein älteres telefon. eine nachricht wartet nie länger als eine minute: dauert das rechnen zu lange oder sendest du erneut, geht sie mit der bis dahin geleisteten arbeit raus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "each step takes 16 times the work of the one before. times are estimates for an older phone. a message never waits more than a minute: if mining runs long, or you send again, it goes out with the work done so far."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cada nivel requiere 16 veces el trabajo del anterior. los tiempos son estimaciones para un teléfono antiguo. un mensaje nunca espera más de un minuto: si el cálculo se alarga o vuelves a enviar, sale con el trabajo hecho hasta ese momento."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هر سطح 16 برابر سطح قبلی کار می‌برد. زمان‌ها برآوردی برای یک گوشی قدیمی‌تر هستند. هیچ پیامی بیش از یک دقیقه منتظر نمی‌ماند: اگر محاسبه طول بکشد یا دوباره ارسال کنید، با کاری که تا آن لحظه انجام شده فرستاده می‌شود."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bawat antas ay 16 na beses ang trabaho kaysa sa nauna. tantiya ang mga oras para sa mas lumang telepono. hindi naghihintay ang mensahe nang higit sa isang minuto: kung matagal ang pagkalkula, o magpadala ka ulit, ipapadala ito kasama ang trabahong nagawa na."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chaque niveau demande 16 fois plus de travail que le précédent. les durées sont des estimations pour un téléphone ancien. un message n'attend jamais plus d'une minute : si le calcul dure trop, ou si tu envoies à nouveau, il part avec le travail déjà fait."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כל שלב דורש פי 16 עבודה מהשלב הקודם. הזמנים הם הערכות לטלפון ישן יותר. הודעה אף פעם לא ממתינה יותר מדקה: אם החישוב מתארך, או שאתה שולח שוב, היא יוצאת עם העבודה שנעשתה עד אז."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हर स्तर में पिछले स्तर से 16 गुना काम लगता है। समय किसी पुराने फ़ोन के अनुमान हैं। कोई संदेश एक मिनट से ज़्यादा इंतज़ार नहीं करता: अगर गणना लंबी चले, या आप फिर से भेजें, तो वह अब तक हुए काम के साथ चला जाता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "setiap tingkat butuh 16 kali kerja tingkat sebelumnya. waktunya adalah perkiraan untuk ponsel lama. pesan tidak pernah menunggu lebih dari satu menit: jika perhitungan terlalu lama, atau kamu mengirim lagi, pesan terkirim dengan kerja yang sudah selesai."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ogni livello richiede 16 volte il lavoro del precedente. i tempi sono stime per un telefono meno recente. un messaggio non aspetta mai più di un minuto: se il calcolo si allunga, o invii di nuovo, parte con il lavoro fatto fin lì."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各レベルは前のレベルの16倍の計算が必要です。時間は古めのスマートフォンでの目安です。メッセージが1分以上待たされることはありません。計算が長引いたり、続けて送信したりすると、その時点までの計算結果で送信されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "각 단계는 이전 단계보다 16배의 작업이 필요합니다. 시간은 오래된 휴대폰 기준 추정치입니다. 메시지는 1분 넘게 기다리지 않습니다. 계산이 길어지거나 다시 보내면 그때까지 한 작업으로 전송됩니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "setiap tahap memerlukan 16 kali ganda kerja tahap sebelumnya. masa yang ditunjukkan ialah anggaran untuk telefon lama. mesej tidak pernah menunggu lebih daripada seminit: jika pengiraan mengambil masa lama, atau anda menghantar lagi, mesej dihantar dengan kerja yang sudah siap."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हरेक तहमा अघिल्लो तहभन्दा 16 गुणा काम लाग्छ। समयहरू पुरानो फोनका लागि अनुमान हुन्। कुनै पनि सन्देश एक मिनेटभन्दा बढी पर्खँदैन: गणना लामो भयो, वा तपाईंले फेरि पठाउनुभयो भने, अहिलेसम्म भएको कामसहित पठाइन्छ।"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "elke stap kost 16 keer zoveel werk als de vorige. de tijden zijn schattingen voor een ouder toestel. een bericht wacht nooit langer dan een minuut: duurt het rekenen te lang, of verstuur je opnieuw, dan gaat het mee met het werk dat al gedaan is."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "każdy poziom wymaga 16 razy więcej pracy niż poprzedni. czasy są szacunkami dla starszego telefonu. wiadomość nigdy nie czeka dłużej niż minutę: jeśli obliczenia się przeciągają albo wyślesz kolejną, wychodzi z pracą wykonaną do tej pory."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cada nível exige 16 vezes o trabalho do anterior. os tempos são estimativas para um telemóvel mais antigo. uma mensagem nunca espera mais de um minuto: se o cálculo demorar, ou se voltares a enviar, segue com o trabalho feito até então."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cada nível exige 16 vezes o trabalho do anterior. os tempos são estimativas para um celular mais antigo. uma mensagem nunca espera mais de um minuto: se o cálculo demorar, ou se você enviar de novo, ela sai com o trabalho feito até então."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "каждый уровень требует в 16 раз больше работы, чем предыдущий. время указано для старого телефона. сообщение никогда не ждёт дольше минуты: если вычисления затянутся или вы отправите ещё одно, оно уйдёт с уже выполненной работой."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "varje steg kräver 16 gånger så mycket arbete som det förra. tiderna är uppskattningar för en äldre telefon. ett meddelande väntar aldrig mer än en minut: om beräkningen drar ut på tiden, eller om du skickar igen, skickas det med det arbete som hunnit göras."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஒவ்வொரு நிலைக்கும் முந்தையதை விட 16 மடங்கு வேலை தேவை. நேரங்கள் பழைய ஃபோனுக்கான மதிப்பீடுகள். எந்தச் செய்தியும் ஒரு நிமிடத்துக்கு மேல் காத்திருக்காது: கணக்கீடு நீண்டால், அல்லது நீங்கள் மீண்டும் அனுப்பினால், இதுவரை செய்த வேலையுடன் அது அனுப்பப்படும்."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แต่ละระดับใช้งานมากกว่าระดับก่อนหน้า 16 เท่า เวลาที่แสดงเป็นค่าประมาณสำหรับโทรศัพท์รุ่นเก่า ข้อความจะไม่รอนานเกินหนึ่งนาที หากการคำนวณใช้เวลานาน หรือคุณส่งอีกครั้ง ข้อความจะถูกส่งพร้อมงานที่ทำได้จนถึงตอนนั้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "her seviye bir öncekinin 16 katı iş gerektirir. süreler eski bir telefon için tahmindir. bir mesaj asla bir dakikadan fazla beklemez: hesaplama uzarsa ya da yeniden gönderirsen, o ana kadar yapılan işle gider."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "кожен рівень потребує в 16 разів більше роботи, ніж попередній. час указано для старішого телефона. повідомлення ніколи не чекає довше хвилини: якщо обчислення затягуються або ви надсилаєте ще одне, воно піде з уже виконаною роботою."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ہر درجے میں پچھلے درجے سے 16 گنا زیادہ کام لگتا ہے۔ اوقات کسی پرانے فون کے اندازے ہیں۔ کوئی پیغام ایک منٹ سے زیادہ انتظار نہیں کرتا: اگر حساب لمبا ہو جائے، یا آپ دوبارہ بھیجیں، تو وہ اب تک ہونے والے کام کے ساتھ چلا جاتا ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mỗi mức cần gấp 16 lần công việc của mức trước. thời gian là ước tính cho một chiếc điện thoại cũ. tin nhắn không bao giờ chờ quá một phút: nếu việc tính toán kéo dài, hoặc bạn gửi tiếp, tin nhắn sẽ được gửi với phần công việc đã làm xong."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每一级所需的计算量是上一级的 16 倍。时间按较旧的手机估算。消息最多等待一分钟：如果计算耗时过长，或你又发送了一条消息，它会带着目前已完成的计算发出。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每一級所需的運算量是上一級的 16 倍。時間以較舊的手機估算。訊息最多等待一分鐘：如果運算耗時過長，或你又傳送了一則訊息，它會帶著目前已完成的運算送出。"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.subtitle" : {
+      "comment" : "Subtitle explaining what proof of work on location channel messages does and why",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يؤدي جهازك قليلًا من العمل الإضافي قبل كل رسالة في قنوات الموقع. يستغرق ذلك لحظة فقط، لكنه يجعل إغراق القناة بطيئًا على مرسلي الرسائل المزعجة، والتطبيقات التي تتحقق منه تسمح لرسائلك بتجاوز حدود مكافحة الإزعاج. مفعّل افتراضيًا."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রতিটি লোকেশন চ্যানেল বার্তার আগে আপনার ডিভাইস একটু বাড়তি কাজ করে। এতে আপনার এক মুহূর্ত লাগে, কিন্তু স্প্যামারদের জন্য চ্যানেল ভরিয়ে ফেলা ধীর হয়ে যায়, আর যেসব অ্যাপ এটি যাচাই করে সেগুলো আপনার বার্তাকে তাদের স্প্যাম সীমা পার হতে দেয়। ডিফল্টভাবে চালু।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dein gerät leistet vor jeder nachricht in einem standort-kanal ein wenig zusätzliche arbeit. das dauert nur einen moment, macht das fluten eines kanals für spammer aber langsam, und apps, die das prüfen, lassen deine nachrichten an ihren spam-limits vorbei. standardmäßig an."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "your device does a little extra work before each location channel message. it takes you a moment but makes flooding a channel slow for spammers, and apps that check it let your messages past their spam limits. on by default."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tu dispositivo hace un poco de trabajo extra antes de cada mensaje en un canal de ubicación. te lleva un momento, pero hace que inundar un canal sea lento para los spammers, y las apps que lo comprueban dejan pasar tus mensajes sin aplicarles sus límites de spam. activado por defecto."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دستگاه شما پیش از هر پیام در کانال‌های موقعیت کمی کار اضافه انجام می‌دهد. این کار فقط لحظه‌ای طول می‌کشد، اما پر کردن کانال را برای هرزنامه‌فرستان کند می‌کند، و برنامه‌هایی که آن را بررسی می‌کنند پیام‌های شما را از محدودیت‌های هرزنامه عبور می‌دهند. به‌طور پیش‌فرض روشن است."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gumagawa ang device mo ng kaunting dagdag na trabaho bago ang bawat mensahe sa location channel. sandali lang ito para sa iyo, pero pinababagal nito ang pagbaha ng spam sa channel, at pinalulusot ng mga app na sumusuri nito ang mga mensahe mo sa kanilang mga limitasyon sa spam. naka-on bilang default."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ton appareil fournit un petit effort supplémentaire avant chaque message dans un canal de localisation. cela ne prend qu'un instant, mais rend l'inondation d'un canal lente pour les spammeurs, et les apps qui le vérifient laissent passer tes messages malgré leurs limites anti-spam. activé par défaut."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המכשיר שלך מבצע מעט עבודה נוספת לפני כל הודעה בערוצי מיקום. זה לוקח רגע, אבל הופך הצפה של ערוץ לאיטית עבור שולחי ספאם, ואפליקציות שבודקות את זה מעבירות את ההודעות שלך מעבר למגבלות הספאם שלהן. מופעל כברירת מחדל."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हर लोकेशन चैनल संदेश से पहले आपका डिवाइस थोड़ा अतिरिक्त काम करता है। इसमें आपका बस एक पल लगता है, लेकिन स्पैमरों के लिए चैनल को भर देना धीमा हो जाता है, और जो ऐप इसकी जाँच करते हैं वे आपके संदेशों को अपनी स्पैम सीमाओं से आगे जाने देते हैं। डिफ़ॉल्ट रूप से चालू।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "perangkatmu melakukan sedikit kerja tambahan sebelum setiap pesan di kanal lokasi. ini hanya butuh sesaat, tapi membuat spammer lambat membanjiri kanal, dan aplikasi yang memeriksanya meloloskan pesanmu dari batas spam mereka. aktif secara default."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "il tuo dispositivo fa un po' di lavoro in più prima di ogni messaggio in un canale posizione. ti costa un attimo, ma rende lento per gli spammer inondare un canale, e le app che lo controllano lasciano passare i tuoi messaggi oltre i loro limiti anti-spam. attivo per impostazione predefinita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ロケーションチャンネルにメッセージを送る前に、端末が少し余分な計算をします。あなたにとっては一瞬ですが、スパム送信者がチャンネルを埋め尽くすのは遅くなります。これを確認するアプリでは、あなたのメッセージがスパム制限を通過できます。初期設定はオンです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "위치 채널에 메시지를 보낼 때마다 기기가 약간의 추가 작업을 합니다. 잠깐이면 끝나지만 스팸 발송자가 채널을 도배하기는 느려지고, 이를 확인하는 앱은 내 메시지를 스팸 제한에서 통과시킵니다. 기본값은 켜짐입니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "peranti anda melakukan sedikit kerja tambahan sebelum setiap mesej dalam kanal lokasi. ia hanya mengambil masa seketika, tetapi menjadikan pembanjiran kanal perlahan bagi penghantar spam, dan apl yang menyemaknya membenarkan mesej anda melepasi had spam mereka. dihidupkan secara lalai."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हरेक स्थान च्यानल सन्देशअघि तपाईंको उपकरणले अलिकति थप काम गर्छ। यसले तपाईंको एक क्षण मात्र लिन्छ, तर स्प्यामरहरूका लागि च्यानल भरिदिन ढिलो बनाउँछ, र यसलाई जाँच्ने एपहरूले तपाईंका सन्देशहरूलाई आफ्ना स्प्याम सीमाहरू पार गर्न दिन्छन्। पूर्वनिर्धारित रूपमा सक्रिय।"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "je apparaat doet een beetje extra werk voor elk bericht in een locatiekanaal. dat kost je even, maar maakt het volspammen van een kanaal traag, en apps die het controleren laten je berichten langs hun spamlimieten. standaard aan."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "przed każdą wiadomością na kanale lokalizacji urządzenie wykonuje trochę dodatkowej pracy. zajmuje to chwilę, ale spowalnia spamerów zalewających kanał, a aplikacje, które to sprawdzają, przepuszczają twoje wiadomości przez swoje limity antyspamowe. domyślnie włączone."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "o teu dispositivo faz um pouco de trabalho extra antes de cada mensagem num canal de localização. demora um instante, mas torna lento inundar um canal com spam, e as apps que o verificam deixam passar as tuas mensagens pelos limites anti-spam. ativado por predefinição."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seu dispositivo faz um pouco de trabalho extra antes de cada mensagem em um canal de localização. leva um instante, mas torna lento inundar um canal com spam, e os apps que verificam isso deixam suas mensagens passarem pelos limites de spam. ativado por padrão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "перед каждым сообщением в каналах локации ваше устройство выполняет немного дополнительной работы. это занимает мгновение, но делает заваливание канала спамом медленным, а приложения, которые это проверяют, пропускают ваши сообщения через свои лимиты против спама. по умолчанию включено."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "din enhet gör lite extra arbete före varje meddelande i en platskanal. det tar dig ett ögonblick men gör det långsamt för spammare att översvämma en kanal, och appar som kontrollerar det släpper igenom dina meddelanden förbi sina spamgränser. på som standard."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஒவ்வொரு இட சேனல் செய்திக்கும் முன் உங்கள் சாதனம் சிறிது கூடுதல் வேலை செய்கிறது. இது உங்களுக்கு ஒரு கணம் மட்டுமே ஆகும், ஆனால் ஸ்பேமர்கள் சேனலை நிரப்புவதை மெதுவாக்குகிறது, இதைச் சரிபார்க்கும் ஆப்கள் உங்கள் செய்திகளை அவற்றின் ஸ்பேம் வரம்புகளைக் கடந்து செல்ல அனுமதிக்கின்றன. இயல்பாக இயக்கப்பட்டுள்ளது."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุปกรณ์ของคุณจะทำงานเพิ่มอีกเล็กน้อยก่อนส่งข้อความแต่ละข้อความในช่องตามตำแหน่ง ใช้เวลาเพียงครู่เดียว แต่ทำให้ผู้ส่งสแปมท่วมช่องได้ช้าลง และแอปที่ตรวจสอบสิ่งนี้จะปล่อยให้ข้อความของคุณผ่านขีดจำกัดสแปมได้ เปิดอยู่ตามค่าเริ่มต้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cihazın, konum kanalındaki her mesajdan önce biraz ek iş yapar. bu sana bir an sürer ama spam gönderenlerin kanalı doldurmasını yavaşlatır ve bunu denetleyen uygulamalar mesajlarını spam sınırlarından geçirir. varsayılan olarak açık."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "перед кожним повідомленням у каналах локації ваш пристрій виконує трохи додаткової роботи. це займає мить, але робить засипання каналу спамом повільним, а застосунки, які це перевіряють, пропускають ваші повідомлення крізь свої обмеження проти спаму. типово увімкнено."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ہر لوکیشن چینل پیغام سے پہلے آپ کا آلہ تھوڑا سا اضافی کام کرتا ہے۔ اس میں آپ کا بس ایک لمحہ لگتا ہے، لیکن اسپیمرز کے لیے چینل کو بھر دینا سست ہو جاتا ہے، اور جو ایپس اسے جانچتی ہیں وہ آپ کے پیغامات کو اپنی اسپیم حدوں سے گزرنے دیتی ہیں۔ بطور ڈیفالٹ آن۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "thiết bị của bạn làm thêm một chút công việc trước mỗi tin nhắn trong kênh vị trí. việc này chỉ mất một lát, nhưng khiến kẻ gửi spam làm ngập kênh chậm hơn, và các ứng dụng kiểm tra điều này sẽ cho tin nhắn của bạn vượt qua giới hạn chống spam của họ. bật theo mặc định."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在位置频道中发送每条消息前，你的设备会多做一点计算。这只需片刻，却会让垃圾信息发送者刷屏变慢；会检查这一点的应用会让你的消息绕过它们的垃圾信息限制。默认开启。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在位置頻道中傳送每則訊息前，你的裝置會多做一點運算。這只需片刻，卻會讓垃圾訊息發送者洗版變慢；會檢查這一點的 App 會讓你的訊息繞過它們的垃圾訊息限制。預設為開啟。"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.time.about" : {
+      "comment" : "Estimated mining time for a proof of work level; %@ is a short duration such as 4 sec or 1 min",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حوالي %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রায় %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "etwa %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "about %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unos %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدود %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mga %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "environ %@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כ־%@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लगभग %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sekitar %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "circa %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "약 %@"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kira-kira %@"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "करिब %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ongeveer %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "około %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cerca de %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cerca de %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "около %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cirka %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "சுமார் %@"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ประมาณ %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yaklaşık %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "близько %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقریباً %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "khoảng %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "约 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約 %@"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.time.instant" : {
+      "comment" : "Estimated mining time for a proof of work level that finishes at once",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فوري"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "তাৎক্ষণিক"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sofort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "instant"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "al instante"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فوری"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "agad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "instantané"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מיידי"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "तुरंत"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "instan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "istantaneo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一瞬"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "즉시"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "serta-merta"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "तुरुन्तै"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "direct"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "natychmiast"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "instantâneo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "instantâneo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "мгновенно"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "direkt"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "உடனடி"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทันที"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "anında"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "миттєво"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فوری"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tức thì"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瞬间完成"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瞬間完成"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.time.under_second" : {
+      "comment" : "Estimated mining time for a proof of work level that takes less than one second",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أقل من ثانية"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এক সেকেন্ডের কম"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unter einer sekunde"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "under a second"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menos de un segundo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کمتر از یک ثانیه"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wala pang isang segundo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "moins d'une seconde"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פחות משנייה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एक सेकंड से कम"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kurang dari sedetik"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "meno di un secondo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1秒未満"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1초 미만"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kurang daripada sesaat"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एक सेकेन्डभन्दा कम"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "minder dan een seconde"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "poniżej sekundy"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menos de um segundo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menos de um segundo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "меньше секунды"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "under en sekund"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஒரு வினாடிக்கும் குறைவு"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่ถึงหนึ่งวินาที"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bir saniyeden az"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "менше секунди"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایک سیکنڈ سے کم"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chưa tới một giây"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不到一秒"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不到一秒"
+          }
+        }
+      }
+    },
+    "app_info.settings.pow.title" : {
+      "comment" : "Title of the setting that makes the device do NIP-13 proof of work before each location channel message",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إثبات العمل"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রুফ অফ ওয়ার্ক"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "arbeitsnachweis"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "proof of work"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "prueba de trabajo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اثبات کار"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "proof of work"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "preuve de travail"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוכחת עבודה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रूफ़ ऑफ़ वर्क"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bukti kerja"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "prova di lavoro"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プルーフ・オブ・ワーク"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "작업 증명"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bukti kerja"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रुफ अफ वर्क"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "proof of work"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dowód pracy"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "prova de trabalho"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "prova de trabalho"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "доказательство работы"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "arbetsbevis"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வேலைச் சான்று"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หลักฐานการทำงาน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iş kanıtı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "доказ роботи"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پروف آف ورک"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bằng chứng công việc"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作量证明"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作量證明"
+          }
+        }
+      }
+    },
     "app_info.settings.relays.add" : {
       "comment" : "Button that adds the typed relay address to the list",
       "extractionState" : "manual",

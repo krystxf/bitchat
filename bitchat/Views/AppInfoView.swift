@@ -329,6 +329,7 @@ struct AppInfoView: View {
             torSection
             relaySection
             locationSection
+            LocationProofOfWorkSection()
             bubbleAppearanceSection
             privacySection
             if onPanicWipe != nil {
