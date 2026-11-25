@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 #if os(iOS)
 import UIKit
 #endif
@@ -13,6 +14,7 @@ struct ContentComposerView: View {
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @ObservedObject private var bridgeService = BridgeService.shared
     @ThemedPalette private var palette
+    @State private var selectedPhotoItem: PhotosPickerItem?
 
     @Binding var messageText: String
     var isTextFieldFocused: FocusState<Bool>.Binding
@@ -266,47 +268,54 @@ private extension ContentComposerView {
     }
 
     var attachmentButton: some View {
-        #if os(iOS)
-        Image(systemName: "camera")
-            .font(.bitchatSystem(size: 17, weight: .medium))
-            .foregroundColor(composerAccentColor)
-            .frame(width: 40, height: 40)
-            .glassSurface(in: Circle())
-            .contentShape(Circle())
-            .onTapGesture {
-                imagePickerSourceType = .photoLibrary
-                showImagePicker = true
+        Menu {
+            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                Label(String(localized: "content.menu.photo_library", comment: "Menu option to choose an image from the photo library"), systemImage: "photo.on.rectangle")
             }
-            .onLongPressGesture(minimumDuration: 0.3) {
-                imagePickerSourceType = .camera
-                showImagePicker = true
+            #if os(iOS)
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button {
+                    imagePickerSourceType = .camera
+                    showImagePicker = true
+                } label: {
+                    Label(String(localized: "content.menu.take_photo", comment: "Menu option to take a photo with the camera"), systemImage: "camera")
+                }
             }
-            .accessibilityLabel(
-                String(localized: "content.accessibility.attach_photo", comment: "Accessibility label for the photo attachment button")
-            )
-            .accessibilityHint(
-                String(localized: "content.accessibility.attach_photo_hint", comment: "Accessibility hint explaining the attachment button opens the photo library")
-            )
-            .accessibilityAddTraits(.isButton)
-            // The long-press → camera path is unreachable for VoiceOver users;
-            // mirror it as a named action.
-            .accessibilityAction(named: Text("content.accessibility.take_photo", comment: "Accessibility action name for taking a photo with the camera")) {
-                imagePickerSourceType = .camera
-                showImagePicker = true
+            #else
+            Button(action: presentImageOpenPanel) {
+                Label(String(localized: "content.menu.choose_file", comment: "Menu option to choose an image file"), systemImage: "folder")
             }
-        #else
-        Button(action: presentImageOpenPanel) {
-            Image(systemName: "photo")
+            #endif
+        } label: {
+            Image(systemName: "camera")
                 .font(.bitchatSystem(size: 17, weight: .medium))
                 .foregroundColor(composerAccentColor)
                 .frame(width: 40, height: 40)
                 .glassSurface(in: Circle())
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(
-            String(localized: "content.accessibility.choose_photo", comment: "Accessibility label for the macOS photo picker button")
-        )
+        .onChange(of: selectedPhotoItem) { item in
+            guard let item else { return }
+            Task {
+                guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+                #if os(iOS)
+                guard let image = UIImage(data: data) else { return }
+                await MainActor.run { conversationUIModel.processSelectedImage(image) }
+                #else
+                let url = FileManager.default.temporaryDirectory.appendingPathComponent("nova-photo-\(UUID().uuidString).jpg")
+                guard (try? data.write(to: url)) != nil else { return }
+                await MainActor.run { conversationUIModel.processSelectedImage(from: url) }
+                #endif
+                await MainActor.run { selectedPhotoItem = nil }
+            }
+        }
+        .accessibilityLabel(String(localized: "content.accessibility.attach_photo", comment: "Accessibility label for the photo attachment button"))
+        #if os(iOS)
+        .accessibilityAction(named: Text("content.accessibility.take_photo", comment: "Accessibility action name for taking a photo with the camera")) {
+            guard UIImagePickerController.isSourceTypeAvailable(.camera) else { return }
+            imagePickerSourceType = .camera
+            showImagePicker = true
+        }
         #endif
     }
 
