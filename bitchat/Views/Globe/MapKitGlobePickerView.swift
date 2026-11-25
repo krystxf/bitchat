@@ -1,10 +1,21 @@
 import MapKit
 import SwiftUI
 
+struct GeohashMapCluster: Identifiable {
+    let geohash: String
+    let peopleCount: Int
+    var id: String { geohash }
+    var coordinate: CLLocationCoordinate2D {
+        let center = Geohash.decodeCenter(geohash)
+        return CLLocationCoordinate2D(latitude: center.lat, longitude: center.lon)
+    }
+}
+
 @available(iOS 17.0, macOS 14.0, *)
 struct MapKitGlobePickerView: View {
     let onSelect: (String) -> Void
     let onCancel: () -> Void
+    private let clusters: [GeohashMapCluster]
     @State private var position: MapCameraPosition
     @State private var camera: MapCamera
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 20, longitude: 0), span: MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360))
@@ -22,9 +33,10 @@ struct MapKitGlobePickerView: View {
         static let increase = String(localized: "geohash_picker.accessibility.increase_precision", defaultValue: "Increase Precision", comment: "Accessibility label for the globe picker button that zooms in to a smaller geohash cell")
     }
 
-    init(initialGeohash: String?, nearbyGeohashes: [String], onSelect: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
+    init(initialGeohash: String?, nearbyGeohashes: [String], clusters: [GeohashMapCluster], onSelect: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
         self.onSelect = onSelect
         self.onCancel = onCancel
+        self.clusters = clusters
         let target = GeohashPickerView.initialTarget(initialGeohash: initialGeohash, nearbyGeohashes: nearbyGeohashes)
         let center = CLLocationCoordinate2D(latitude: target.lat, longitude: target.lon)
         let startCamera = MapCamera(centerCoordinate: center, distance: 28_000_000, heading: 0, pitch: 0)
@@ -43,6 +55,7 @@ struct MapKitGlobePickerView: View {
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: .infinity)
                     .themedOverlayPanel()
+                clusterList
                 Spacer(minLength: 0)
                 bottomControls
             }
@@ -67,6 +80,23 @@ struct MapKitGlobePickerView: View {
                         .foregroundStyle(selected ? palette.locationAccent.opacity(0.34) : palette.locationAccent.opacity(0.045))
                         .stroke(selected ? palette.locationAccent : palette.locationAccent.opacity(0.4), lineWidth: selected ? 2 : 0.7)
                 }
+                ForEach(clusters.filter { $0.peopleCount > 0 }) { cluster in
+                    Annotation("#\(cluster.geohash), \(cluster.peopleCount)", coordinate: cluster.coordinate, anchor: .bottom) {
+                        Button { select(cluster.geohash) } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "person.2.fill")
+                                Text("\(cluster.peopleCount)")
+                            }
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(palette.primary)
+                            .padding(.horizontal, 9).padding(.vertical, 6)
+                            .background(palette.background.opacity(0.92), in: Capsule())
+                            .overlay(Capsule().stroke(palette.locationAccent, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: "#\(cluster.geohash), \(cluster.peopleCount)"))
+                    }
+                }
             }
             .mapStyle(.imagery(elevation: .realistic))
             .onMapCameraChange(frequency: .continuous) { context in
@@ -84,6 +114,27 @@ struct MapKitGlobePickerView: View {
                 selectedGeohash = GeohashMapGeometry.geohash(latitude: coordinate.latitude, longitude: coordinate.longitude, precision: precision)
             })
             .ignoresSafeArea()
+        }
+    }
+
+    @ViewBuilder
+    private var clusterList: some View {
+        let active = clusters.filter { $0.peopleCount > 0 }
+        if !active.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(active) { cluster in
+                        Button { select(cluster.geohash) } label: {
+                            Text(verbatim: "#\(cluster.geohash) · \(cluster.peopleCount)")
+                                .bitchatFont(size: 11, weight: .medium).foregroundColor(palette.primary)
+                                .padding(.horizontal, 10).padding(.vertical, 8).themedOverlayPanel()
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: "#\(cluster.geohash), \(cluster.peopleCount)"))
+                    }
+                }
+            }
+            .padding(.top, 8)
         }
     }
 
@@ -149,16 +200,10 @@ struct MapKitGlobePickerView: View {
         position = .camera(camera)
     }
 
-    private func select(_ hash: String, centerMap: Bool) {
+    private func select(_ hash: String) {
         guard Geohash.isValidGeohash(hash) else { return }
         selectedGeohash = hash
         precision = hash.count
-        if centerMap {
-            let center = Geohash.decodeCenter(hash)
-            camera = MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: center.lat, longitude: center.lon),
-                               distance: max(900, min(camera.distance, 250_000)), heading: camera.heading, pitch: camera.pitch)
-            position = .camera(camera)
-        }
     }
 }
 

@@ -233,6 +233,9 @@ struct LocationChannelsSheet: View {
         return GeohashPickerView(
             initialGeohash: initial,
             nearbyGeohashes: locationChannelsModel.availableChannels.map(\.geohash),
+            clusters: locationChannelsModel.availableChannels.map {
+                GeohashMapCluster(geohash: $0.geohash, peopleCount: peerListModel.participantCount(for: $0.geohash))
+            },
             onSelect: { geohash in
                 pickedGeohash = geohash
                 showGlobePicker = false

@@ -16,6 +16,7 @@ struct GeohashPickerView: View {
     let onCancel: () -> Void
     private let initialGeohash: String?
     private let nearbyGeohashes: [String]
+    private let clusters: [GeohashMapCluster]
 
     @StateObject private var state: GlobeState
     @State private var world: GlobeWorldData?
@@ -39,6 +40,7 @@ struct GeohashPickerView: View {
     init(
         initialGeohash: String?,
         nearbyGeohashes: [String] = [],
+        clusters: [GeohashMapCluster] = [],
         onSelect: @escaping (String) -> Void,
         onCancel: @escaping () -> Void
     ) {
@@ -46,6 +48,7 @@ struct GeohashPickerView: View {
         self.onCancel = onCancel
         self.initialGeohash = initialGeohash
         self.nearbyGeohashes = nearbyGeohashes
+        self.clusters = clusters
         let target = Self.initialTarget(initialGeohash: initialGeohash, nearbyGeohashes: nearbyGeohashes)
         _state = StateObject(wrappedValue: GlobeState(
             targetLat: target.lat,
@@ -73,6 +76,7 @@ struct GeohashPickerView: View {
                 MapKitGlobePickerView(
                     initialGeohash: initialGeohash,
                     nearbyGeohashes: nearbyGeohashes,
+                    clusters: clusters,
                     onSelect: onSelect,
                     onCancel: onCancel
                 )
