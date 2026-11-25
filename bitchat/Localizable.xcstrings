@@ -43099,6 +43099,41 @@
         }
       }
     },
+    "content.accessibility.reaction" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld شخصًا تفاعل باستخدام %@" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "%lld জন %@ দিয়ে প্রতিক্রিয়া জানিয়েছেন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Personen haben mit %@ reagiert" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld people reacted with %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld personas reaccionaron con %@" } },
+        "fa" : { "stringUnit" : { "state" : "translated", "value" : "%lld نفر با %@ واکنش نشان دادند" } },
+        "fil" : { "stringUnit" : { "state" : "translated", "value" : "%lld tao ang nag-react gamit ang %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld personnes ont réagi avec %@" } },
+        "he" : { "stringUnit" : { "state" : "translated", "value" : "%lld אנשים הגיבו עם %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%lld लोगों ने %@ के साथ प्रतिक्रिया दी" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "%lld orang bereaksi dengan %@" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "%lld persone hanno reagito con %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%lld人が%@でリアクションしました" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "%lld명이 %@로 반응했습니다" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "%lld orang memberi reaksi dengan %@" } },
+        "ne" : { "stringUnit" : { "state" : "translated", "value" : "%lld जनाले %@ प्रयोग गरेर प्रतिक्रिया दिनुभयो" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "%lld mensen reageerden met %@" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "%lld osób zareagowało za pomocą %@" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "%lld pessoas reagiram com %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%lld pessoas reagiram com %@" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%lld чел. отреагировали с помощью %@" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "%lld personer reagerade med %@" } },
+        "ta" : { "stringUnit" : { "state" : "translated", "value" : "%lld பேர் %@ மூலம் எதிர்வினையாற்றினர்" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "%lld คนแสดงความรู้สึกด้วย %@" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "%lld kişi %@ ile tepki verdi" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "%lld людей відреагували за допомогою %@" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "%lld افراد نے %@ کے ساتھ ردعمل دیا" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "%lld người đã phản ứng bằng %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 人用 %@ 做出了回应" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "%lld 人用 %@ 做出了回應" } }
+      }
+    },
     "content.accessibility.private_chat_header" : {
       "extractionState" : "manual",
       "localizations" : {

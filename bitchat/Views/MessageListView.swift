@@ -1091,6 +1091,11 @@ private struct ReactionBadgeView: View {
     let isMine: Bool
     @State private var showsReactors = false
 
+    private var accessibilityLabel: String {
+        let format = String(localized: "content.accessibility.reaction", comment: "VoiceOver label for a reaction badge, with the number of people and emoji")
+        return String(format: format, locale: .current, count, emoji)
+    }
+
     var body: some View {
         Button { showsReactors.toggle() } label: {
             Text("\(emoji) \(count)")
@@ -1100,7 +1105,7 @@ private struct ReactionBadgeView: View {
                 .background(isMine ? Color.accentColor.opacity(0.25) : Color.primary.opacity(0.08), in: Capsule())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(count) people reacted with \(emoji)")
+        .accessibilityLabel(accessibilityLabel)
         .popover(isPresented: $showsReactors) {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(names, id: \.self) { name in Text(name) }
