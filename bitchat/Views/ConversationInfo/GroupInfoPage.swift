@@ -41,7 +41,9 @@ struct GroupInfoPage: View {
             title: GroupName.text(group.name),
             subtitle: ConversationInfoStrings.peopleCount(group.members.count),
             avatar: {
-                ConversationGlyphAvatar(systemImage: "person.3.fill", color: .accentColor)
+                // The sidebar's avatar for this group: its glyph on the
+                // color picked from the group ID.
+                GroupAvatar(groupID: group.peerID, size: ConversationInfoMetrics.avatarSize)
             },
             headerAction: {
                 if layout.headerAction == .renameGroup {
