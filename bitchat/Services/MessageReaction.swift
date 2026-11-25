@@ -5,6 +5,8 @@ import BitFoundation
 /// suffix carries the target ID; base64url keeps arbitrary transport IDs
 /// compact and unambiguous without changing any wire protocol.
 enum MessageReaction {
+    /// The quick reactions: the row in the message menu and the macOS
+    /// quick bar. A reaction can be any single emoji (`isReactionEmoji`).
     static let emojis = ["❤️", "👍", "😂", "😮", "😢", "🙏"]
     private static let suffixPrefix = " ⟨r:"
 
@@ -44,8 +46,47 @@ enum MessageReaction {
         guard let split = readable.range(of: removes ? " removed reaction to \"" : " reacted to \""),
               let closeQuote = readable.lastIndex(of: "\""), closeQuote > split.upperBound else { return nil }
         let emoji = String(readable[..<split.lowerBound])
-        guard emojis.contains(emoji), readable[closeQuote...].count == 1 else { return nil }
+        guard isReactionEmoji(emoji), readable[closeQuote...].count == 1 else { return nil }
         return Event(emoji: emoji, targetID: targetID, removes: removes)
+    }
+
+    /// Whether `text` is exactly one emoji: one grapheme cluster that
+    /// shows as an emoji. That covers emoji-presentation characters, text
+    /// characters made emoji with U+FE0F, keycaps, skin-tone modifier
+    /// sequences, flags, tag sequences and ZWJ sequences. Plain text, a
+    /// bare digit or symbol, and two emojis are not.
+    static func isReactionEmoji(_ text: String) -> Bool {
+        guard text.count == 1, let first = text.unicodeScalars.first else { return false }
+        let scalars = text.unicodeScalars
+        let properties = first.properties
+        // Flags: a pair of regional indicators.
+        if (0x1F1E6...0x1F1FF).contains(first.value) {
+            return scalars.count == 2 && scalars.allSatisfy { (0x1F1E6...0x1F1FF).contains($0.value) }
+        }
+        // Every scalar must belong to an emoji sequence, so a combining
+        // mark or a letter cannot ride along in the same cluster.
+        let isEmojiPart: (Unicode.Scalar) -> Bool = { scalar in
+            scalar.properties.isEmoji
+                || isNewerEmoji(scalar)
+                || scalar.value == 0x200D // zero-width joiner
+                || scalar.value == 0xFE0F // emoji presentation selector
+                || scalar.value == 0x20E3 // combining enclosing keycap
+                || (0xE0020...0xE007F).contains(scalar.value) // tags (subdivision flags)
+        }
+        guard properties.isEmoji || isNewerEmoji(first), scalars.allSatisfy(isEmojiPart) else { return false }
+        if properties.isEmojiPresentation || isNewerEmoji(first) { return true }
+        // A text-default character in emoji form: an explicit emoji
+        // variation selector, a keycap, or a skin-tone modifier.
+        return scalars.contains { scalar in
+            scalar.value == 0xFE0F || scalar.value == 0x20E3 || scalar.properties.isEmojiModifier
+        }
+    }
+
+    /// A code point this OS's Unicode tables do not know yet, in the
+    /// blocks Unicode fills with new emoji. A reaction from a newer device
+    /// then still reads as a reaction here, not as raw text.
+    private static func isNewerEmoji(_ scalar: Unicode.Scalar) -> Bool {
+        (0x1F000...0x1FBFF).contains(scalar.value) && scalar.properties.generalCategory == .unassigned
     }
 
     static func resolvedEvents(in messages: [BitchatMessage]) -> [(event: Event, message: BitchatMessage)] {

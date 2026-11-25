@@ -18,7 +18,40 @@ struct MessageReactionTests {
         #expect(MessageReaction.parse("❤️ reacted to \"hello\"" ) == nil)
         #expect(MessageReaction.parse(valid + " extra") == nil)
         #expect(MessageReaction.parse("Here is some text " + valid) == nil)
-        #expect(MessageReaction.parse(valid.replacingOccurrences(of: "❤️", with: "🙂")) == nil)
+        #expect(MessageReaction.parse(valid.replacingOccurrences(of: "❤️", with: "ok")) == nil)
+        #expect(MessageReaction.parse(valid.replacingOccurrences(of: "❤️", with: "👍👍")) == nil)
+    }
+
+    @Test(arguments: [
+        "🙂",          // emoji presentation
+        "❤️",          // text character made emoji with U+FE0F
+        "©️",
+        "1️⃣", "#️⃣",  // keycaps
+        "👋🏽", "☝🏿",   // skin tones, on emoji and text-default bases
+        "🇨🇿", "🇺🇳",   // flags
+        "🏴󠁧󠁢󠁳󠁣󠁴󠁿",          // tag sequence (Scotland)
+        "👩‍💻", "🏳️‍🌈", "🧑🏽‍🤝‍🧑🏻", "👨‍👩‍👧‍👦", "🏴‍☠️", // ZWJ sequences
+    ])
+    func anySingleEmojiReactsAndRoundTrips(_ emoji: String) {
+        let target = BitchatMessage(id: "target", sender: "Ada", content: "hello", timestamp: .now, isRelay: false)
+        #expect(MessageReaction.isReactionEmoji(emoji))
+        let wire = MessageReaction.format(emoji: emoji, target: target)
+        #expect(MessageReaction.parse(wire) == .init(emoji: emoji, targetID: "target", removes: false))
+        let removal = MessageReaction.format(emoji: emoji, target: target, removes: true)
+        #expect(MessageReaction.parse(removal) == .init(emoji: emoji, targetID: "target", removes: true))
+    }
+
+    @Test(arguments: [
+        "", "a", "ok", "1", "#", "©", // text, digits, text-style symbols
+        "👍👍", "🇨🇿🇩🇪", "👍 ", "a👍", // more than one cluster
+        "👍\u{301}",  // a combining mark riding on an emoji
+        "🇨",          // a lone regional indicator
+        "❤︎",          // explicit text presentation
+    ])
+    func nonEmojiTextIsNoReaction(_ text: String) {
+        let target = BitchatMessage(id: "target", sender: "Ada", content: "hello", timestamp: .now, isRelay: false)
+        #expect(!MessageReaction.isReactionEmoji(text))
+        #expect(MessageReaction.parse(MessageReaction.format(emoji: text, target: target)) == nil)
     }
 
     @Test func targetMustResolveAndQuoteMustMatch() {
