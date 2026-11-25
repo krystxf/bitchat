@@ -96,6 +96,7 @@ struct MediaMessageView: View {
                 isSending: state.isSending,
                 sendProgress: state.progress,
                 isLive: conversationUIModel.isLiveVoiceMessage(message),
+                foregroundColor: isFromMe ? .white : .primary,
                 onCancel: cancelAction
             )
             .frame(maxWidth: 320)
