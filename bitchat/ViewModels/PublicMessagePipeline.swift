@@ -113,6 +113,13 @@ private extension PublicMessagePipeline {
         var batchContentLatest: [String: Date] = [:]
 
         for item in buffer {
+            // Reaction lines skip the content-window dedup: many people send
+            // the very same line (👍 to one message), and the intake gate
+            // already dropped a sender's repeats.
+            if item.message.isReactionLine {
+                pending.append((item.message, item.conversationID, ""))
+                continue
+            }
             let contentKey = delegate.pipeline(self, normalizeContent: item.message.content)
             if let ts = delegate.pipeline(self, contentTimestampForKey: contentKey),
                abs(ts.timeIntervalSince(item.message.timestamp)) < dedupWindow {
@@ -132,7 +139,8 @@ private extension PublicMessagePipeline {
         pending.sort { $0.message.timestamp < $1.message.timestamp }
 
         for item in pending {
-            guard delegate.pipeline(self, commit: item.message, to: item.conversationID) else { continue }
+            guard delegate.pipeline(self, commit: item.message, to: item.conversationID),
+                  !item.contentKey.isEmpty else { continue }
             delegate.pipeline(self, recordContentKey: item.contentKey, timestamp: item.message.timestamp)
         }
 

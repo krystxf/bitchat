@@ -169,6 +169,9 @@ extension ChatViewModel: ChatPublicConversationContext {
 final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
     private unowned let context: any ChatPublicConversationContext
     private var incomingHapticPolicy = IncomingMessageHapticPolicy()
+    /// Reaction lines skip the message rate limits for a budget of their
+    /// own (see `ReactionIntakeGate`).
+    private(set) var reactionGate = ReactionIntakeGate()
 
     init(context: any ChatPublicConversationContext) {
         self.context = context
@@ -440,9 +443,11 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
     /// Message wipe: the echoes are gone from the timeline and the archive,
     /// and each key holds a message's text, so the keys go too. The
     /// watermark stops peers' older copies from coming back as echoes, the
-    /// same way clearing the mesh timeline does.
+    /// same way clearing the mesh timeline does. The reaction gate forgets
+    /// who reacted to what.
     func forgetArchivedEchoes() {
         archivedEchoKeys.removeAll()
+        reactionGate.reset()
         MeshEchoSettings.clearedThrough = Date()
     }
 
@@ -466,9 +471,17 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         let shouldRateLimit = !isSystem || finalMessage.senderPeerID != nil
         if shouldRateLimit {
             let senderKey = normalizedSenderKey(for: finalMessage)
-            let contentKey = context.normalizedContentKey(finalMessage.content)
-            if !context.allowPublicMessage(senderKey: senderKey, contentKey: contentKey, powBits: powBits) {
-                return
+            if let reaction = MessageReaction.event(in: finalMessage.content) {
+                // A reaction never spends the sender's message budget: it
+                // has its own, and a repeat of the same state is a no-op.
+                guard reactionGate.admit(reaction, senderKey: senderKey, timestamp: finalMessage.timestamp) == .accept else {
+                    return
+                }
+            } else {
+                let contentKey = context.normalizedContentKey(finalMessage.content)
+                if !context.allowPublicMessage(senderKey: senderKey, contentKey: contentKey, powBits: powBits) {
+                    return
+                }
             }
         }
 
