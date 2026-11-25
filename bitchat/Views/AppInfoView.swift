@@ -231,23 +231,6 @@ struct AppInfoView: View {
         }
 
 
-        enum HowToUse {
-            static let title = String(localized: "app_info.how_to_use.title")
-            /// One row per instruction, with an icon for each.
-            static var items: [(icon: String, text: String)] {
-                // The translations carry their legacy bullet-list prefix
-                // ("• "), so it is stripped here.
-                func item(_ icon: String, _ text: String) -> (icon: String, text: String) {
-                    (icon, text.hasPrefix("• ") ? String(text.dropFirst(2)) : text)
-                }
-                return [
-                    item("number", String(localized: "app_info.how_to_use.change_channels")),
-                    item("hand.tap", String(localized: "app_info.how_to_use.clear_chat")),
-                    item("slash.circle", String(localized: "app_info.how_to_use.commands"))
-                ]
-            }
-        }
-
     }
 
     var body: some View {
@@ -681,18 +664,6 @@ struct AppInfoView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityAddTraits(.isHeader)
                 .listRowBackground(Color.clear)
-            }
-
-            Section {
-                ForEach(Strings.HowToUse.items, id: \.icon) { item in
-                    Label {
-                        Text(verbatim: item.text)
-                    } icon: {
-                        Image(systemName: item.icon)
-                    }
-                }
-            } header: {
-                sectionHeader(Strings.HowToUse.title)
             }
 
             if topologyProvider != nil {
