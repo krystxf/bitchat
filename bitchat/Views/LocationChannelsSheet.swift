@@ -121,7 +121,9 @@ struct LocationChannelsSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        // NavigationStack, not NavigationView: on macOS a NavigationView is a
+        // two-column split view and squeezes this content into its sidebar.
+        NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
                     Text(Strings.title)
