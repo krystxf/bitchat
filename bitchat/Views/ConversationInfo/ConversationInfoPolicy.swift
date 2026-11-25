@@ -10,7 +10,7 @@ import Foundation
 
 /// Decides what the conversation info page offers for one conversation:
 /// the link under the name, the quick action buttons, the rows, and the
-/// destructive action at the bottom.
+/// action at the bottom.
 ///
 /// The page lists only what the app can really do for that kind of
 /// conversation. A row with no feature behind it (search, mute, invite
@@ -38,6 +38,9 @@ enum ConversationInfoPolicy {
         /// A new group with them can start now: they are connected, not
         /// blocked, and their identity is known.
         var canCreateGroup: Bool
+        /// I blocked them. Blocking a mesh person keeps the chat open (a
+        /// geohash block removes it), so the page offers "unblock".
+        var isBlocked = false
     }
 
     struct Group: Equatable {
@@ -85,9 +88,11 @@ enum ConversationInfoPolicy {
         case members(canRemove: Bool)
     }
 
-    /// The red action at the bottom of the page. It asks first.
-    enum DestructiveAction: Equatable {
+    /// The action at the bottom of the page. Block and leave are red and
+    /// ask first.
+    enum FooterAction: Equatable {
         case block
+        case unblock
         case leaveGroup
     }
 
@@ -95,7 +100,7 @@ enum ConversationInfoPolicy {
         var headerAction: HeaderAction?
         var quickActions: [QuickAction]
         var rows: [Row]
-        var destructiveAction: DestructiveAction?
+        var footerAction: FooterAction?
     }
 
     static func layout(for subject: Subject) -> Layout {
@@ -105,7 +110,7 @@ enum ConversationInfoPolicy {
                 headerAction: nil,
                 quickActions: [.notices, .channels],
                 rows: [.background, .people],
-                destructiveAction: nil
+                footerAction: nil
             )
 
         case .locationChannel:
@@ -113,14 +118,19 @@ enum ConversationInfoPolicy {
                 headerAction: nil,
                 quickActions: [.notices, .bookmark, .share, .channels],
                 rows: [.background, .people],
-                destructiveAction: nil
+                footerAction: nil
             )
 
         case .person(let person):
             var quickActions: [QuickAction] = []
             if !person.isGeohashDM {
-                quickActions = [.favorite, .verify]
-                if person.canCreateGroup {
+                // A favorite or a new group with someone I blocked would
+                // contradict the block.
+                if !person.isBlocked {
+                    quickActions.append(.favorite)
+                }
+                quickActions.append(.verify)
+                if person.canCreateGroup && !person.isBlocked {
                     quickActions.append(.createGroup)
                 }
             }
@@ -128,9 +138,7 @@ enum ConversationInfoPolicy {
                 headerAction: !person.isGeohashDM && person.hasFingerprint ? .setNickname : nil,
                 quickActions: quickActions,
                 rows: [.background],
-                // A blocked person's chat does not open, so the page never
-                // needs "unblock": settings lists blocked accounts.
-                destructiveAction: .block
+                footerAction: person.isBlocked ? .unblock : .block
             )
 
         case .group(let group):
@@ -141,7 +149,7 @@ enum ConversationInfoPolicy {
                 quickActions: canAddPeople ? [.addPeople] : [],
                 rows: [.background, .members(canRemove: canManageMembers)],
                 // The page shows only for a group I am in, so I can leave.
-                destructiveAction: .leaveGroup
+                footerAction: .leaveGroup
             )
         }
     }

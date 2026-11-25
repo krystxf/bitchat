@@ -131,6 +131,17 @@ final class ConversationUIModel: ObservableObject {
         }
     }
 
+    /// Whether I blocked the person behind `peerID`: by their Nostr key
+    /// for a geohash DM or location channel sender, by their Noise
+    /// identity on the mesh.
+    func isBlocked(peerID: PeerID) -> Bool {
+        if peerID.isGeoChat || peerID.isGeoDM {
+            guard let full = chatViewModel.fullNostrHex(forSenderPeerID: peerID) else { return false }
+            return chatViewModel.isGeohashUserBlocked(pubkeyHexLowercased: full.lowercased())
+        }
+        return chatViewModel.isPeerBlocked(peerID)
+    }
+
     /// Mesh counterpart of `block(peerID:displayName:)`. Resolves the unblock by
     /// the tapped peer's stable identity so the exact row is unblocked — this
     /// also works for offline peers, which the `/unblock <displayName>` command

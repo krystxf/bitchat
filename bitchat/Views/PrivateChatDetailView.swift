@@ -14,11 +14,11 @@ import UIKit
 
 /// A direct conversation (a DM or a private group) as the detail of the
 /// main window's split view: the messages under a native title bar with the
-/// person's name and status, the orange privacy caption and the composer
-/// floating over them, and the fingerprint and favorite buttons in the
-/// toolbar. The split view supplies the way back.
+/// person's name and status, and the orange privacy caption and the
+/// composer floating over them. The title opens the conversation's info
+/// page, which holds everything else (favorite, verify, background, group
+/// members). The split view supplies the way back.
 struct PrivateChatDetailView: View {
-    @EnvironmentObject private var appChromeModel: AppChromeModel
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
 
@@ -74,16 +74,23 @@ struct PrivateChatDetailView: View {
                 .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
         }
         .foregroundColor(palette.primary)
+        // The title button below shows the name; the title still names the
+        // window and the back button of the info page.
         .navigationTitle(Text(verbatim: headerState?.displayName ?? ""))
-        .privateChatSubtitle(statusText)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar { toolbarContent }
-        .conversationTitleBar(hidesNativeTitle: showsTitleButton)
+        .conversationTitleBar(hidesNativeTitle: headerState != nil)
         .conversationInfo(isPresented: $showsInfo) {
             if headerState?.isGroupConversation == true {
                 GroupInfoPage(
+                    background: $chatBackgroundOption,
+                    backgroundKey: chatBackgroundConversationKey
+                )
+            } else {
+                PersonInfoPage(
+                    subtitle: statusText,
                     background: $chatBackgroundOption,
                     backgroundKey: chatBackgroundConversationKey
                 )
@@ -124,52 +131,20 @@ struct PrivateChatDetailView: View {
         privateConversationModel.selectedHeaderState
     }
 
-    /// The title is a button that opens the conversation info page.
-    private var showsTitleButton: Bool {
-        headerState?.isGroupConversation == true
-    }
-
-    /// iOS before 26 has no navigation subtitle, so there the title slot
-    /// holds the name with the status line under it.
-    private var needsTitleFallback: Bool {
-        #if os(iOS)
-        if #available(iOS 26.0, *) { return false }
-        return true
-        #else
-        return false
-        #endif
-    }
-
     // MARK: - Toolbar
 
+    /// Only the title: a button that opens the conversation info page.
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if showsTitleButton, let headerState {
+        if let headerState {
             ConversationTitleToolbarItem(
                 title: Text(verbatim: headerState.displayName),
-                subtitle: statusText
+                subtitle: statusText,
+                accessibilityLabel: headerState.isGroupConversation
+                    ? nil
+                    : Strings.privateChatHeader(headerState.displayName)
             ) {
                 showsInfo.toggle()
-            }
-        } else if needsTitleFallback, let headerState {
-            ToolbarItem(placement: .principal) {
-                PrivateChatTitleView(
-                    title: headerState.displayName,
-                    subtitle: statusText
-                )
-            }
-        }
-        // A group's background, members and leave live on its info page.
-        if let headerState, !headerState.isGroupConversation {
-            ToolbarItemGroup(placement: .primaryAction) {
-                ChatBackgroundPickerMenu(
-                    conversationKey: chatBackgroundConversationKey,
-                    selection: $chatBackgroundOption
-                )
-                fingerprintButton(headerState)
-                if headerState.supportsFavoriteToggle {
-                    favoriteButton(headerState)
-                }
             }
         }
     }
@@ -184,53 +159,6 @@ struct PrivateChatDetailView: View {
 
     private func loadChatBackground() {
         chatBackgroundOption = ChatBackgroundStore.shared.option(for: chatBackgroundConversationKey)
-    }
-
-    private func fingerprintButton(_ headerState: PrivateConversationHeaderState) -> some View {
-        let status = headerState.encryptionStatus
-        return Button {
-            appChromeModel.showFingerprint(for: headerState.headerPeerID)
-        } label: {
-            Label {
-                Text(verbatim: Strings.verifyEncryption)
-            } icon: {
-                // The lock tells the session state at a glance; a peer with
-                // no handshake yet gets a neutral glyph.
-                Image(systemName: status?.icon ?? "info.circle")
-                    .foregroundStyle(Self.isSecured(status) ? Color.primary : Color.red)
-            }
-            .labelStyle(.iconOnly)
-        }
-        .accessibilityValue(status.map(Strings.encryptionStatus) ?? "")
-        .accessibilityHint(Strings.viewFingerprintHint)
-        .help(Strings.verifyEncryption)
-    }
-
-    private func favoriteButton(_ headerState: PrivateConversationHeaderState) -> some View {
-        let label = headerState.isFavorite ? Strings.removeFavorite : Strings.addFavorite
-        return Button {
-            privateConversationModel.toggleFavoriteForSelectedConversation()
-        } label: {
-            Label {
-                Text(verbatim: label)
-            } icon: {
-                Image(systemName: headerState.isFavorite ? "star.fill" : "star")
-                    .foregroundStyle(headerState.isFavorite ? Color.yellow : Color.primary)
-            }
-            .labelStyle(.iconOnly)
-        }
-        .help(label)
-    }
-
-    /// No icon (no handshake yet) counts as secured, so the neutral glyph
-    /// is not painted red.
-    private static func isSecured(_ status: EncryptionStatus?) -> Bool {
-        switch status {
-        case nil, .some(.noHandshake), .some(.noiseSecured), .some(.noiseVerified):
-            return true
-        case .some(.none), .some(.noiseHandshaking):
-            return false
-        }
     }
 
     /// The status under the name: how the peer is reachable and, once a
@@ -301,23 +229,11 @@ struct PrivateChatDetailView: View {
 
 private extension PrivateChatDetailView {
     enum Strings {
-        static let verifyEncryption = String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
-        static let viewFingerprintHint = String(localized: "content.accessibility.view_fingerprint_hint", comment: "Accessibility hint for viewing encryption fingerprint")
-        static let addFavorite = String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
-        static let removeFavorite = String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")
         static let groupChat = String(localized: "content.accessibility.group_chat", comment: "Accessibility label for the group chat indicator")
         static let connectedMesh = String(localized: "content.accessibility.connected_mesh", comment: "Accessibility label for mesh-connected peer indicator")
         static let reachableMesh = String(localized: "content.accessibility.reachable_mesh", comment: "Accessibility label for mesh-reachable peer indicator")
         static let availableNostr = String(localized: "content.accessibility.available_nostr", comment: "Accessibility label for Nostr-available peer indicator")
         static let offline = String(localized: "mesh_peers.state.offline", comment: "State label for a peer that is not currently reachable")
-
-        static func encryptionStatus(_ status: EncryptionStatus) -> String {
-            String(
-                format: String(localized: "content.accessibility.encryption_status", comment: "Accessibility label announcing encryption status"),
-                locale: .current,
-                status.accessibilityDescription
-            )
-        }
 
         static func privateChatHeader(_ name: String) -> String {
             String(
@@ -326,54 +242,5 @@ private extension PrivateChatDetailView {
                 name
             )
         }
-    }
-}
-
-/// The title for iOS before 26, which has no navigation subtitle: the name
-/// over a status line, sized like the system's inline title.
-private struct PrivateChatTitleView: View {
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Text(verbatim: title)
-                .font(.headline)
-                // Middle truncation keeps the identity suffix of a long
-                // nickname visible.
-                .lineLimit(1)
-                .truncationMode(.middle)
-            if !subtitle.isEmpty {
-                Text(verbatim: subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(PrivateChatDetailView.Strings.privateChatHeader(title))
-        .accessibilityValue(subtitle)
-        .accessibilityAddTraits(.isHeader)
-    }
-}
-
-private extension View {
-    /// The status line under the navigation title, where the system has
-    /// one: macOS, and iOS from 26.
-    @ViewBuilder
-    func privateChatSubtitle(_ subtitle: String) -> some View {
-        #if os(iOS)
-        #if compiler(>=6.2)
-        if #available(iOS 26.0, *) {
-            navigationSubtitle(Text(verbatim: subtitle))
-        } else {
-            self
-        }
-        #else
-        self
-        #endif
-        #else
-        navigationSubtitle(Text(verbatim: subtitle))
-        #endif
     }
 }

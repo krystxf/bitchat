@@ -59,7 +59,7 @@ struct GroupInfoPage: View {
                 ForEach(layout.rows, id: \.self) { row in
                     section(row, group: group)
                 }
-                if layout.destructiveAction == .leaveGroup {
+                if layout.footerAction == .leaveGroup {
                     GroupLeaveControl {
                         _ = conversationUIModel.groupLeave()
                     }

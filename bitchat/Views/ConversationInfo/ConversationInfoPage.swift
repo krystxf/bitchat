@@ -177,6 +177,8 @@ enum ConversationInfoMetrics {
 struct ConversationTitleToolbarItem: ToolbarContent {
     let title: Text
     let subtitle: String?
+    /// What VoiceOver says instead of the title and subtitle.
+    var accessibilityLabel: String?
     let action: () -> Void
 
     var body: some ToolbarContent {
@@ -194,7 +196,12 @@ struct ConversationTitleToolbarItem: ToolbarContent {
 
     private var item: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            ConversationTitleButton(title: title, subtitle: subtitle, action: action)
+            ConversationTitleButton(
+                title: title,
+                subtitle: subtitle,
+                accessibilityLabel: accessibilityLabel,
+                action: action
+            )
         }
     }
 }
@@ -224,6 +231,7 @@ extension View {
 struct ConversationTitleButton: View {
     let title: Text
     let subtitle: String?
+    var accessibilityLabel: String?
     let action: () -> Void
 
     var body: some View {
@@ -251,8 +259,11 @@ struct ConversationTitleButton: View {
             .padding(.horizontal, 8)
             .contentShape(Rectangle())
         }
+        // Plain, not the toolbar's default style: that one fixes the item
+        // at one line's height and clips the subtitle on macOS.
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .modifier(OptionalAccessibilityLabel(label: accessibilityLabel, value: subtitle))
         .accessibilityAddTraits([.isHeader, .isButton])
         .accessibilityHint(Text(verbatim: ConversationInfoStrings.openHint))
         .help(ConversationInfoStrings.openHint)
@@ -260,6 +271,23 @@ struct ConversationTitleButton: View {
         // Messages' shortcut for a conversation's details.
         .keyboardShortcut("i", modifiers: .command)
         #endif
+    }
+}
+
+/// Replaces the combined label with `label`, and moves the subtitle to the
+/// value, when there is a label.
+private struct OptionalAccessibilityLabel: ViewModifier {
+    let label: String?
+    let value: String?
+
+    func body(content: Content) -> some View {
+        if let label {
+            content
+                .accessibilityLabel(Text(verbatim: label))
+                .accessibilityValue(Text(verbatim: value ?? ""))
+        } else {
+            content
+        }
     }
 }
 

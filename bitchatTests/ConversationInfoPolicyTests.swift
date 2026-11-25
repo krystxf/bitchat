@@ -15,12 +15,14 @@ struct ConversationInfoPolicyTests {
     private static func person(
         isGeohashDM: Bool = false,
         hasFingerprint: Bool = true,
-        canCreateGroup: Bool = false
+        canCreateGroup: Bool = false,
+        isBlocked: Bool = false
     ) -> Policy.Subject {
         .person(Policy.Person(
             isGeohashDM: isGeohashDM,
             hasFingerprint: hasFingerprint,
-            canCreateGroup: canCreateGroup
+            canCreateGroup: canCreateGroup,
+            isBlocked: isBlocked
         ))
     }
 
@@ -35,7 +37,7 @@ struct ConversationInfoPolicyTests {
         #expect(layout.quickActions == [.notices, .channels])
         #expect(layout.rows == [.background, .people])
         #expect(layout.headerAction == nil)
-        #expect(layout.destructiveAction == nil)
+        #expect(layout.footerAction == nil)
     }
 
     @Test func aLocationChannelCanBeBookmarkedAndShared() {
@@ -43,7 +45,7 @@ struct ConversationInfoPolicyTests {
         #expect(layout.quickActions == [.notices, .bookmark, .share, .channels])
         #expect(layout.rows == [.background, .people])
         #expect(layout.headerAction == nil)
-        #expect(layout.destructiveAction == nil)
+        #expect(layout.footerAction == nil)
     }
 
     // MARK: - People
@@ -53,7 +55,7 @@ struct ConversationInfoPolicyTests {
         #expect(layout.quickActions == [.favorite, .verify])
         #expect(layout.headerAction == .setNickname)
         #expect(layout.rows == [.background])
-        #expect(layout.destructiveAction == .block)
+        #expect(layout.footerAction == .block)
     }
 
     @Test func aGroupStartsOnlyWithSomeoneWhoCanJoinIt() {
@@ -70,7 +72,14 @@ struct ConversationInfoPolicyTests {
         #expect(layout.quickActions.isEmpty)
         #expect(layout.headerAction == nil)
         #expect(layout.rows == [.background])
-        #expect(layout.destructiveAction == .block)
+        #expect(layout.footerAction == .block)
+    }
+
+    @Test func aBlockedPersonCanBeUnblockedButNotFavoritedOrGrouped() {
+        let layout = Policy.layout(for: Self.person(canCreateGroup: true, isBlocked: true))
+        #expect(layout.quickActions == [.verify])
+        #expect(layout.headerAction == .setNickname)
+        #expect(layout.footerAction == .unblock)
     }
 
     // MARK: - Groups
@@ -80,7 +89,7 @@ struct ConversationInfoPolicyTests {
         #expect(layout.headerAction == .renameGroup)
         #expect(layout.quickActions == [.addPeople])
         #expect(layout.rows == [.background, .members(canRemove: true)])
-        #expect(layout.destructiveAction == .leaveGroup)
+        #expect(layout.footerAction == .leaveGroup)
     }
 
     @Test func aMemberOnlySeesTheMembersAndCanLeave() {
@@ -88,7 +97,7 @@ struct ConversationInfoPolicyTests {
         #expect(layout.headerAction == nil)
         #expect(layout.quickActions.isEmpty)
         #expect(layout.rows == [.background, .members(canRemove: false)])
-        #expect(layout.destructiveAction == .leaveGroup)
+        #expect(layout.footerAction == .leaveGroup)
     }
 
     @Test func aFullGroupTakesNoMorePeople() {
