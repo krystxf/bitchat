@@ -135,4 +135,19 @@ struct PublicMessagePipelineTests {
         #expect(delegate.committed.isEmpty)
         #expect(delegate.recordedContentKeys.isEmpty)
     }
+
+    @Test @MainActor
+    func discardBuffered_keepsRowsQueuedBeforeAWipeOutOfTheTimeline() {
+        let pipeline = PublicMessagePipeline()
+        let delegate = TestPipelineDelegate()
+        pipeline.delegate = delegate
+
+        pipeline.enqueue(makeMessage(id: "pre-wipe-1", content: "one", timestamp: Date()), to: .mesh)
+        pipeline.enqueue(makeMessage(id: "pre-wipe-2", content: "two", timestamp: Date()), to: .geohash("u4pruy"))
+        pipeline.discardBuffered()
+        pipeline.flushIfNeeded()
+
+        #expect(delegate.committed.isEmpty)
+        #expect(!pipeline.containsMessage(withID: "pre-wipe-1"))
+    }
 }

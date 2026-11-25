@@ -330,6 +330,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     let keychain: KeychainManagerProtocol
     private let panicRecoveryOperations: PanicRecoveryOperations
     private let panicNetworkLifecycle: PanicNetworkLifecycle
+    private let messageWipeOperations: MessageWipeOperations
     private var isPanicResetting = false
     /// Private group membership: keys in the keychain, metadata on disk.
     let groupStore: GroupStore
@@ -1141,7 +1142,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
             outboxStore: MessageOutboxStore(keychain: keychain),
             sfMetrics: .shared,
             panicRecoveryOperations: panicRecoveryOperations,
-            panicNetworkLifecycle: .live
+            panicNetworkLifecycle: .live,
+            messageWipeOperations: .live
         )
     }
 
@@ -1162,7 +1164,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         sfMetrics: StoreAndForwardMetrics? = nil,
         panicMediaWipe: (() throws -> Void)? = nil,
         panicRecoveryOperations: PanicRecoveryOperations? = nil,
-        panicNetworkLifecycle: PanicNetworkLifecycle = .noop
+        panicNetworkLifecycle: PanicNetworkLifecycle = .noop,
+        messageWipeOperations: MessageWipeOperations? = nil
     ) {
         let conversations = conversations ?? ConversationStore()
         let peerIdentityStore = peerIdentityStore ?? PeerIdentityStore()
@@ -1180,6 +1183,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         self.panicRecoveryOperations = panicRecoveryOperations
             ?? .ephemeral(wipeMedia: panicMediaWipe ?? {})
         self.panicNetworkLifecycle = panicNetworkLifecycle
+        self.messageWipeOperations = messageWipeOperations ?? .ephemeral()
         self.groupStore = GroupStore(keychain: keychain)
         self.idBridge = idBridge
         self.identityManager = identityManager
@@ -1587,6 +1591,119 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         peerIdentityCoordinator.getPeerIDForNickname(nickname)
     }
 
+    // MARK: - Message Wipe
+
+    /// Extreme security mode's wipe: deletes every message the user could
+    /// read again, and nothing else, before returning.
+    ///
+    /// Deleted:
+    /// - every public timeline (mesh, geohash), direct message and group
+    ///   chat, with unread state and queued system notices;
+    /// - composer drafts and content staged by the share extension;
+    /// - received and sent images, voice notes and files, live voice
+    ///   captures, the private-media receipt ledger, and cached thumbnails;
+    /// - the outbox of own messages not delivered yet. It holds their text,
+    ///   so they are dropped, not sent later;
+    /// - the carried public message archive (memory and disk), its echo
+    ///   bookkeeping, and the sampled nearby-chat previews;
+    /// - delivered notifications, which can quote messages.
+    ///
+    /// Kept: identity and keys, favorites, petnames, verifications, blocks,
+    /// settings, group memberships and keys, chat backgrounds, board posts
+    /// and location notes (public notices, not conversations), and sealed
+    /// traffic carried for other people: courier mail (unreadable here;
+    /// deleting it would drop friends' messages) and the group ciphertext
+    /// the mesh sync store serves to every group's members (the app never
+    /// shows it from there). Dedup and processed-event records hold message
+    /// IDs only; they stay, so a peer's sync or a relay cannot bring a
+    /// deleted message back. Services keep running, so new messages arrive
+    /// as usual.
+    ///
+    /// `panicClearAllData()` runs the same `clearMessageContent()` inside its
+    /// larger wipe. Returns false when a media file may remain on disk.
+    @MainActor
+    @discardableResult
+    func wipeMessages() -> Bool {
+        clearMessageContent()
+        // The screen the person was on stays open, now empty.
+        conversations.restoreDerivedSelection()
+
+        let mediaDeleted: Bool
+        do {
+            try messageWipeOperations.deleteMediaFiles()
+            mediaDeleted = true
+        } catch {
+            mediaDeleted = false
+            SecureLogger.error(
+                "Message wipe could not delete every media file: \(error)",
+                category: .security
+            )
+        }
+        // After the files are gone, so the transport's receipt cache
+        // rebuilds from the empty directory.
+        (meshService as? MessageWipingTransport)?.wipeCarriedMessages()
+
+        if mediaDeleted {
+            SecureLogger.info("🗑️ Message wipe finished", category: .security)
+        }
+        return mediaDeleted
+    }
+
+    /// The message content both wipes delete, except the media files: the
+    /// panic wipe deletes those inside its recovery transaction, and
+    /// `wipeMessages()` right after this returns.
+    @MainActor
+    private func clearMessageContent() {
+        // Invalidate detached media preparation and close live capture file
+        // handles before clearing state or removing the media directory.
+        mediaTransferCoordinator.resetForPanic()
+        liveVoiceCoordinator.resetForPanic()
+        privateChatClearGeneration &+= 1
+        queuedPrivateChatClears.removeAll(keepingCapacity: false)
+        privateChatClearInFlight = false
+
+        // Deny and release any clear-media confirmations before message
+        // state and local files are wiped.
+        cancelAllLegacyPrivateMediaConsents()
+
+        // Rows waiting for the batched timeline flush would land after the
+        // wipe.
+        publicMessagePipeline.discardBuffered()
+
+        // Clear all messages (public timelines and private chats live in the
+        // single-writer ConversationStore; the derived `messages` view and
+        // the legacy mirror empty with it)
+        conversations.clearAll()
+        visibleMessagesCache = nil
+        pendingGeohashSystemMessages.removeAll()
+
+        // Half-written messages. The composer drops its own text through
+        // AppChromeModel's wipe preparation before this runs.
+        ComposerDraftStore.reset()
+
+        // Drop any share-extension handoff staged in the app group: it is
+        // content on its way into a message. AppChromeModel also clears the
+        // import offer on screen, but the panic crash-recovery replay calls
+        // the view model directly and would otherwise let a staged envelope
+        // survive. Clearing only removes the app-group key, so doing it twice
+        // is harmless.
+        if let sharedDefaults = UserDefaults(suiteName: BitchatApp.groupID) {
+            SharedContentStore(defaults: sharedDefaults).discardAll()
+        }
+
+        // Our own undelivered messages, kept sealed on disk for retry.
+        messageRouter.wipeOutbox()
+
+        // The carried public history and what was derived from it: echo
+        // keys (which hold message text) and sampled nearby-chat previews.
+        messageWipeOperations.deletePublicArchive()
+        publicConversationCoordinator.forgetArchivedEchoes()
+        GeohashChatActivityTracker.shared.clear()
+
+        messageWipeOperations.clearMediaCaches()
+        messageWipeOperations.removeNotifications()
+    }
+
     // MARK: - Emergency Functions
 
     // PANIC: Emergency data clearing for activist safety
@@ -1614,23 +1731,11 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
             meshService.emergencyDisconnectAll()
         }
 
-        // Invalidate detached media preparation and close live capture file
-        // handles before clearing state or removing the media directory.
-        mediaTransferCoordinator.resetForPanic()
-        liveVoiceCoordinator.resetForPanic()
-        privateChatClearGeneration &+= 1
-        queuedPrivateChatClears.removeAll(keepingCapacity: false)
-        privateChatClearInFlight = false
-
-        // Deny and release any clear-media confirmations before identities,
-        // message state, and local files are wiped.
-        cancelAllLegacyPrivateMediaConsents()
-
-        // Clear all messages (public timelines and private chats live in the
-        // single-writer ConversationStore; the derived `messages` view and
-        // the legacy mirror empty with it)
-        conversations.clearAll()
-        pendingGeohashSystemMessages.removeAll()
+        // Every message, draft, outbox entry, carried archive and notification
+        // goes through the list extreme security mode uses, so the two wipes
+        // cannot drift apart. The media files themselves are deleted by the
+        // recovery transaction below, after the identity reset.
+        clearMessageContent()
 
         // Delete all keychain data (including Noise and Nostr keys)
         let keychainWipeCompleted = keychain.deleteAllKeychainData()
@@ -1667,18 +1772,16 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         // Clear persistent favorites from keychain
         FavoritesPersistenceService.shared.clearAllFavorites()
 
-        // Drop courier mail carried for third parties (memory and disk),
-        // our own queued outbox, the carried public history, and the
-        // counters describing all of it
+        // Drop courier mail carried for third parties (memory and disk) and
+        // the counters describing it. Our own outbox and the carried public
+        // history went with the message content above.
         CourierStore.shared.wipe()
         BridgeCourierService.shared.wipe()
-        messageRouter.wipeOutbox()
-        GossipMessageArchive.wipeDefault()
         StoreAndForwardMetrics.shared.reset()
 
-        // Ambient-liveliness bookkeeping: sampled nearby-chat previews, the
-        // daily sightings tally, and the echoes-dismissed watermark
-        GeohashChatActivityTracker.shared.clear()
+        // Ambient-liveliness bookkeeping: the daily sightings tally and the
+        // echoes-dismissed watermark (the message wipe above set it; a wiped
+        // device keeps no date of its own).
         MeshSightingsTracker.shared.clear()
         MeshEchoSettings.reset()
         NotificationPrivacySettings.reset()
@@ -1687,7 +1790,6 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         ExtremeSecuritySettings.reset()
         LocationProofOfWorkSettings.reset()
         ChatBackgroundStore.shared.reset()
-        ComposerDraftStore.reset()
         // A hand-added relay names an operator someone chose to route through,
         // which is the kind of trace a wipe should not leave behind.
         NostrRelaySettings.reset()
@@ -1701,15 +1803,6 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         // Drop bulletin-board posts and tombstones (memory and disk); board
         // posts are signed with our identity key and persist for days.
         BoardStore.shared.wipe()
-
-        // Drop any share-extension handoff staged in the app group. The normal
-        // panic path clears this through AppChromeModel.onPanicWipe, but the
-        // crash-recovery replay calls this method directly and would otherwise
-        // let a staged envelope survive the wipe. Clearing here is idempotent
-        // (it only removes the app-group key), so the double-clear is harmless.
-        if let sharedDefaults = UserDefaults(suiteName: BitchatApp.groupID) {
-            SharedContentStore(defaults: sharedDefaults).discardAll()
-        }
 
         // Identity manager has cleared persisted identity data above
 

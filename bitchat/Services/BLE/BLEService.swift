@@ -2467,6 +2467,15 @@ final class BLEService: NSObject {
         gossipSyncManager?.removeAllPublicMessages()
     }
 
+    /// Extreme security mode's message wipe: the carried packets are
+    /// readable messages, and the receipt cache names media files the wipe
+    /// just deleted. Synchronous, because leaving the app can be the last
+    /// moment before suspension.
+    func wipeCarriedMessages() {
+        gossipSyncManager?.removeAllCarriedMessages()
+        incomingFileStore.resetPrivateMediaReceiptsForPanic()
+    }
+
     func collectArchivedPublicMessages(completion: @escaping @MainActor ([ArchivedPublicMessage]) -> Void) {
         guard let generation = capturePanicLifecycleGeneration() else {
             return

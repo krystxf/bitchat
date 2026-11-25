@@ -315,4 +315,5 @@ extension BLEService: MeshVerifying {}
 extension BLEService: MeshPublicArchiving {}
 extension BLEService: BluetoothStateReporting {}
 extension BLEService: PanicResettingTransport {}
+extension BLEService: MessageWipingTransport {}
 extension BLEService: MeshBridgingTransport {}

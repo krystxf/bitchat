@@ -118,6 +118,18 @@ protocol MeshPublicArchiving: AnyObject {
     func purgeAllArchivedPublicMessages()
 }
 
+/// Message wipe (extreme security mode) for transports that keep readable
+/// message content of their own, apart from the app's conversation stores.
+protocol MessageWipingTransport: AnyObject {
+    /// Synchronously drops every carried plaintext message packet (public
+    /// messages, public file transfers and fragments) from memory and disk,
+    /// and forgets cached private-media receipts, which name deleted files.
+    /// Identity, sessions, peers, and sealed traffic carried for others
+    /// (courier mail, group ciphertext) stay. Call it after the media files
+    /// are gone, so the receipt cache rebuilds from the empty directory.
+    func wipeCarriedMessages()
+}
+
 /// Internet-gateway and geohash-bridge wiring surface (BLE mesh today).
 /// Everything the gateway/bridge/courier services need from the mesh
 /// transport, so their bootstrap wiring never touches the concrete class.

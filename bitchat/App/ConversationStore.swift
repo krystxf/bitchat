@@ -569,6 +569,15 @@ final class ConversationStore: ObservableObject {
         refreshDerivedSelection()
     }
 
+    /// Selects the conversation the two selection axes point at again (the
+    /// open private chat, else the active channel), creating it empty when
+    /// it is gone. `clearAll()` drops the selection with the conversations;
+    /// the message wipe calls this afterwards, so the screen the person was
+    /// on stays open with an empty timeline.
+    func restoreDerivedSelection() {
+        refreshDerivedSelection()
+    }
+
     private func refreshDerivedSelection() {
         if let peerID = selectedPrivatePeerID {
             select(.directPeer(peerID))

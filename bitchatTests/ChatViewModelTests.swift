@@ -20,12 +20,14 @@ private func makeTestableViewModel(
     panicMediaWipe: (() throws -> Void)? = nil,
     panicRecoveryOperations: PanicRecoveryOperations? = nil,
     panicNetworkLifecycle: PanicNetworkLifecycle = .noop,
-    locationManager: LocationChannelManager = .shared
+    messageWipeOperations: MessageWipeOperations? = nil,
+    locationManager: LocationChannelManager = .shared,
+    identityManager injectedIdentityManager: MockIdentityManager? = nil
 ) -> (viewModel: ChatViewModel, transport: MockTransport) {
     let keychain = injectedKeychain ?? MockKeychain()
     let keychainHelper = MockKeychainHelper()
     let idBridge = NostrIdentityBridge(keychain: keychainHelper)
-    let identityManager = MockIdentityManager(keychain)
+    let identityManager = injectedIdentityManager ?? MockIdentityManager(keychain)
     let transport = MockTransport()
 
     let viewModel = ChatViewModel(
@@ -36,7 +38,8 @@ private func makeTestableViewModel(
         locationManager: locationManager,
         panicMediaWipe: panicMediaWipe,
         panicRecoveryOperations: panicRecoveryOperations,
-        panicNetworkLifecycle: panicNetworkLifecycle
+        panicNetworkLifecycle: panicNetworkLifecycle,
+        messageWipeOperations: messageWipeOperations
     )
 
     return (viewModel, transport)
@@ -2564,6 +2567,204 @@ struct ChatViewModelPanicTests {
         #expect(locationManager.bookmarks.isEmpty)
         #expect(storage.object(forKey: "locationChannel.teleportedSet") == nil)
         #expect(storage.object(forKey: "locationChannel.bookmarks") == nil)
+    }
+}
+
+// MARK: - Message Wipe Tests (extreme security mode)
+
+struct ChatViewModelMessageWipeTests {
+    private let peerID = PeerID(str: "00000000000000a1")
+
+    /// One public message, one unread private message, and a draft under a
+    /// key no other test uses (the draft store is process-wide).
+    @MainActor
+    private func seedConversations(
+        in viewModel: ChatViewModel,
+        draftKey: ComposerDraftStore.Key
+    ) {
+        viewModel.seedPublicMessages([
+            BitchatMessage(
+                id: "wipe-pub-1",
+                sender: "Bob",
+                content: "public before exit",
+                timestamp: Date(),
+                isRelay: false
+            )
+        ])
+        viewModel.seedPrivateChat([
+            BitchatMessage(
+                id: "wipe-pm-1",
+                sender: "Alice",
+                content: "private before exit",
+                timestamp: Date(),
+                isRelay: false,
+                isPrivate: true,
+                recipientNickname: viewModel.nickname,
+                senderPeerID: peerID
+            )
+        ], for: peerID)
+        viewModel.markPrivateChatUnread(peerID)
+        ComposerDraftStore.save("half-written secret", for: draftKey)
+    }
+
+    private func uniqueDraftKey() -> ComposerDraftStore.Key {
+        .privateChat(stableID: "wipe-test-\(UUID().uuidString)")
+    }
+
+    @Test @MainActor
+    func wipeMessages_clearsTimelinesUnreadStateAndDrafts() {
+        let (viewModel, _) = makeTestableViewModel()
+        let draftKey = uniqueDraftKey()
+        seedConversations(in: viewModel, draftKey: draftKey)
+
+        let completed = viewModel.wipeMessages()
+
+        #expect(completed)
+        #expect(viewModel.messages.isEmpty)
+        #expect(viewModel.publicMessages(for: .mesh).isEmpty)
+        #expect(viewModel.privateMessages(for: peerID).isEmpty)
+        #expect(viewModel.unreadPrivateMessages.isEmpty)
+        #expect(ComposerDraftStore.load(draftKey).isEmpty)
+        // Silent: unlike the panic wipe, leaving the app adds no notice.
+        #expect(!viewModel.messages.contains { $0.sender == "system" })
+    }
+
+    @Test @MainActor
+    func wipeMessages_keepsIdentityContactsAndSettings() {
+        let keychain = MockKeychain()
+        let identityManager = MockIdentityManager(keychain)
+        let favorite = String(repeating: "f", count: 64)
+        let blocked = String(repeating: "b", count: 64)
+        identityManager.updateSocialIdentity(SocialIdentity(
+            fingerprint: favorite,
+            localPetname: "mum",
+            claimedNickname: "alice",
+            trustLevel: .trusted,
+            isFavorite: true,
+            isBlocked: false,
+            notes: nil
+        ))
+        identityManager.setBlocked(blocked, isBlocked: true)
+        let (viewModel, transport) = makeTestableViewModel(
+            keychain: keychain,
+            identityManager: identityManager
+        )
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+        let nickname = viewModel.nickname
+        let myPeerID = transport.myPeerID
+        let hidePreviews = NotificationPrivacySettings.hideMessagePreviews
+        let autoReveal = MediaRevealSettings.autoRevealFavorites
+
+        viewModel.wipeMessages()
+
+        // Identity and keys
+        #expect(keychain.deleteAllCallCount == 0)
+        #expect(viewModel.nickname == nickname)
+        #expect(transport.myPeerID == myPeerID)
+        // Contacts
+        let contact = identityManager.getSocialIdentity(for: favorite)
+        #expect(contact?.isFavorite == true)
+        #expect(contact?.localPetname == "mum")
+        #expect(identityManager.isBlocked(fingerprint: blocked))
+        // Settings
+        #expect(NotificationPrivacySettings.hideMessagePreviews == hidePreviews)
+        #expect(MediaRevealSettings.autoRevealFavorites == autoReveal)
+    }
+
+    @Test @MainActor
+    func wipeMessages_deletesMediaArchiveNotificationsAndCachesBeforeReturning() {
+        var events: [String] = []
+        let operations = MessageWipeOperations.ephemeral(
+            deleteMediaFiles: { events.append("media") },
+            deletePublicArchive: { events.append("archive") },
+            removeNotifications: { events.append("notifications") },
+            clearMediaCaches: { events.append("caches") }
+        )
+        let (viewModel, transport) = makeTestableViewModel(messageWipeOperations: operations)
+
+        viewModel.wipeMessages()
+
+        #expect(Set(events) == ["media", "archive", "notifications", "caches"])
+        #expect(events.count == 4)
+        // The mesh's own carried copies go too, after the files.
+        #expect(transport.wipeCarriedMessagesCallCount == 1)
+    }
+
+    @Test @MainActor
+    func wipeMessages_reportsLeftoverMediaButStillClearsMessages() {
+        enum DiskFailure: Error { case busy }
+        let operations = MessageWipeOperations.ephemeral(
+            deleteMediaFiles: { throw DiskFailure.busy }
+        )
+        let (viewModel, transport) = makeTestableViewModel(messageWipeOperations: operations)
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+
+        let completed = viewModel.wipeMessages()
+
+        #expect(!completed)
+        #expect(viewModel.messages.isEmpty)
+        #expect(viewModel.privateMessages(for: peerID).isEmpty)
+        #expect(transport.wipeCarriedMessagesCallCount == 1)
+    }
+
+    @Test @MainActor
+    func wipeMessages_keepsTheOpenPrivateChatOpenAndEmpty() {
+        let (viewModel, _) = makeTestableViewModel()
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+        viewModel.selectedPrivateChatPeer = peerID
+
+        viewModel.wipeMessages()
+
+        #expect(viewModel.selectedPrivateChatPeer == peerID)
+        #expect(viewModel.conversations.selectedConversationID != nil)
+        #expect(viewModel.privateMessages(for: peerID).isEmpty)
+        #expect(viewModel.conversations.auditInvariants().isEmpty)
+    }
+
+    @Test @MainActor
+    func wipeMessages_keepsServicesRunningSoNewMessagesArrive() async {
+        let (viewModel, transport) = makeTestableViewModel()
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+        let startsBeforeWipe = transport.startServicesCallCount
+
+        viewModel.wipeMessages()
+        transport.simulateIncomingPublicMessage(
+            from: PeerID(str: "00000000000000b2"),
+            nickname: "Bob",
+            content: "hello after the wipe",
+            timestamp: Date(),
+            messageID: "wipe-pub-after"
+        )
+
+        let arrived = await TestHelpers.waitUntil({
+            viewModel.publicMessages(for: .mesh).contains { $0.content == "hello after the wipe" }
+        }, timeout: TestConstants.settleTimeout)
+        #expect(arrived)
+        #expect(transport.emergencyDisconnectCallCount == 0)
+        #expect(transport.startServicesCallCount == startsBeforeWipe)
+        #expect(viewModel.networkActivationAllowed)
+    }
+
+    @Test @MainActor
+    func panicClearAllData_runsTheSameMessageWipe() {
+        var events: [String] = []
+        let operations = MessageWipeOperations.ephemeral(
+            deleteMediaFiles: { events.append("media") },
+            deletePublicArchive: { events.append("archive") },
+            removeNotifications: { events.append("notifications") },
+            clearMediaCaches: { events.append("caches") }
+        )
+        let (viewModel, _) = makeTestableViewModel(messageWipeOperations: operations)
+        let draftKey = uniqueDraftKey()
+        seedConversations(in: viewModel, draftKey: draftKey)
+
+        viewModel.panicClearAllData()
+
+        #expect(ComposerDraftStore.load(draftKey).isEmpty)
+        #expect(Set(events) == ["archive", "notifications", "caches"])
+        // Panic deletes the media tree inside its own recovery transaction,
+        // so the non-transactional media step stays out of it.
+        #expect(!events.contains("media"))
     }
 }
 

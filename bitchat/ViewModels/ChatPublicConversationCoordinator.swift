@@ -434,6 +434,15 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         archivedEchoKeys.insert(Self.archivedEchoKey(senderPeerID: senderPeerID, timestamp: timestamp, content: content))
     }
 
+    /// Message wipe: the echoes are gone from the timeline and the archive,
+    /// and each key holds a message's text, so the keys go too. The
+    /// watermark stops peers' older copies from coming back as echoes, the
+    /// same way clearing the mesh timeline does.
+    func forgetArchivedEchoes() {
+        archivedEchoKeys.removeAll()
+        MeshEchoSettings.clearedThrough = Date()
+    }
+
     static func archivedEchoKey(senderPeerID: PeerID?, timestamp: Date, content: String) -> String {
         // The timestamp is peer-chosen: a wire value near UInt64.max comes
         // back from Date as 2^64, so a trapping UInt64(_:) here would be a

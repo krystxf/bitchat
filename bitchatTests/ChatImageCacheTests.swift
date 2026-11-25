@@ -13,7 +13,9 @@ import Testing
 import UniformTypeIdentifiers
 @testable import bitchat
 
-@Suite("ChatImageCache")
+/// Serialized: `removeAll()` empties the process-wide cache, which would
+/// race the caching test if both ran at once.
+@Suite("ChatImageCache", .serialized)
 struct ChatImageCacheTests {
     /// Writes a solid PNG of the given pixel size to a fresh temp file.
     private func makePNG(width: Int, height: Int) throws -> URL {
@@ -60,5 +62,20 @@ struct ChatImageCacheTests {
         #expect(max(thumbnail.size.width, thumbnail.size.height) <= CGFloat(ChatImageCache.thumbnailMaxPixelSize))
         // A row that scrolls back in finds the same thumbnail without decoding.
         #expect(ChatImageCache.cachedThumbnail(for: url) === thumbnail)
+    }
+
+    @Test func removeAllForgetsThumbnailsAndAspectRatios() throws {
+        let url = try makePNG(width: 400, height: 100)
+        defer { try? FileManager.default.removeItem(at: url) }
+        _ = try #require(ChatImageCache.loadThumbnail(for: url))
+        #expect(ChatImageCache.aspectRatio(for: url) == 4)
+
+        ChatImageCache.removeAll()
+
+        #expect(ChatImageCache.cachedThumbnail(for: url) == nil)
+        // A new image saved under a deleted image's name must not inherit
+        // its shape: the ratio is read from the new file, not the cache.
+        try FileManager.default.removeItem(at: url)
+        #expect(ChatImageCache.aspectRatio(for: url) == nil)
     }
 }

@@ -894,6 +894,54 @@ struct GossipSyncManagerTests {
         #expect(restored)
     }
 
+    /// Extreme security mode's message wipe: plaintext packets and the
+    /// archive go before the call returns; sealed group ciphertext carried
+    /// for every group's members stays, like courier mail.
+    @Test func removeAllCarriedMessagesDropsPlaintextAndArchiveButKeepsGroupCiphertext() throws {
+        let fileURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("gossip-archive-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+        let manager = GossipSyncManager(
+            myPeerID: myPeerID,
+            requestSyncManager: RequestSyncManager(),
+            archive: GossipMessageArchive(fileURL: fileURL)
+        )
+        let senderID = try #require(Data(hexString: "1122334455667788"))
+        let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
+        func packet(_ type: MessageType, _ byte: UInt8) -> BitchatPacket {
+            BitchatPacket(
+                type: type.rawValue,
+                senderID: senderID,
+                recipientID: nil,
+                timestamp: nowMs,
+                payload: Data([byte]),
+                signature: nil,
+                ttl: 1
+            )
+        }
+        manager.onPublicPacketSeen(packet(.message, 1))
+        manager.onPublicPacketSeen(packet(.fileTransfer, 2))
+        manager.onPublicPacketSeen(packet(.fragment, 3))
+        manager.onPublicPacketSeen(packet(.groupMessage, 4))
+        // Runs after the queued intake and persists the archive.
+        manager._performMaintenanceSynchronously(now: Date())
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
+        let before = manager._carriedPacketCounts()
+        #expect(before.messages == 1)
+        #expect(before.fileTransfers == 1)
+        #expect(before.fragments == 1)
+        #expect(before.groupMessages == 1)
+
+        manager.removeAllCarriedMessages()
+
+        let after = manager._carriedPacketCounts()
+        #expect(after.messages == 0)
+        #expect(after.fileTransfers == 0)
+        #expect(after.fragments == 0)
+        #expect(after.groupMessages == 1)
+        #expect(!FileManager.default.fileExists(atPath: fileURL.path))
+    }
+
     @Test func archiveDropsMessagesOlderThanPublicWindow() throws {
         let fileURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("gossip-archive-\(UUID().uuidString).json")

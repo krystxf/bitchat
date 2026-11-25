@@ -74,6 +74,14 @@ final class PublicMessagePipeline {
         buffer.contains { $0.message.id == messageID }
     }
 
+    /// Drops every uncommitted row. A message wipe calls it, so rows waiting
+    /// for the ~80 ms flush do not land in the timeline after the wipe.
+    func discardBuffered() {
+        buffer.removeAll(keepingCapacity: false)
+        timer?.invalidate()
+        timer = nil
+    }
+
     func flushIfNeeded() {
         flushBuffer()
     }

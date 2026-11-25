@@ -83,11 +83,19 @@ private struct ImageDropTargetModifier: ViewModifier {
 
 /// Short-lived copies of dropped images. Old copies are deleted on the next
 /// drop, so dropped pictures don't pile up in the app's temp folder.
-private enum DroppedImageStore {
+enum DroppedImageStore {
     private static let maxAge: TimeInterval = 10 * 60
 
     private static var folder: URL {
         FileManager.default.temporaryDirectory.appendingPathComponent("dropped-images", isDirectory: true)
+    }
+
+    /// Deletes every copy now. A dropped image is one the user just sent,
+    /// so the message wipe takes these copies with the sent media.
+    static func removeAll() {
+        let fileManager = FileManager.default
+        guard fileManager.fileExists(atPath: folder.path) else { return }
+        try? fileManager.removeItem(at: folder)
     }
 
     static func keepCopy(of url: URL) -> URL? {

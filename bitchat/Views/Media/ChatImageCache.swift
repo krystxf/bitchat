@@ -88,6 +88,14 @@ enum ChatImageCache {
     }
     #endif
 
+    /// Drops every cached aspect ratio and thumbnail. The message wipe calls
+    /// it, so no decoded picture outlives its deleted file, and a new image
+    /// that reuses a deleted file's name never shows the old picture.
+    static func removeAll() {
+        aspectRatios.removeAllObjects()
+        thumbnails.removeAllObjects()
+    }
+
     private static func makeThumbnail(for url: URL) -> CGImage? {
         let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
         guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions) else { return nil }

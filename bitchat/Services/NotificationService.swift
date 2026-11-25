@@ -30,6 +30,11 @@ protocol NotificationCategoryRegistering {
     func setCategories(_ categories: Set<UNNotificationCategory>)
 }
 
+protocol NotificationClearing {
+    /// Removes every delivered alert and every request not yet shown.
+    func removeAllNotifications()
+}
+
 private final class NotificationCenterAuthorizerAdapter: NotificationAuthorizing {
     private let center: UNUserNotificationCenter
 
@@ -71,6 +76,19 @@ private final class NotificationCenterCategoryRegistrarAdapter: NotificationCate
     }
 }
 
+private final class NotificationCenterClearerAdapter: NotificationClearing {
+    private let center: UNUserNotificationCenter
+
+    init(center: UNUserNotificationCenter) {
+        self.center = center
+    }
+
+    func removeAllNotifications() {
+        center.removeAllDeliveredNotifications()
+        center.removeAllPendingNotificationRequests()
+    }
+}
+
 private struct NoopNotificationAuthorizer: NotificationAuthorizing {
     func requestAuthorization(
         options: UNAuthorizationOptions,
@@ -86,6 +104,10 @@ private struct NoopNotificationRequestDeliverer: NotificationRequestDelivering {
 
 private struct NoopNotificationCategoryRegistrar: NotificationCategoryRegistering {
     func setCategories(_ categories: Set<UNNotificationCategory>) {}
+}
+
+private struct NoopNotificationClearer: NotificationClearing {
+    func removeAllNotifications() {}
 }
 
 final class NotificationService {
@@ -128,6 +150,7 @@ final class NotificationService {
     private let authorizer: NotificationAuthorizing
     private let requestDeliverer: NotificationRequestDelivering
     private let categoryRegistrar: NotificationCategoryRegistering
+    private let clearer: NotificationClearing
 
     /// Returns true if running in test environment (XCTest, Swift Testing, or CI)
     private var isRunningTests: Bool {
@@ -148,11 +171,13 @@ final class NotificationService {
             self.authorizer = NoopNotificationAuthorizer()
             self.requestDeliverer = NoopNotificationRequestDeliverer()
             self.categoryRegistrar = NoopNotificationCategoryRegistrar()
+            self.clearer = NoopNotificationClearer()
         } else {
             let center = UNUserNotificationCenter.current()
             self.authorizer = NotificationCenterAuthorizerAdapter(center: center)
             self.requestDeliverer = NotificationCenterRequestDelivererAdapter(center: center)
             self.categoryRegistrar = NotificationCenterCategoryRegistrarAdapter(center: center)
+            self.clearer = NotificationCenterClearerAdapter(center: center)
         }
     }
 
@@ -161,12 +186,14 @@ final class NotificationService {
         authorizer: NotificationAuthorizing,
         requestDeliverer: NotificationRequestDelivering,
         categoryRegistrar: NotificationCategoryRegistering = NoopNotificationCategoryRegistrar(),
+        clearer: NotificationClearing = NoopNotificationClearer(),
         hidePreviewsProvider: @escaping () -> Bool = { NotificationPrivacySettings.hideMessagePreviews }
     ) {
         self.isRunningTestsProvider = isRunningTestsProvider
         self.authorizer = authorizer
         self.requestDeliverer = requestDeliverer
         self.categoryRegistrar = categoryRegistrar
+        self.clearer = clearer
         self.hidePreviewsProvider = hidePreviewsProvider
     }
 
@@ -228,6 +255,14 @@ final class NotificationService {
         requestDeliverer.add(request)
     }
     
+    /// Removes every alert this app delivered or queued. With previews on,
+    /// alerts quote messages and name senders, so the message wipe takes
+    /// them with the messages.
+    func removeAllNotifications() {
+        guard !isRunningTests else { return }
+        clearer.removeAllNotifications()
+    }
+
     func sendMentionNotification(from sender: String, message: String) {
         let title = hidePreviews ? Redacted.mentionTitle : "🫵 you were mentioned by \(sender)"
         let body = hidePreviews ? Redacted.body : message
