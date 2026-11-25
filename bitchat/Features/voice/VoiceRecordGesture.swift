@@ -161,6 +161,16 @@ struct VoiceRecordGesture: Equatable {
         }
     }
 
+    /// The system cancelled the touch without a release (an alert, a call,
+    /// the view going away). Keep the recording hands free rather than
+    /// guess between send and cancel; the bar then offers both.
+    mutating func interrupt() -> Action {
+        guard phase.isHolding else { return .none }
+        phase = .locked
+        translation = .zero
+        return .lock
+    }
+
     /// Starts straight into hands free, for VoiceOver and other assistive
     /// input that cannot hold and drag.
     mutating func startHandsFree() -> Action {

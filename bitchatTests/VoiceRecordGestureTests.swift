@@ -174,6 +174,19 @@ struct VoiceRecordGestureTests {
         #expect(gesture.release() == .none)
     }
 
+    @Test func interruptedHoldKeepsRecordingHandsFree() {
+        var gesture = holding()
+        gesture.drag(to: CGSize(width: -120, height: 0))
+
+        #expect(gesture.interrupt() == .lock)
+        #expect(gesture.phase == .locked)
+        #expect(gesture.interrupt() == .none)
+
+        var idle = VoiceRecordGesture(thresholds: thresholds)
+        #expect(idle.interrupt() == .none)
+        #expect(idle.phase == .idle)
+    }
+
     @Test func handsFreeStartIsForAssistiveInput() {
         var gesture = VoiceRecordGesture(thresholds: thresholds)
 

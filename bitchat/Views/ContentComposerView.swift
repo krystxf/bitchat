@@ -23,6 +23,10 @@ struct ContentComposerView: View {
 
     let onSendMessage: () -> Void
 
+    /// Resets when the hold ends or the system cancels it, which catches
+    /// a cancelled touch that never reaches `onEnded`.
+    @GestureState private var micPressed = false
+
     #if os(iOS)
     @Binding var showImagePicker: Bool
     @Binding var imagePickerSourceType: UIImagePickerController.SourceType
@@ -61,15 +65,13 @@ struct ContentComposerView: View {
 
             CommandSuggestionsView(messageText: $messageText)
 
-            if voiceRecordingVM.state.isActive {
-                recordingIndicator
-            }
-
             // Messages-style row: the attachment button floats in its own
-            // glass circle beside the input capsule, not inside it.
+            // glass circle beside the input capsule, not inside it. It
+            // steps aside while recording so the bar gets the full width.
             HStack(alignment: .bottom, spacing: 8) {
-                if conversationUIModel.canSendMediaInCurrentContext {
+                if conversationUIModel.canSendMediaInCurrentContext && !showsRecorder {
                     attachmentButton
+                        .transition(.scale(scale: 0.6).combined(with: .opacity))
                 }
 
                 inputCapsule
@@ -77,10 +79,23 @@ struct ContentComposerView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+        .animation(Self.recorderSpring, value: showsRecorder)
+        .animation(Self.recorderSpring, value: recorderPhase)
+        .animation(Self.recorderSpring, value: voiceRecordingVM.isDiscarding)
+        .onChange(of: micPressed) { pressed in
+            guard !pressed else { return }
+            // A normal release reaches `onEnded` first and makes this a
+            // no-op; only a touch the system cancelled gets here live.
+            DispatchQueue.main.async {
+                voiceRecordingVM.pressInterrupted()
+            }
+        }
         .onDisappear {
             autocompleteDebounceTimer?.invalidate()
         }
     }
+
+    static let recorderSpring = Animation.spring(response: 0.32, dampingFraction: 0.8)
 }
 
 private extension ContentComposerView {
@@ -88,66 +103,24 @@ private extension ContentComposerView {
     /// glass surface.
     var inputCapsule: some View {
         HStack(alignment: .center, spacing: 4) {
-            TextField(
-                "",
-                text: $messageText,
-                prompt: Text(placeholderText)
-                    .foregroundColor(palette.secondary.opacity(0.6))
-            )
-            .textFieldStyle(.plain)
-            .bitchatFont(size: 15)
-            .foregroundColor(palette.primary)
-            .focused(isTextFieldFocused)
-            .autocorrectionDisabled(true)
-            #if os(iOS)
-            .textInputAutocapitalization(.sentences)
-            #endif
-            .submitLabel(.send)
-            .modifier(AutocompleteKeyboardNavigationModifier(
-                isActive: { conversationUIModel.showAutocomplete
-                    && !conversationUIModel.autocompleteSuggestions.isEmpty },
-                onMove: { delta in
-                    conversationUIModel.moveAutocompleteSelection(by: delta)
-                },
-                onAccept: {
-                    conversationUIModel.completeSelectedSuggestion(in: &messageText)
-                },
-                onDismiss: {
-                    conversationUIModel.dismissAutocomplete()
-                }
-            ))
-            // Return while the mention panel is open completes the
-            // highlight instead of sending — matches command suggestions
-            // (#1504) and keeps Tab/Return/Escape on one convention.
-            .onSubmit {
-                if conversationUIModel.showAutocomplete,
-                   !conversationUIModel.autocompleteSuggestions.isEmpty,
-                   conversationUIModel.completeSelectedSuggestion(in: &messageText) {
-                    return
-                }
-                onSendMessage()
-                // Only the return-key path: it steals focus on iOS, so
-                // every message would cost a tap to reopen the keyboard.
-                // The send button must not reopen a deliberately
-                // dismissed keyboard, so it stays out of this.
-                isTextFieldFocused.wrappedValue = true
-            }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 6)
-            .modifier(FocusEffectDisabledModifier())
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .onChange(of: messageText) { newValue in
-                autocompleteDebounceTimer?.invalidate()
-                autocompleteDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: false) { _ in
-                    let cursorPosition = newValue.count
-                    Task { @MainActor in
-                        conversationUIModel.updateAutocomplete(for: newValue, cursorPosition: cursorPosition)
+            ZStack(alignment: .leading) {
+                // Hidden, not removed, while recording: removing the field
+                // would drop focus and slide the keyboard away mid-hold.
+                HStack(alignment: .center, spacing: 4) {
+                    messageField
+
+                    if showsNearbyOnlyToggle {
+                        nearbyOnlyToggle
                     }
                 }
-            }
+                .opacity(showsRecorder ? 0 : 1)
+                .allowsHitTesting(!showsRecorder)
+                .accessibilityHidden(showsRecorder)
 
-            if showsNearbyOnlyToggle {
-                nearbyOnlyToggle
+                if showsRecorder {
+                    recordingBar
+                        .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .trailing)))
+                }
             }
 
             sendOrMicButton
@@ -156,6 +129,74 @@ private extension ContentComposerView {
         .padding(.trailing, 2)
         .padding(.vertical, 2)
         .glassSurface(in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    var messageField: some View {
+        TextField(
+            "",
+            text: $messageText,
+            prompt: Text(placeholderText)
+                .foregroundColor(palette.secondary.opacity(0.6))
+        )
+        .textFieldStyle(.plain)
+        .bitchatFont(size: 15)
+        .foregroundColor(palette.primary)
+        .focused(isTextFieldFocused)
+        .autocorrectionDisabled(true)
+        #if os(iOS)
+        .textInputAutocapitalization(.sentences)
+        #endif
+        .submitLabel(.send)
+        .modifier(AutocompleteKeyboardNavigationModifier(
+            isActive: { conversationUIModel.showAutocomplete
+                && !conversationUIModel.autocompleteSuggestions.isEmpty },
+            onMove: { delta in
+                conversationUIModel.moveAutocompleteSelection(by: delta)
+            },
+            onAccept: {
+                conversationUIModel.completeSelectedSuggestion(in: &messageText)
+            },
+            onDismiss: {
+                conversationUIModel.dismissAutocomplete()
+            }
+        ))
+        // Return while the mention panel is open completes the
+        // highlight instead of sending — matches command suggestions
+        // (#1504) and keeps Tab/Return/Escape on one convention.
+        .onSubmit {
+            // The hidden field keeps focus while recording, so Return
+            // sends a hands-free recording (Escape is the trash button).
+            if showsRecorder {
+                if recorderPhase == .locked {
+                    voiceRecordingVM.sendHandsFree(completion: conversationUIModel.sendVoiceNote)
+                }
+                return
+            }
+            if conversationUIModel.showAutocomplete,
+               !conversationUIModel.autocompleteSuggestions.isEmpty,
+               conversationUIModel.completeSelectedSuggestion(in: &messageText) {
+                return
+            }
+            onSendMessage()
+            // Only the return-key path: it steals focus on iOS, so
+            // every message would cost a tap to reopen the keyboard.
+            // The send button must not reopen a deliberately
+            // dismissed keyboard, so it stays out of this.
+            isTextFieldFocused.wrappedValue = true
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 6)
+        .modifier(FocusEffectDisabledModifier())
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onChange(of: messageText) { newValue in
+            autocompleteDebounceTimer?.invalidate()
+            autocompleteDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: false) { _ in
+                let cursorPosition = newValue.count
+                Task { @MainActor in
+                    conversationUIModel.updateAutocomplete(for: newValue, cursorPosition: cursorPosition)
+                }
+            }
+        }
     }
 }
 
@@ -222,45 +263,129 @@ private extension ContentComposerView {
         }
     }
 
-    var recordingIndicator: some View {
-        HStack(spacing: 12) {
-            Image(systemName: voiceRecordingVM.isLiveStreaming ? "dot.radiowaves.left.and.right" : "waveform.circle.fill")
-                .foregroundColor(.red)
-                .font(.bitchatSystem(size: 20))
-                .modifier(PulsingOpacityModifier(active: voiceRecordingVM.isLiveStreaming))
-            TimelineView(.periodic(from: .now, by: 0.05)) { context in
-                // Live streaming means audio is heard as you speak — the HUD
-                // must make that unmistakable, not just show a timer.
-                if voiceRecordingVM.isLiveStreaming {
+    // MARK: - Voice recording bar
+
+    /// The recording bar is up: holding, hands free, or playing the
+    /// discard animation.
+    var showsRecorder: Bool {
+        voiceRecordingVM.gesturePhase != .idle
+            || voiceRecordingVM.state.isActive
+            || voiceRecordingVM.isDiscarding
+    }
+
+    /// A recording that no finger holds (the composer was rebuilt while
+    /// recording, say) behaves as hands free, so it always has a send and
+    /// a cancel button.
+    var recorderPhase: VoiceRecordGesture.Phase {
+        let phase = voiceRecordingVM.gesturePhase
+        if phase == .idle && voiceRecordingVM.state.isActive {
+            return .locked
+        }
+        return phase
+    }
+
+    /// Live push-to-talk keeps its red treatment; a classic note uses the
+    /// conversation accent.
+    var recorderTint: Color {
+        voiceRecordingVM.isLiveStreaming ? .red : composerAccentColor
+    }
+
+    /// Replaces the text field inside the capsule while recording: trash,
+    /// live waveform, elapsed time.
+    var recordingBar: some View {
+        let isDiscarding = voiceRecordingVM.isDiscarding
+        return HStack(spacing: 6) {
+            recorderTrashButton
+
+            VoiceRecordingWaveform(meter: voiceRecordingVM.levelMeter, tint: recorderTint)
+                .frame(height: 24)
+                .frame(maxWidth: .infinity)
+                // Discarding sweeps the waveform into the trash can.
+                .scaleEffect(x: isDiscarding ? 0.01 : 1, y: 1, anchor: .leading)
+                .opacity(isDiscarding ? 0 : 1)
+                // Time runs from the trash side in either direction.
+                .flipsForRightToLeftLayoutDirection(true)
+
+            recorderElapsedLabel
+                .opacity(isDiscarding ? 0 : 1)
+        }
+        .frame(minHeight: 36)
+    }
+
+    var recorderTrashButton: some View {
+        let isDiscarding = voiceRecordingVM.isDiscarding
+        let isHighlighted = isDiscarding
+        let deleteLabel = String(localized: "voice.recorder.accessibility.delete", defaultValue: "delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar")
+        return Button(action: voiceRecordingVM.discardRecording) {
+            Image(systemName: isHighlighted ? "trash.fill" : "trash")
+                .font(.bitchatSystem(size: 17, weight: .medium))
+                .foregroundColor(isHighlighted ? .red : palette.secondary)
+                .scaleEffect(isDiscarding ? 1.3 : 1)
+                .rotationEffect(.degrees(isDiscarding ? -14 : 0), anchor: .bottom)
+                .animation(.spring(response: 0.25, dampingFraction: 0.45), value: isDiscarding)
+                .frame(width: 32, height: 32)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .allowsHitTesting(!isDiscarding)
+        .keyboardShortcut(.cancelAction)
+        .accessibilityLabel(deleteLabel)
+        .help(deleteLabel)
+    }
+
+    /// "0:03", or a pulsing red "live 0:03" while the audio streams live.
+    var recorderElapsedLabel: some View {
+        let isLive = voiceRecordingVM.isLiveStreaming
+        return HStack(spacing: 5) {
+            if isLive {
+                Circle()
+                    .fill(Color.red)
+                    .frame(width: 7, height: 7)
+                    .modifier(PulsingOpacityModifier(active: true))
+            }
+            TimelineView(.periodic(from: .now, by: 0.25)) { context in
+                let elapsed = voiceRecordingVM.formattedElapsed(for: context.date)
+                if isLive {
                     Text(
-                        "live \(voiceRecordingVM.formattedDuration(for: context.date))",
+                        "live \(elapsed)",
                         comment: "Recording HUD label while a voice message streams live to the recipient"
                     )
+                    .monospacedDigit()
                     .bitchatFont(size: 13, weight: .bold)
                     .foregroundColor(.red)
                 } else {
-                    Text(
-                        "recording \(voiceRecordingVM.formattedDuration(for: context.date))",
-                        comment: "Voice note recording duration indicator"
-                    )
-                    .bitchatFont(size: 13)
-                    .foregroundColor(.red)
+                    Text(verbatim: elapsed)
+                        .monospacedDigit()
+                        .bitchatFont(size: 13, weight: .medium)
+                        .foregroundColor(palette.secondary)
                 }
             }
-            Spacer()
-            Button(action: voiceRecordingVM.cancel) {
-                Label(String(localized: "common.cancel", comment: "Cancel action in the voice recording HUD"), systemImage: "xmark.circle")
-                    .labelStyle(.iconOnly)
-                    .font(.bitchatSystem(size: 18))
-                    .foregroundColor(.red)
-            }
-            .buttonStyle(.plain)
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.red.opacity(0.15))
-        )
+        .fixedSize()
+        .padding(.trailing, 4)
+    }
+
+    /// Stops and sends a hands-free recording; takes the mic's place.
+    var handsFreeSendButton: some View {
+        let sendLabel = String(localized: "voice.recorder.accessibility.send", defaultValue: "send voice message", comment: "Accessibility label and tooltip for the send button of a hands-free voice recording")
+        return Button {
+            voiceRecordingVM.sendHandsFree(completion: conversationUIModel.sendVoiceNote)
+        } label: {
+            Image(systemName: "arrow.up")
+                .font(.bitchatSystem(size: 16, weight: .bold))
+                .foregroundColor(.white)
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(recorderTint))
+                .frame(width: 36, height: 36)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .transition(.scale(scale: 0.6).combined(with: .opacity))
+        .accessibilityLabel(sendLabel)
+        .accessibilityAction(named: Text(String(localized: "voice.recorder.accessibility.delete", defaultValue: "delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar"))) {
+            voiceRecordingVM.discardRecording()
+        }
+        .help(sendLabel)
     }
 
     var composerAccentColor: Color {
@@ -347,8 +472,13 @@ private extension ContentComposerView {
 
     @ViewBuilder
     var sendOrMicButton: some View {
-        let hasText = !messageText.trimmed.isEmpty
-        if conversationUIModel.canSendMediaInCurrentContext {
+        // Text typed into the hidden field while recording must not swap
+        // the mic out from under the finger.
+        let hasText = !messageText.trimmed.isEmpty && !showsRecorder
+        if showsRecorder && recorderPhase == .locked {
+            handsFreeSendButton
+                .frame(width: 36, height: 36)
+        } else if conversationUIModel.canSendMediaInCurrentContext {
             ZStack {
                 micButtonView
                     .opacity(hasText ? 0 : 1)
@@ -372,61 +502,81 @@ private extension ContentComposerView {
         return conversationUIModel.activeLiveVoiceTalker
     }
 
-    /// Recording > floor-busy > default accent. Whether the hold streams
-    /// live or records a classic note is signaled by the recording HUD's
-    /// LIVE treatment, not the idle button color.
+    /// Floor-busy > default accent. Whether the hold streams live or
+    /// records a classic note shows in the recording bar, not the idle
+    /// button color.
     var micColor: Color {
-        if voiceRecordingVM.state.isActive { return .red }
         if busyTalker != nil { return Color.red.opacity(0.6) }
         return composerAccentColor
     }
 
+    /// Idle: the mic glyph. Holding: a larger filled circle under the
+    /// finger, like the recorder it controls.
     var micButtonView: some View {
-        Image(systemName: "mic.circle.fill")
-            .font(.bitchatSystem(size: 24))
-            .foregroundColor(micColor)
-            .modifier(PulsingOpacityModifier(active: busyTalker != nil && !voiceRecordingVM.state.isActive))
-            .frame(width: 36, height: 36)
-            .contentShape(Circle())
-            .overlay(
-                Color.clear
-                    .contentShape(Circle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { _ in
-                                voiceRecordingVM.start(shouldShow: conversationUIModel.canSendMediaInCurrentContext)
-                            }
-                            .onEnded { _ in
-                                voiceRecordingVM.finish(completion: conversationUIModel.sendVoiceNote)
-                            }
-                    )
-            )
-            .accessibilityLabel(
-                String(localized: "content.accessibility.record_voice_note", comment: "Accessibility label for the voice note button")
-            )
-            .accessibilityValue(
-                voiceRecordingVM.state.isActive
-                ? String(localized: "content.accessibility.recording", comment: "Accessibility value announced while a voice note is recording")
-                : busyTalker.map {
-                    String(
-                        format: String(localized: "content.accessibility.someone_speaking", comment: "Accessibility value on the mic button naming who is talking live in the public channel"),
-                        locale: .current,
-                        $0
-                    )
-                } ?? ""
-            )
-            .accessibilityHint(
-                String(localized: "content.accessibility.record_voice_hint", comment: "Accessibility hint explaining double-tap toggles voice recording")
-            )
-            .accessibilityAddTraits(.isButton)
-            // Press-and-hold drag gestures can't be activated by VoiceOver;
-            // give it a start/stop toggle as the default action.
-            .accessibilityAction {
-                if voiceRecordingVM.state.isActive {
-                    voiceRecordingVM.finish(completion: conversationUIModel.sendVoiceNote)
-                } else {
-                    voiceRecordingVM.start(shouldShow: conversationUIModel.canSendMediaInCurrentContext)
+        let isHolding = showsRecorder && recorderPhase.isHolding
+        return ZStack {
+            Circle()
+                .fill(recorderTint)
+                .frame(width: 36, height: 36)
+                .scaleEffect(isHolding ? 1.12 : 0.5)
+                .opacity(isHolding ? 1 : 0)
+            Image(systemName: isHolding ? "mic.fill" : "mic.circle.fill")
+                .font(.bitchatSystem(size: isHolding ? 17 : 24, weight: isHolding ? .semibold : .regular))
+                .foregroundColor(isHolding ? .white : micColor)
+        }
+        .modifier(PulsingOpacityModifier(active: busyTalker != nil && !showsRecorder))
+        .frame(width: 36, height: 36)
+        .contentShape(Circle())
+        .overlay(
+            Color.clear
+                .contentShape(Circle())
+                .gesture(micGesture)
+        )
+        .accessibilityLabel(
+            String(localized: "content.accessibility.record_voice_note", comment: "Accessibility label for the voice note button")
+        )
+        .accessibilityValue(
+            showsRecorder
+            ? String(localized: "content.accessibility.recording", comment: "Accessibility value announced while a voice note is recording")
+            : busyTalker.map {
+                String(
+                    format: String(localized: "content.accessibility.someone_speaking", comment: "Accessibility value on the mic button naming who is talking live in the public channel"),
+                    locale: .current,
+                    $0
+                )
+            } ?? ""
+        )
+        .accessibilityHint(
+            String(localized: "content.accessibility.record_voice_hint", comment: "Accessibility hint explaining double-tap toggles voice recording")
+        )
+        .accessibilityAddTraits(.isButton)
+        // VoiceOver cannot press and drag: its activation starts a
+        // hands-free recording, and the mic turns into the send button.
+        .accessibilityAction {
+            voiceRecordingVM.startHandsFree(canRecord: conversationUIModel.canSendMediaInCurrentContext)
+        }
+    }
+
+    /// Press and hold records; release sends.
+    var micGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .updating($micPressed) { _, pressed, _ in
+                pressed = true
+            }
+            .onChanged { _ in
+                let wasHolding = voiceRecordingVM.gesturePhase.isHolding
+                // Drag directions (cancel, lock) come next; until then
+                // every hold sends on release.
+                voiceRecordingVM.pressChanged(
+                    translation: .zero,
+                    canRecord: conversationUIModel.canSendMediaInCurrentContext
+                )
+                if !wasHolding && voiceRecordingVM.gesturePhase.isHolding {
+                    VoiceRecorderHaptics.recordingBegan()
                 }
+            }
+            .onEnded { _ in
+                voiceRecordingVM.pressEnded(completion: conversationUIModel.sendVoiceNote)
             }
     }
 
