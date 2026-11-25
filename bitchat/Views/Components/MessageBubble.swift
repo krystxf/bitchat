@@ -210,3 +210,21 @@ struct MessageDeliveryCaption: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 }
+
+/// Which rows open a new run of bubbles. A run is consecutive messages
+/// from one sender, close in time. Only its first row shows the sender's
+/// name and keeps the wider gap above it.
+enum MessageRunPolicy {
+    /// Longest pause within one run.
+    static let maxGap: TimeInterval = 5 * 60
+
+    static func startsRun(_ message: BitchatMessage, after previous: BitchatMessage?) -> Bool {
+        guard let previous else { return true }
+        if message.sender == "system" || previous.sender == "system" { return true }
+        if message.isArchivedEcho != previous.isArchivedEcho { return true }
+        guard message.senderPeerID == previous.senderPeerID,
+              message.sender == previous.sender
+        else { return true }
+        return abs(message.timestamp.timeIntervalSince(previous.timestamp)) > maxGap
+    }
+}

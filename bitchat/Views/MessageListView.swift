@@ -12,6 +12,9 @@ import SwiftUI
 private struct MessageDisplayItem: Identifiable {
     let id: String
     let message: BitchatMessage
+    /// Whether the row opens a run of bubbles from one sender (see
+    /// `MessageRunPolicy`).
+    let startsRun: Bool
 }
 
 /// What the list's change detection keys on. The count alone stops moving
@@ -113,10 +116,7 @@ struct MessageListView: View {
             )
         let windowedMessages = Array(messages.suffix(renderedWindowCount))
 
-        let messageItems: [MessageDisplayItem] = windowedMessages.compactMap { message in
-            guard !message.content.trimmed.isEmpty else { return nil }
-            return MessageDisplayItem(id: "\(contextKey)|\(message.id)", message: message)
-        }
+        let messageItems = displayItems(for: windowedMessages, of: messages, contextKey: contextKey)
         // Top edge of the rendered window (whitespace-only messages get no
         // row, so they could never report reaching it).
         let firstRowID = messageItems.first?.id
@@ -141,7 +141,12 @@ struct MessageListView: View {
                     ForEach(messageItems) { item in
                         let message = item.message
                         let isSelf = conversationUIModel.isSentByCurrentUser(message)
-                        messageRow(for: message, isSelf: isSelf, maxBubbleWidth: maxBubbleWidth)
+                        messageRow(
+                            for: message,
+                            isSelf: isSelf,
+                            showsSenderName: item.startsRun && showsSenderNames,
+                            maxBubbleWidth: maxBubbleWidth
+                        )
                             .onAppear {
                                 // Callbacks lag a timeline switch: the new
                                 // rows appear before the old ones disappear,
@@ -235,7 +240,9 @@ struct MessageListView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: rowAlignment(for: message, isSelf: isSelf))
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 2)
+                            // A run of bubbles from one sender reads as a
+                            // group: tight within, a wider gap above it.
+                            .padding(.top, item.startsRun ? 8 : 2)
                             // Archived echoes read as one tinted block, not
                             // just faded rows.
                             .background(message.isArchivedEcho ? palette.secondary.opacity(0.08) : Color.clear)
@@ -614,8 +621,37 @@ private extension MessageListView {
         return isSelf ? .trailing : .leading
     }
 
+    /// The rows of the rendered window, each marked with whether it opens a
+    /// run. The message just above the window decides that for its first
+    /// row, so a window that grows or shrinks never regroups a row.
+    func displayItems(
+        for windowedMessages: [BitchatMessage],
+        of messages: [BitchatMessage],
+        contextKey: String
+    ) -> [MessageDisplayItem] {
+        let firstIndex = messages.count - windowedMessages.count
+        var previous = firstIndex > 0 ? messages[firstIndex - 1] : nil
+        var items: [MessageDisplayItem] = []
+        items.reserveCapacity(windowedMessages.count)
+        // Whitespace-only messages get no row.
+        for message in windowedMessages where !message.content.trimmed.isEmpty {
+            items.append(MessageDisplayItem(
+                id: "\(contextKey)|\(message.id)",
+                message: message,
+                startsRun: MessageRunPolicy.startsRun(message, after: previous)
+            ))
+            previous = message
+        }
+        return items
+    }
+
     @ViewBuilder
-    func messageRow(for message: BitchatMessage, isSelf: Bool, maxBubbleWidth: CGFloat) -> some View {
+    func messageRow(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        showsSenderName: Bool,
+        maxBubbleWidth: CGFloat
+    ) -> some View {
         Group {
             if message.sender == "system" {
                 systemMessageRow(message)
@@ -625,14 +661,14 @@ private extension MessageListView {
                     media: media,
                     imagePreviewURL: $imagePreviewURL,
                     isSelf: isSelf,
-                    showsSenderName: showsSenderNames,
+                    showsSenderName: showsSenderName,
                     maxBubbleWidth: maxBubbleWidth
                 )
             } else {
                 TextMessageView(
                     message: message,
                     isSelf: isSelf,
-                    showsSenderName: showsSenderNames,
+                    showsSenderName: showsSenderName,
                     maxBubbleWidth: maxBubbleWidth
                 )
             }
