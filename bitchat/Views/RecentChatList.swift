@@ -23,7 +23,6 @@ struct RecentChatList: View {
     private enum Strings {
         static let header = String(localized: "chats.section.header", defaultValue: "chats", comment: "Section header above recent direct conversations in the people sheet")
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")
-        static let newMessagesTooltip = String(localized: "mesh_peers.tooltip.new_messages", comment: "Tooltip for the unread messages indicator")
         static let openChatHint = String(localized: "chats.accessibility.open_hint", defaultValue: "opens this conversation", comment: "Accessibility hint on a recent chat row explaining activation opens the direct conversation")
     }
 
@@ -36,53 +35,39 @@ struct RecentChatList: View {
 
     var body: some View {
         if !chats.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                // Same glyph+label header shape as #mesh / groups.
-                PeopleSectionHeader(
-                    icon: "bubble.left.and.bubble.right",
-                    iconColor: palette.secondary,
-                    title: Strings.header
-                )
-
+            Section {
                 ForEach(chats) { chat in
-                    HStack(spacing: 4) {
-                        Text(verbatim: chat.displayName)
-                            .bitchatFont(size: 14)
-                            .foregroundColor(palette.primary)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-
-                        Text(verbatim: Self.relativeFormatter.localizedString(for: chat.lastActivity, relativeTo: Date()))
-                            .bitchatFont(size: 11)
-                            .foregroundColor(palette.secondary.opacity(0.8))
-
-                        Spacer()
-
-                        if chat.hasUnread {
-                            Image(systemName: "envelope.fill")
-                                .font(.bitchatSystem(size: 10))
-                                .foregroundColor(.orange)
-                                .help(Strings.newMessagesTooltip)
+                    Button {
+                        onTapChat(chat.peerID)
+                    } label: {
+                        PeopleRow(
+                            systemImage: "bubble.left.and.bubble.right",
+                            iconColor: palette.secondary,
+                            subtitle: lastActivityText(for: chat)
+                        ) {
+                            PeopleRowName(name: chat.displayName)
+                        } accessories: {
+                            if chat.hasUnread {
+                                PeopleUnreadIndicator()
+                            }
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 6)
-                    .contentShape(Rectangle())
-                    .onTapGesture { onTapChat(chat.peerID) }
-                    .accessibilityElement(children: .ignore)
+                    .peopleRowButtonStyle()
                     .accessibilityLabel(accessibilityDescription(for: chat))
-                    .accessibilityAddTraits(.isButton)
                     .accessibilityHint(Strings.openChatHint)
                 }
+            } header: {
+                Text(verbatim: Strings.header)
             }
         }
     }
 
+    private func lastActivityText(for chat: RecentChatRow) -> String {
+        Self.relativeFormatter.localizedString(for: chat.lastActivity, relativeTo: Date())
+    }
+
     private func accessibilityDescription(for chat: RecentChatRow) -> String {
-        var parts: [String] = [
-            chat.displayName,
-            Self.relativeFormatter.localizedString(for: chat.lastActivity, relativeTo: Date())
-        ]
+        var parts: [String] = [chat.displayName, lastActivityText(for: chat)]
         if chat.hasUnread { parts.append(Strings.unread) }
         return parts.joined(separator: ", ")
     }

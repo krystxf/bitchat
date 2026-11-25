@@ -179,6 +179,7 @@ struct ContentPeopleSheetView: View {
                 if let peerID = appChromeModel.showingFingerprintFor {
                     FingerprintView(peerID: peerID)
                         .environmentObject(verificationModel)
+                        .foregroundColor(palette.primary)
                 }
             }
             // This sheet covers the root header where the connectivity
@@ -194,8 +195,6 @@ struct ContentPeopleSheetView: View {
                 }
             }
         }
-        .themedSheetBackground()
-        .foregroundColor(palette.primary)
         .confirmationDialog(
             String(
                 localized: "content.private_media.legacy_warning.title",
@@ -307,139 +306,87 @@ private struct ContentPeopleListView: View {
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @EnvironmentObject private var peerListModel: PeerListModel
     @Environment(\.dismiss) private var dismiss
-    @ThemedPalette private var palette
 
     @Binding var showSidebar: Bool
     @Binding var showVerifySheet: Bool
 
+    /// Bumped each time the list appears on a location channel, right after
+    /// the roster rebuild, so the geohash section drops its remembered order.
+    @State private var geohashOrderGeneration = 0
+
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 12) {
-                    Text(peopleSheetTitle)
-                        .bitchatFont(size: 18)
-                        .foregroundColor(palette.primary)
-                    Spacer()
-                    if case .mesh = locationChannelsModel.selectedChannel {
-                        Button(action: { showVerifySheet = true }) {
-                            Image(systemName: "qrcode")
-                                .font(.bitchatSystem(size: 14))
-                        }
-                        .buttonStyle(.plain)
-                        // .help maps to the accessibility *hint* on iOS, so the
-                        // button still needs a spoken name.
-                        .accessibilityLabel(
-                            String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
-                        )
-                        .help(
-                            String(localized: "content.help.verification", comment: "Help text for verification button")
-                        )
+        List {
+            switch locationChannelsModel.selectedChannel {
+            case .location(let channel):
+                GeohashPeopleList(
+                    geohash: channel.geohash,
+                    orderGeneration: geohashOrderGeneration,
+                    onTapPerson: {
+                        showSidebar = true
                     }
-                    SheetCloseButton {
-                        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                            dismiss()
-                            showSidebar = false
-                            showVerifySheet = false
-                            privateConversationModel.endConversation()
+                )
+                // Direct conversations survive channel switches; the geoDM
+                // someone opened from another cell must stay reachable here
+                // too.
+                RecentChatList(
+                    chats: peerListModel.recentChatRows,
+                    onTapChat: openConversation
+                )
+            case .mesh:
+                MeshPeerList(
+                    onTapPeer: openConversation,
+                    onToggleFavorite: { peerID in
+                        peerListModel.toggleFavorite(peerID: peerID)
+                    },
+                    onShowFingerprint: { peerID in
+                        appChromeModel.showFingerprint(for: peerID)
+                    },
+                    onToggleBlock: { peer in
+                        if peer.isBlocked {
+                            conversationUIModel.unblock(peerID: peer.peerID, displayName: peer.displayName)
+                        } else {
+                            conversationUIModel.block(peerID: peer.peerID, displayName: peer.displayName)
                         }
                     }
-                }
-
-                // The mesh sheet titles its sections inline (#mesh / across
-                // the bridge / groups) — no subtitle or count up here.
-                // Location channels keep their geohash subtitle.
-                if case .location(let channel) = locationChannelsModel.selectedChannel {
-                    Text(verbatim: "#\(channel.geohash.lowercased())")
-                        .bitchatFont(size: 12)
-                        .foregroundColor(palette.locationAccent)
-                }
+                )
+                // People in this area but beyond radio range, and private
+                // groups: one sheet for the whole room.
+                BridgePeopleList()
+                GroupChatList(
+                    groups: peerListModel.groupRows,
+                    onTapGroup: openConversation
+                )
+                // Conversations with people no roster above lists anymore —
+                // without this, a read DM from an offline non-favorite had
+                // no row anywhere in the UI.
+                RecentChatList(
+                    chats: peerListModel.recentChatRows,
+                    onTapChat: openConversation
+                )
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            ScrollView {
-                // spacing 0: every section supplies its own rhythm (header
-                // top 12 / bottom 4, rows vertical 4), so inter-child spacing
-                // here would make the first section's gap read differently.
-                VStack(alignment: .leading, spacing: 0) {
-                    if case .location = locationChannelsModel.selectedChannel {
-                        GeohashPeopleList(
-                            onTapPerson: {
-                                showSidebar = true
-                            }
-                        )
-                        // Skip re-rendering the roster when this view
-                        // refreshes for models the list doesn't read.
-                        .equatable()
-                        // Direct conversations survive channel switches; the
-                        // geoDM someone opened from another cell must stay
-                        // reachable here too.
-                        RecentChatList(
-                            chats: peerListModel.recentChatRows,
-                            onTapChat: { peerID in
-                                peerListModel.startConversation(with: peerID)
-                                showSidebar = true
-                            }
-                        )
-                    } else {
-                        PeopleSectionHeader(
-                            icon: "antenna.radiowaves.left.and.right",
-                            iconColor: palette.accentBlue,
-                            title: "#mesh"
-                        )
-                        MeshPeerList(
-                            onTapPeer: { peerID in
-                                peerListModel.startConversation(with: peerID)
-                                showSidebar = true
-                            },
-                            onToggleFavorite: { peerID in
-                                peerListModel.toggleFavorite(peerID: peerID)
-                            },
-                            onShowFingerprint: { peerID in
-                                appChromeModel.showFingerprint(for: peerID)
-                            },
-                            onToggleBlock: { peer in
-                                if peer.isBlocked {
-                                    conversationUIModel.unblock(peerID: peer.peerID, displayName: peer.displayName)
-                                } else {
-                                    conversationUIModel.block(peerID: peer.peerID, displayName: peer.displayName)
-                                }
-                            }
-                        )
-                        // People in this area but beyond radio range, and
-                        // private groups: one sheet for the whole room.
-                        BridgePeopleList()
-                        GroupChatList(
-                            groups: peerListModel.groupRows,
-                            onTapGroup: { peerID in
-                                peerListModel.startConversation(with: peerID)
-                                showSidebar = true
-                            }
-                        )
-                        // Conversations with people no roster above lists
-                        // anymore — without this, a read DM from an offline
-                        // non-favorite had no row anywhere in the UI.
-                        RecentChatList(
-                            chats: peerListModel.recentChatRows,
-                            onTapChat: { peerID in
-                                peerListModel.startConversation(with: peerID)
-                                showSidebar = true
-                            }
-                        )
+        }
+        .peopleListStyle()
+        // Inside the id so it runs again for a new channel.
+        .onAppear(perform: refreshGeohashRoster)
+        // Keyed by channel only. Rows are keyed by person, so roster
+        // updates diff in place; a key derived from the rows rebuilds the
+        // whole list on every heartbeat and resets its stable ordering.
+        .id(ConversationID(channelID: locationChannelsModel.selectedChannel))
+        .navigationTitle(Text(verbatim: peopleSheetTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            SheetCloseToolbarItem(action: close)
+            if case .mesh = locationChannelsModel.selectedChannel {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showVerifySheet = true
+                    } label: {
+                        Label(Strings.verification, systemImage: "qrcode")
                     }
+                    .help(Strings.verificationHelp)
                 }
-                .padding(.top, 4)
-                // Full width even when every row is narrow (empty mesh, no
-                // groups): without this the VStack hugs its widest child and
-                // the ScrollView centers it — headers and empty states
-                // floated mid-screen on iPhone.
-                .frame(maxWidth: .infinity, alignment: .leading)
-                // Keyed by channel only. Rows are keyed by person, so roster
-                // updates diff in place; a key derived from the rows rebuilds
-                // the whole list on every heartbeat and resets its stable
-                // ordering.
-                .id(ConversationID(channelID: locationChannelsModel.selectedChannel))
             }
         }
         .sheet(isPresented: $showVerifySheet) {
@@ -450,10 +397,40 @@ private struct ContentPeopleListView: View {
 }
 
 private extension ContentPeopleListView {
-    var peopleSheetTitle: String {
-        String(localized: "content.header.people", comment: "Title for the people list sheet").lowercased()
+    enum Strings {
+        static let verification = String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
+        static let verificationHelp = String(localized: "content.help.verification", comment: "Help text for verification button")
     }
 
+    /// The catalog stores the old all-caps header ("PEOPLE"); title case
+    /// suits a navigation title and keeps every translation.
+    var peopleSheetTitle: String {
+        String(localized: "content.header.people", comment: "Title for the people list sheet").localizedCapitalized
+    }
+
+    func openConversation(with peerID: PeerID) {
+        peerListModel.startConversation(with: peerID)
+        showSidebar = true
+    }
+
+    func close() {
+        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
+            dismiss()
+            showSidebar = false
+            showVerifySheet = false
+            privateConversationModel.endConversation()
+        }
+    }
+
+    /// The geohash roster republishes only when membership or names change,
+    /// so its recency order can be stale. Rebuild it once as the list
+    /// appears, then drop the remembered order so the sheet opens with the
+    /// most recently active people first.
+    func refreshGeohashRoster() {
+        guard case .location = locationChannelsModel.selectedChannel else { return }
+        peerListModel.refreshNow()
+        geohashOrderGeneration += 1
+    }
 }
 
 private struct ContentPrivateChatSheetView: View {
