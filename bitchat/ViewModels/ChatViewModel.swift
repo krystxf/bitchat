@@ -1684,6 +1684,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         NotificationPrivacySettings.reset()
         MediaRevealSettings.reset()
         ExtremeSecuritySettings.reset()
+        LocationProofOfWorkSettings.reset()
         ChatBackgroundStore.shared.reset()
         ComposerDraftStore.reset()
         // A hand-added relay names an operator someone chose to route through,
