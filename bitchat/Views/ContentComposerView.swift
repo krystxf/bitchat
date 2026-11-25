@@ -17,6 +17,7 @@ struct ContentComposerView: View {
     @Environment(\.layoutDirection) private var layoutDirection
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showsPhotosPicker = false
+    @State private var showsGifPicker = false
 
     @Binding var messageText: String
     var isTextFieldFocused: FocusState<Bool>.Binding
@@ -80,12 +81,24 @@ struct ContentComposerView: View {
             // glass circle beside the input capsule, not inside it. It
             // steps aside while recording so the bar gets the full width.
             HStack(alignment: .bottom, spacing: 8) {
-                if conversationUIModel.canSendMediaInCurrentContext && !showsRecorder {
-                    attachmentButton
-                        .transition(.scale(scale: 0.6).combined(with: .opacity))
+                if !showsRecorder {
+                    if conversationUIModel.canSendMediaInCurrentContext {
+                        attachmentButton
+                            .transition(.scale(scale: 0.6).combined(with: .opacity))
+                    } else {
+                        // A GIF is a text message, so it goes where photos
+                        // cannot: location channels, geohash DMs, groups.
+                        gifButton
+                            .transition(.scale(scale: 0.6).combined(with: .opacity))
+                    }
                 }
 
                 inputCapsule
+            }
+            .sheet(isPresented: $showsGifPicker) {
+                GifPickerView { link in
+                    conversationUIModel.sendMessage(link)
+                }
             }
         }
         .padding(.horizontal, 12)
@@ -476,6 +489,11 @@ private extension ContentComposerView {
             } label: {
                 Label(String(localized: "content.menu.photo_library", comment: "Menu option to choose an image from the photo library"), systemImage: "photo.on.rectangle")
             }
+            Button {
+                showsGifPicker = true
+            } label: {
+                Label(String(localized: "content.menu.gif", comment: "Menu option in the composer's attachment menu that opens the GIF picker"), systemImage: "sparkles")
+            }
             #if os(iOS)
             if UIImagePickerController.isSourceTypeAvailable(.camera) {
                 Button {
@@ -538,6 +556,22 @@ private extension ContentComposerView {
             showImagePicker = true
         }
         #endif
+    }
+
+    /// Opens the GIF picker where the attachment menu is not offered.
+    var gifButton: some View {
+        Button {
+            showsGifPicker = true
+        } label: {
+            Text(verbatim: "GIF")
+                .font(.bitchatSystem(size: 13, weight: .bold))
+                .foregroundColor(composerAccentColor)
+                .frame(width: 40, height: 40)
+                .glassSurface(in: Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "content.accessibility.choose_gif", comment: "Accessibility label of the composer button that opens the GIF picker where photos cannot be sent"))
     }
 
     #if os(macOS)

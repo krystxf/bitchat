@@ -64,4 +64,18 @@ struct GifViewSmokeTests {
 
         #expect(GifFrameCache.loadFrames(for: asset.fileURL)?.images.count == 3)
     }
+
+    @Test func pickerRendersWithFakeSources() throws {
+        let suite = "GifViewSmokeTests.picker.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let recents = GifRecentsStore(defaults: defaults)
+        let picker = GifPickerView(
+            sources: [RecentGIFSource(recents: recents), FakeGIFSource(id: NostrGIFSource.sourceID, supportsSearch: true)],
+            recents: recents,
+            onSend: { _ in }
+        )
+        _ = picker.body
+        mount(picker)
+    }
 }
