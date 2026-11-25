@@ -32,6 +32,7 @@ struct PrivateChatDetailView: View {
     var isTextFieldFocused: FocusState<Bool>.Binding
     @ObservedObject var voiceRecordingVM: VoiceRecordingViewModel
     @Binding var autocompleteDebounceTimer: Timer?
+    @State private var chatBackgroundOption: ChatBackgroundOption = .default
     @ThemedPalette private var palette
 
     let onSendMessage: () -> Void
@@ -66,7 +67,10 @@ struct PrivateChatDetailView: View {
         .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in
             conversationUIModel.processSelectedImage(from: url)
         }
-        .background(ThemedRootBackground())
+        .background {
+            ChatConversationBackground(option: chatBackgroundOption)
+                .animation(.easeInOut(duration: 0.2), value: chatBackgroundOption)
+        }
         .foregroundColor(palette.primary)
         .navigationTitle(Text(verbatim: headerState?.displayName ?? ""))
         .privateChatSubtitle(statusText)
@@ -74,6 +78,8 @@ struct PrivateChatDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar { toolbarContent }
+        .onAppear { loadChatBackground() }
+        .onChange(of: privateConversationModel.selectedPeerID) { _ in loadChatBackground() }
     }
 
     @ViewBuilder
@@ -128,6 +134,10 @@ struct PrivateChatDetailView: View {
         }
         if let headerState {
             ToolbarItemGroup(placement: .primaryAction) {
+                ChatBackgroundPickerMenu(
+                    conversationKey: chatBackgroundConversationKey,
+                    selection: $chatBackgroundOption
+                )
                 // A group has no single fingerprint to show.
                 if !headerState.isGroupConversation {
                     fingerprintButton(headerState)
@@ -137,6 +147,18 @@ struct PrivateChatDetailView: View {
                 }
             }
         }
+    }
+
+    private var chatBackgroundConversationKey: ComposerDraftStore.Key {
+        guard let peerID = privateConversationModel.selectedPeerID else { return .mesh }
+        if let fingerprint = conversationUIModel.getFingerprint(for: peerID), !fingerprint.isEmpty {
+            return .privateChat(stableID: fingerprint)
+        }
+        return .privateChat(stableID: peerID.id)
+    }
+
+    private func loadChatBackground() {
+        chatBackgroundOption = ChatBackgroundStore.shared.option(for: chatBackgroundConversationKey)
     }
 
     private func fingerprintButton(_ headerState: PrivateConversationHeaderState) -> some View {
