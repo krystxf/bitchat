@@ -62,19 +62,17 @@ final class PrivacyScreen {
 
         // Opaque rather than a blur: blurred large text can stay partly
         // legible, and the snapshot is stored on disk.
+        // The launch screen's look, so the app switcher shows the app's mark.
         let view = UIView(frame: window.bounds)
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = UIColor(named: "LaunchBackground") ?? .systemBackground
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
-        let label = UILabel()
-        label.text = "bitchat"
-        label.font = .monospacedSystemFont(ofSize: 22, weight: .medium)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(label)
+        let mark = UIImageView(image: UIImage(named: "LaunchMark"))
+        mark.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(mark)
         NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            mark.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            mark.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
 
         window.addSubview(view)
