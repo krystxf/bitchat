@@ -14,6 +14,7 @@ struct ContentComposerView: View {
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @ObservedObject private var bridgeService = BridgeService.shared
     @ThemedPalette private var palette
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var selectedPhotoItem: PhotosPickerItem?
 
     @Binding var messageText: String
@@ -23,6 +24,10 @@ struct ContentComposerView: View {
 
     let onSendMessage: () -> Void
 
+    /// Drag translation of the current mic hold. Local state, so finger
+    /// moves re-render only the composer; the view model hears only phase
+    /// changes.
+    @State private var dragTranslation: CGSize = .zero
     /// Resets when the hold ends or the system cancels it, which catches
     /// a cancelled touch that never reaches `onEnded`.
     @GestureState private var micPressed = false
@@ -65,6 +70,11 @@ struct ContentComposerView: View {
 
             CommandSuggestionsView(messageText: $messageText)
 
+            if showsRecorderHint {
+                recorderHintRow
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+
             // Messages-style row: the attachment button floats in its own
             // glass circle beside the input capsule, not inside it. It
             // steps aside while recording so the bar gets the full width.
@@ -82,8 +92,10 @@ struct ContentComposerView: View {
         .animation(Self.recorderSpring, value: showsRecorder)
         .animation(Self.recorderSpring, value: recorderPhase)
         .animation(Self.recorderSpring, value: voiceRecordingVM.isDiscarding)
+        .animation(.easeInOut(duration: 0.2), value: showsRecorderHint)
         .onChange(of: micPressed) { pressed in
             guard !pressed else { return }
+            dragTranslation = .zero
             // A normal release reaches `onEnded` first and makes this a
             // no-op; only a touch the system cancelled gets here live.
             DispatchQueue.main.async {
@@ -290,6 +302,47 @@ private extension ContentComposerView {
         voiceRecordingVM.isLiveStreaming ? .red : composerAccentColor
     }
 
+    var cancelProgress: CGFloat {
+        voiceRecordingVM.gestureThresholds.cancelProgress(for: dragTranslation)
+    }
+
+    var showsRecorderHint: Bool {
+        if showsRecorder {
+            return recorderPhase.isHolding
+        }
+        return voiceRecordingVM.showsHoldHint
+    }
+
+    var recorderHintText: String {
+        guard showsRecorder else {
+            return String(localized: "voice.recorder.hint.hold_to_record", defaultValue: "hold to record, release to send", comment: "Hint shown after a quick tap on the mic button, explaining how to record a voice message")
+        }
+        switch recorderPhase {
+        case .cancelArmed:
+            return String(localized: "voice.recorder.hint.release_to_cancel", defaultValue: "release to cancel", comment: "Hint above the voice recording bar when releasing would discard the recording")
+        case .idle, .holding, .lockArmed, .locked:
+            return String(localized: "voice.recorder.hint.swipe_to_cancel", defaultValue: "swipe left to cancel or release to send", comment: "Hint above the voice recording bar while holding the mic button")
+        }
+    }
+
+    /// The hint above the bar while holding, or after a quick tap.
+    var recorderHintRow: some View {
+        let isCancelArmed = showsRecorder && recorderPhase == .cancelArmed
+        return ZStack(alignment: .trailing) {
+            Text(recorderHintText)
+                .bitchatFont(size: 12, weight: .medium)
+                .foregroundColor(isCancelArmed ? .red : palette.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 44)
+                .frame(maxWidth: .infinity)
+                .id(recorderHintText)
+                .transition(.opacity)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     /// Replaces the text field inside the capsule while recording: trash,
     /// live waveform, elapsed time.
     var recordingBar: some View {
@@ -300,6 +353,7 @@ private extension ContentComposerView {
             VoiceRecordingWaveform(meter: voiceRecordingVM.levelMeter, tint: recorderTint)
                 .frame(height: 24)
                 .frame(maxWidth: .infinity)
+                .opacity(recorderPhase == .cancelArmed ? 0.4 : 1)
                 // Discarding sweeps the waveform into the trash can.
                 .scaleEffect(x: isDiscarding ? 0.01 : 1, y: 1, anchor: .leading)
                 .opacity(isDiscarding ? 0 : 1)
@@ -314,13 +368,13 @@ private extension ContentComposerView {
 
     var recorderTrashButton: some View {
         let isDiscarding = voiceRecordingVM.isDiscarding
-        let isHighlighted = isDiscarding
+        let isHighlighted = recorderPhase == .cancelArmed || isDiscarding
         let deleteLabel = String(localized: "voice.recorder.accessibility.delete", defaultValue: "delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar")
         return Button(action: voiceRecordingVM.discardRecording) {
             Image(systemName: isHighlighted ? "trash.fill" : "trash")
                 .font(.bitchatSystem(size: 17, weight: .medium))
                 .foregroundColor(isHighlighted ? .red : palette.secondary)
-                .scaleEffect(isDiscarding ? 1.3 : 1)
+                .scaleEffect(isDiscarding ? 1.3 : 1 + 0.2 * cancelProgress)
                 .rotationEffect(.degrees(isDiscarding ? -14 : 0), anchor: .bottom)
                 .animation(.spring(response: 0.25, dampingFraction: 0.45), value: isDiscarding)
                 .frame(width: 32, height: 32)
@@ -557,25 +611,36 @@ private extension ContentComposerView {
         }
     }
 
-    /// Press and hold records; release sends.
+    /// Press and hold records; release sends, drag towards the trash
+    /// cancels. Global coordinates, so the hint row appearing above the
+    /// composer does not shift the measured translation.
     var micGesture: some Gesture {
-        DragGesture(minimumDistance: 0)
+        DragGesture(minimumDistance: 0, coordinateSpace: .global)
             .updating($micPressed) { _, pressed, _ in
                 pressed = true
             }
-            .onChanged { _ in
+            .onChanged { value in
+                // The trash can sits on the leading side: in a right-to-left
+                // layout, cancelling is a drag to the right. Vertical drags
+                // arm the hands-free lock once it lands.
+                let width = layoutDirection == .rightToLeft ? -value.translation.width : value.translation.width
+                let translation = CGSize(width: width, height: 0)
                 let wasHolding = voiceRecordingVM.gesturePhase.isHolding
-                // Drag directions (cancel, lock) come next; until then
-                // every hold sends on release.
-                voiceRecordingVM.pressChanged(
-                    translation: .zero,
+                let crossed = voiceRecordingVM.pressChanged(
+                    translation: translation,
                     canRecord: conversationUIModel.canSendMediaInCurrentContext
                 )
-                if !wasHolding && voiceRecordingVM.gesturePhase.isHolding {
+                let phase = voiceRecordingVM.gesturePhase
+                guard phase.isHolding else { return }
+                dragTranslation = translation
+                if !wasHolding {
                     VoiceRecorderHaptics.recordingBegan()
+                } else if crossed && phase.isArmed {
+                    VoiceRecorderHaptics.thresholdCrossed()
                 }
             }
             .onEnded { _ in
+                dragTranslation = .zero
                 voiceRecordingVM.pressEnded(completion: conversationUIModel.sendVoiceNote)
             }
     }

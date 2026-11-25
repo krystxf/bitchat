@@ -9,6 +9,8 @@
 import SwiftUI
 #if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
 #endif
 
 /// The live waveform in the voice recording bar: one bar per level sample,
@@ -51,13 +53,24 @@ struct VoiceRecordingWaveform: View {
     }
 }
 
-/// Tactile cues for the hold-to-record gesture.
+/// Tactile cues for the hold-to-record gesture. On a Mac only a Force
+/// Touch trackpad plays them; other input ignores the call.
 enum VoiceRecorderHaptics {
     /// The press started a recording.
     @MainActor
     static func recordingBegan() {
         #if os(iOS)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        #endif
+    }
+
+    /// The drag crossed the lock or cancel threshold.
+    @MainActor
+    static func thresholdCrossed() {
+        #if os(iOS)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        #elseif os(macOS)
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         #endif
     }
 }
