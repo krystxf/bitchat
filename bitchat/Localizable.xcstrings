@@ -28861,6 +28861,1122 @@
         }
       }
     },
+    "app_info.settings.extreme_security.confirm_action" : {
+      "comment" : "Destructive button in the confirmation dialog that turns extreme security mode on",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تشغيل"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "চালু করুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "einschalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "turn on"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "activar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "روشن کن"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "i-on"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "activer"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפעלה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "चालू करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aktifkan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "attiva"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オンにする"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "켜기"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hidupkan"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अन गर"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "inschakelen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "włącz"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ligar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ativar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "включить"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "slå på"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இயக்கு"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปิด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aç"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "увімкнути"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آن کریں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bật"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟"
+          }
+        }
+      }
+    },
+    "app_info.settings.extreme_security.confirm_message" : {
+      "comment" : "Message of the confirmation dialog before extreme security mode is turned on: deleted messages are gone for good, and undelivered outgoing messages are dropped",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن استعادة الرسائل المحذوفة، ولا حتى بواسطتك. وتُحذف أيضًا الرسائل التي لم تصل بعد إلى مستلمها."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "মুছে ফেলা বার্তা আর ফেরত পাওয়া যায় না, এমনকি আপনিও পারবেন না। যে বার্তাগুলো এখনও প্রাপকের কাছে পৌঁছায়নি, সেগুলোও বাদ পড়ে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gelöschte nachrichten lassen sich nicht wiederherstellen, auch nicht von dir. nachrichten, die ihr ziel noch nicht erreicht haben, werden ebenfalls verworfen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "deleted messages can't be recovered, not even by you. messages that haven't reached their recipient yet are dropped too."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "los mensajes borrados no se pueden recuperar, ni siquiera tú. los mensajes que aún no han llegado a su destinatario también se descartan."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پیام‌های پاک‌شده قابل بازیابی نیستند، حتی برای خودت. پیام‌هایی که هنوز به گیرنده نرسیده‌اند هم کنار گذاشته می‌شوند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hindi na maibabalik ang mga nabura na mensahe, kahit ikaw. ibinabasura rin ang mga mensaheng hindi pa nakakarating sa tatanggap."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "les messages supprimés sont irrécupérables, même pour toi. les messages qui n'ont pas encore atteint leur destinataire sont aussi abandonnés."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אי אפשר לשחזר הודעות שנמחקו, גם לא בעצמך. גם הודעות שעוד לא הגיעו לנמען נזרקות."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मिटाए गए संदेश वापस नहीं आ सकते, आप भी उन्हें वापस नहीं ला सकते। जो संदेश अभी तक प्राप्तकर्ता तक नहीं पहुँचे हैं, वे भी हटा दिए जाते हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pesan yang dihapus tidak bisa dipulihkan, bahkan olehmu. pesan yang belum sampai ke penerimanya juga dibuang."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "i messaggi eliminati non si possono recuperare, nemmeno da te. anche i messaggi che non hanno ancora raggiunto il destinatario vengono scartati."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "削除したメッセージは、あなた自身でも復元できません。まだ相手に届いていないメッセージも破棄されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "삭제된 메시지는 본인도 복구할 수 없습니다. 아직 받는 사람에게 도착하지 않은 메시지도 버려집니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mesej yang dipadam tidak boleh dipulihkan, walaupun olehmu. mesej yang belum sampai kepada penerimanya juga dibuang."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मेटिएका सन्देशहरू फिर्ता ल्याउन सकिँदैन, तिमीले पनि सक्दैनौ। प्रापकसम्म नपुगेका सन्देशहरू पनि हटाइन्छन्।"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gewiste berichten zijn niet terug te halen, ook niet door jou. berichten die hun ontvanger nog niet hebben bereikt, vervallen ook."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "usuniętych wiadomości nie da się odzyskać, nawet tobie. wiadomości, które jeszcze nie dotarły do odbiorcy, też przepadają."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "as mensagens apagadas não podem ser recuperadas, nem por ti. as mensagens que ainda não chegaram ao destinatário também são descartadas."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mensagens apagadas não podem ser recuperadas, nem por você. mensagens que ainda não chegaram ao destinatário também são descartadas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "удалённые сообщения нельзя восстановить, даже вам. сообщения, которые ещё не дошли до получателя, тоже пропадут."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "raderade meddelanden går inte att återställa, inte ens för dig. meddelanden som ännu inte nått mottagaren slängs också."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "நீக்கப்பட்ட செய்திகளை மீட்டெடுக்க முடியாது, உங்களாலும் முடியாது. இன்னும் பெறுநரை அடையாத செய்திகளும் கைவிடப்படும்."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ข้อความที่ลบแล้วกู้คืนไม่ได้ แม้แต่ตัวคุณเอง ข้อความที่ยังไปไม่ถึงผู้รับก็จะถูกทิ้งด้วย"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "silinen mesajlar geri getirilemez, senin tarafından bile. henüz alıcısına ulaşmamış mesajlar da atılır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "видалені повідомлення не можна відновити, навіть тобі. повідомлення, які ще не дійшли до отримувача, теж пропадуть."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مٹائے گئے پیغامات واپس نہیں آ سکتے، آپ بھی انہیں واپس نہیں لا سکتے۔ جو پیغامات ابھی وصول کنندہ تک نہیں پہنچے، وہ بھی ہٹا دیے جاتے ہیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tin nhắn đã xóa không thể khôi phục, kể cả với bạn. tin nhắn chưa đến người nhận cũng bị bỏ."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除的消息无法恢复，你自己也不行。尚未送达收件人的消息也会被丢弃。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除的訊息無法復原，你自己也不行。尚未送達收件人的訊息也會被捨棄。"
+          }
+        }
+      }
+    },
+    "app_info.settings.extreme_security.confirm_title" : {
+      "comment" : "Title of the confirmation dialog shown before extreme security mode is turned on",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تشغيل وضع الحماية القصوى؟"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "চরম নিরাপত্তা মোড চালু করবেন?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "extremen sicherheitsmodus einschalten?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "turn on extreme security mode?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿activar el modo de seguridad extrema?"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حالت امنیت حداکثری روشن شود؟"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "i-on ang mode ng sukdulang seguridad?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "activer le mode sécurité extrême ?"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "להפעיל מצב אבטחה קיצוני?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "चरम सुरक्षा मोड चालू करें?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aktifkan mode keamanan ekstrem?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "attivare la modalità sicurezza estrema?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最高セキュリティモードをオンにしますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최고 보안 모드를 켤까요?"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hidupkan mod keselamatan ekstrem?"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "चरम सुरक्षा मोड अन गर्ने?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "extreme beveiligingsmodus inschakelen?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "włączyć tryb ekstremalnego bezpieczeństwa?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ligar o modo de segurança extrema?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ativar o modo de segurança extrema?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "включить режим максимальной защиты?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "slå på extremt säkerhetsläge?"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "தீவிர பாதுகாப்பு பயன்முறையை இயக்கவா?"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปิดโหมดความปลอดภัยสูงสุดไหม"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aşırı güvenlik modu açılsın mı?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "увімкнути режим максимального захисту?"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتہائی سیکیورٹی موڈ آن کریں؟"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bật chế độ bảo mật tối đa?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要开启极限安全模式吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要開啟極限安全模式嗎？"
+          }
+        }
+      }
+    },
+    "app_info.settings.extreme_security.subtitle_ios" : {
+      "comment" : "Subtitle of the extreme security mode setting on iPhone and iPad: what is deleted when the user leaves the app (goes home or switches apps) and what stays",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحذف كل رسالة وصورة وملاحظة صوتية فور مغادرتك التطبيق. تبقى هويتك وجهات اتصالك وإعداداتك. متوقف افتراضيًا."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অ্যাপ ছেড়ে যাওয়ার সঙ্গে সঙ্গে প্রতিটি বার্তা, ছবি ও ভয়েস নোট মুছে ফেলে। আপনার পরিচয়, পরিচিতি ও সেটিংস থেকে যায়। ডিফল্টভাবে বন্ধ।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "löscht jede nachricht, jedes bild und jede sprachnachricht, sobald du die app verlässt. deine identität, kontakte und einstellungen bleiben. standardmäßig aus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "deletes every message, image and voice note as soon as you leave the app. your identity, contacts and settings stay. off by default."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "borra todos los mensajes, imágenes y notas de voz en cuanto sales de la app. tu identidad, tus contactos y tus ajustes se quedan. desactivado por defecto."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "به محض اینکه از برنامه بیرون بروی، همهٔ پیام‌ها، تصاویر و پیام‌های صوتی را پاک می‌کند. هویت، مخاطبان و تنظیماتت باقی می‌مانند. به‌طور پیش‌فرض خاموش."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "binubura ang bawat mensahe, larawan at voice note sa sandaling umalis ka sa app. nananatili ang iyong pagkakakilanlan, mga contact at setting. naka-off bilang default."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "supprime chaque message, image et note vocale dès que tu quittes l'app. ton identité, tes contacts et tes réglages restent. désactivé par défaut."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מוחק כל הודעה, תמונה והערה קולית ברגע שיוצאים מהאפליקציה. הזהות, אנשי הקשר וההגדרות שלך נשארים. כבוי כברירת מחדל."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऐप छोड़ते ही हर संदेश, तस्वीर और वॉइस नोट मिटा देता है। आपकी पहचान, संपर्क और सेटिंग्स बनी रहती हैं। डिफ़ॉल्ट रूप से बंद।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menghapus setiap pesan, gambar, dan catatan suara begitu kamu keluar dari aplikasi. identitas, kontak, dan pengaturanmu tetap ada. nonaktif secara bawaan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "elimina ogni messaggio, immagine e nota vocale appena esci dall'app. la tua identità, i contatti e le impostazioni restano. disattivato per impostazione predefinita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリを離れるとすぐに、すべてのメッセージ、画像、ボイスメモを削除します。アイデンティティ、連絡先、設定は残ります。初期設定はオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱을 나가는 즉시 모든 메시지, 이미지, 음성 메모를 삭제합니다. 신원, 연락처, 설정은 그대로 남습니다. 기본값은 꺼짐입니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "memadam setiap mesej, imej dan nota suara sebaik sahaja kamu meninggalkan aplikasi. identiti, kenalan dan tetapanmu kekal. mati secara lalai."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एप छोड्नेबित्तिकै हरेक सन्देश, तस्बिर र भ्वाइस नोट मेटाउँछ। तिम्रो परिचय, सम्पर्क र सेटिङहरू रहन्छन्। पूर्वनिर्धारित रूपमा अफ।"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wist elk bericht, elke afbeelding en elk spraakbericht zodra je de app verlaat. je identiteit, contacten en instellingen blijven. standaard uit."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "usuwa każdą wiadomość, obraz i notatkę głosową, gdy tylko opuścisz aplikację. twoja tożsamość, kontakty i ustawienia zostają. domyślnie wyłączone."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apaga todas as mensagens, imagens e notas de voz assim que sais da app. a tua identidade, os contactos e as definições ficam. desligado por predefinição."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apaga todas as mensagens, imagens e mensagens de voz assim que você sai do app. sua identidade, seus contatos e suas configurações ficam. desligado por padrão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "удаляет все сообщения, изображения и голосовые сообщения, как только вы выходите из приложения. ваша идентичность, контакты и настройки остаются. по умолчанию выключено."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "raderar varje meddelande, bild och röstmeddelande så fort du lämnar appen. din identitet, dina kontakter och inställningar finns kvar. av som standard."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஆப்பை விட்டு வெளியேறியவுடன் ஒவ்வொரு செய்தி, படம், குரல் குறிப்பையும் நீக்கும். உங்கள் அடையாளம், தொடர்புகள், அமைப்புகள் அப்படியே இருக்கும். இயல்பாக முடக்கத்தில் உள்ளது."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบทุกข้อความ รูปภาพ และข้อความเสียงทันทีที่คุณออกจากแอป ตัวตน รายชื่อติดต่อ และการตั้งค่าของคุณยังอยู่ ปิดไว้เป็นค่าเริ่มต้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "uygulamadan çıktığın anda her mesajı, resmi ve sesli notu siler. kimliğin, kişilerin ve ayarların kalır. varsayılan olarak kapalı."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "видаляє кожне повідомлення, зображення й голосову нотатку, щойно ти виходиш із застосунку. твоя ідентичність, контакти й налаштування лишаються. типово вимкнено."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایپ چھوڑتے ہی ہر پیغام، تصویر اور وائس نوٹ مٹا دیتا ہے۔ آپ کی شناخت، رابطے اور سیٹنگز برقرار رہتی ہیں۔ بطور طے شدہ بند ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "xóa mọi tin nhắn, hình ảnh và ghi chú giọng nói ngay khi bạn rời ứng dụng. danh tính, danh bạ và cài đặt của bạn vẫn giữ nguyên. tắt theo mặc định."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一离开应用，就删除所有消息、图片和语音消息。你的身份、联系人和设置都会保留。默认关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一離開 app，就刪除所有訊息、圖片和語音訊息。你的身分、聯絡人和設定都會保留。預設關閉。"
+          }
+        }
+      }
+    },
+    "app_info.settings.extreme_security.subtitle_macos" : {
+      "comment" : "Subtitle of the extreme security mode setting on Mac: what is deleted when the user quits the app or closes its window, and what stays",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحذف كل رسالة وصورة وملاحظة صوتية عند إنهاء التطبيق أو إغلاق نافذته. تبقى هويتك وجهات اتصالك وإعداداتك. متوقف افتراضيًا."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অ্যাপ বন্ধ করলে বা এর উইন্ডো বন্ধ করলে প্রতিটি বার্তা, ছবি ও ভয়েস নোট মুছে ফেলে। আপনার পরিচয়, পরিচিতি ও সেটিংস থেকে যায়। ডিফল্টভাবে বন্ধ।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "löscht jede nachricht, jedes bild und jede sprachnachricht, wenn du die app beendest oder ihr fenster schließt. deine identität, kontakte und einstellungen bleiben. standardmäßig aus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "deletes every message, image and voice note when you quit the app or close its window. your identity, contacts and settings stay. off by default."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "borra todos los mensajes, imágenes y notas de voz cuando cierras la app o su ventana. tu identidad, tus contactos y tus ajustes se quedan. desactivado por defecto."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقتی از برنامه خارج شوی یا پنجره‌اش را ببندی، همهٔ پیام‌ها، تصاویر و پیام‌های صوتی را پاک می‌کند. هویت، مخاطبان و تنظیماتت باقی می‌مانند. به‌طور پیش‌فرض خاموش."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "binubura ang bawat mensahe, larawan at voice note kapag isinara mo ang app o ang window nito. nananatili ang iyong pagkakakilanlan, mga contact at setting. naka-off bilang default."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "supprime chaque message, image et note vocale quand tu quittes l'app ou fermes sa fenêtre. ton identité, tes contacts et tes réglages restent. désactivé par défaut."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מוחק כל הודעה, תמונה והערה קולית כשסוגרים את האפליקציה או את החלון שלה. הזהות, אנשי הקשר וההגדרות שלך נשארים. כבוי כברירת מחדל."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऐप बंद करने या उसकी विंडो बंद करने पर हर संदेश, तस्वीर और वॉइस नोट मिटा देता है। आपकी पहचान, संपर्क और सेटिंग्स बनी रहती हैं। डिफ़ॉल्ट रूप से बंद।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menghapus setiap pesan, gambar, dan catatan suara saat kamu keluar dari aplikasi atau menutup jendelanya. identitas, kontak, dan pengaturanmu tetap ada. nonaktif secara bawaan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "elimina ogni messaggio, immagine e nota vocale quando chiudi l'app o la sua finestra. la tua identità, i contatti e le impostazioni restano. disattivato per impostazione predefinita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリを終了するかウインドウを閉じると、すべてのメッセージ、画像、ボイスメモを削除します。アイデンティティ、連絡先、設定は残ります。初期設定はオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱을 종료하거나 창을 닫으면 모든 메시지, 이미지, 음성 메모를 삭제합니다. 신원, 연락처, 설정은 그대로 남습니다. 기본값은 꺼짐입니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "memadam setiap mesej, imej dan nota suara apabila kamu keluar daripada aplikasi atau menutup tetingkapnya. identiti, kenalan dan tetapanmu kekal. mati secara lalai."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एप बन्द गर्दा वा यसको विन्डो बन्द गर्दा हरेक सन्देश, तस्बिर र भ्वाइस नोट मेटाउँछ। तिम्रो परिचय, सम्पर्क र सेटिङहरू रहन्छन्। पूर्वनिर्धारित रूपमा अफ।"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wist elk bericht, elke afbeelding en elk spraakbericht wanneer je de app stopt of het venster sluit. je identiteit, contacten en instellingen blijven. standaard uit."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "usuwa każdą wiadomość, obraz i notatkę głosową, gdy zamkniesz aplikację lub jej okno. twoja tożsamość, kontakty i ustawienia zostają. domyślnie wyłączone."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apaga todas as mensagens, imagens e notas de voz quando sais da app ou fechas a janela. a tua identidade, os contactos e as definições ficam. desligado por predefinição."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apaga todas as mensagens, imagens e mensagens de voz quando você encerra o app ou fecha a janela. sua identidade, seus contatos e suas configurações ficam. desligado por padrão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "удаляет все сообщения, изображения и голосовые сообщения, когда вы закрываете приложение или его окно. ваша идентичность, контакты и настройки остаются. по умолчанию выключено."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "raderar varje meddelande, bild och röstmeddelande när du avslutar appen eller stänger dess fönster. din identitet, dina kontakter och inställningar finns kvar. av som standard."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஆப்பை மூடும்போது அல்லது அதன் சாளரத்தை மூடும்போது ஒவ்வொரு செய்தி, படம், குரல் குறிப்பையும் நீக்கும். உங்கள் அடையாளம், தொடர்புகள், அமைப்புகள் அப்படியே இருக்கும். இயல்பாக முடக்கத்தில் உள்ளது."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบทุกข้อความ รูปภาพ และข้อความเสียงเมื่อคุณออกจากแอปหรือปิดหน้าต่างของแอป ตัวตน รายชื่อติดต่อ และการตั้งค่าของคุณยังอยู่ ปิดไว้เป็นค่าเริ่มต้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "uygulamadan çıktığında ya da penceresini kapattığında her mesajı, resmi ve sesli notu siler. kimliğin, kişilerin ve ayarların kalır. varsayılan olarak kapalı."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "видаляє кожне повідомлення, зображення й голосову нотатку, коли ти закриваєш застосунок або його вікно. твоя ідентичність, контакти й налаштування лишаються. типово вимкнено."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایپ بند کرنے یا اس کی ونڈو بند کرنے پر ہر پیغام، تصویر اور وائس نوٹ مٹا دیتا ہے۔ آپ کی شناخت، رابطے اور سیٹنگز برقرار رہتی ہیں۔ بطور طے شدہ بند ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "xóa mọi tin nhắn, hình ảnh và ghi chú giọng nói khi bạn thoát ứng dụng hoặc đóng cửa sổ của nó. danh tính, danh bạ và cài đặt của bạn vẫn giữ nguyên. tắt theo mặc định."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出应用或关闭其窗口时，删除所有消息、图片和语音消息。你的身份、联系人和设置都会保留。默认关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束 app 或關閉其視窗時，刪除所有訊息、圖片和語音訊息。你的身分、聯絡人和設定都會保留。預設關閉。"
+          }
+        }
+      }
+    },
+    "app_info.settings.extreme_security.title" : {
+      "comment" : "Title of the setting that deletes every message when the user leaves the app",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وضع الحماية القصوى"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "চরম নিরাপত্তা মোড"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "extremer sicherheitsmodus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "extreme security mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "modo de seguridad extrema"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حالت امنیت حداکثری"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mode ng sukdulang seguridad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mode sécurité extrême"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מצב אבטחה קיצוני"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "चरम सुरक्षा मोड"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mode keamanan ekstrem"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "modalità sicurezza estrema"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最高セキュリティモード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최고 보안 모드"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mod keselamatan ekstrem"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "चरम सुरक्षा मोड"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "extreme beveiligingsmodus"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tryb ekstremalnego bezpieczeństwa"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "modo de segurança extrema"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "modo de segurança extrema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "режим максимальной защиты"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "extremt säkerhetsläge"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "தீவிர பாதுகாப்பு பயன்முறை"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โหมดความปลอดภัยสูงสุด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aşırı güvenlik modu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "режим максимального захисту"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتہائی سیکیورٹی موڈ"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chế độ bảo mật tối đa"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "极限安全模式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "極限安全模式"
+          }
+        }
+      }
+    },
     "app_info.settings.hide_previews.subtitle" : {
       "comment" : "Subtitle explaining what hiding notification message previews does",
       "extractionState" : "manual",

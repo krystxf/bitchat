@@ -34,6 +34,8 @@ struct AppInfoView: View {
     @State private var locationNotesEnabled = LocationNotesSettings.enabled
     @State private var hideMessagePreviews = NotificationPrivacySettings.hideMessagePreviews
     @State private var autoRevealFavoriteImages = MediaRevealSettings.autoRevealFavorites
+    @State private var extremeSecurityEnabled = ExtremeSecuritySettings.isEnabled
+    @State private var showExtremeSecurityConfirmation = false
     @State private var customRelays = NostrRelaySettings.customRelays()
     @State private var relayInput = ""
     @State private var relayError: String?
@@ -120,6 +122,18 @@ struct AppInfoView: View {
             static let hidePreviewsSubtitle = String(localized: "app_info.settings.hide_previews.subtitle", defaultValue: "notifications say that something arrived without showing the message, who sent it, or which location channel it came from. anyone holding your locked phone learns nothing from the lock screen. on by default.", comment: "Subtitle explaining what hiding notification message previews does")
             static let autoRevealFavoritesTitle = String(localized: "app_info.settings.auto_reveal_favorites.title", defaultValue: "show images from favorites", comment: "Title of the setting that shows images from favorite contacts without the tap-to-reveal blur")
             static let autoRevealFavoritesSubtitle = String(localized: "app_info.settings.auto_reveal_favorites.subtitle", defaultValue: "images from people you marked as favorites show right away. images from everyone else stay blurred until you tap them. off by default.", comment: "Subtitle explaining that only favorite contacts' images skip the blur")
+
+            static let extremeSecurityTitle = String(localized: "app_info.settings.extreme_security.title", defaultValue: "extreme security mode", comment: "Title of the setting that deletes every message when the user leaves the app")
+            /// When the mode applies differs: leaving the app on iOS, quitting
+            /// or closing the window on macOS (see `ExtremeSecurityExitPolicy`).
+            #if os(macOS)
+            static let extremeSecuritySubtitle = String(localized: "app_info.settings.extreme_security.subtitle_macos", defaultValue: "deletes every message, image and voice note when you quit the app or close its window. your identity, contacts and settings stay. off by default.", comment: "Subtitle of the extreme security mode setting on Mac: what is deleted when the user quits the app or closes its window, and what stays")
+            #else
+            static let extremeSecuritySubtitle = String(localized: "app_info.settings.extreme_security.subtitle_ios", defaultValue: "deletes every message, image and voice note as soon as you leave the app. your identity, contacts and settings stay. off by default.", comment: "Subtitle of the extreme security mode setting on iPhone and iPad: what is deleted when the user leaves the app (goes home or switches apps) and what stays")
+            #endif
+            static let extremeSecurityConfirmTitle = String(localized: "app_info.settings.extreme_security.confirm_title", defaultValue: "turn on extreme security mode?", comment: "Title of the confirmation dialog shown before extreme security mode is turned on")
+            static let extremeSecurityConfirmMessage = String(localized: "app_info.settings.extreme_security.confirm_message", defaultValue: "deleted messages can't be recovered, not even by you. messages that haven't reached their recipient yet are dropped too.", comment: "Message of the confirmation dialog before extreme security mode is turned on: deleted messages are gone for good, and undelivered outgoing messages are dropped")
+            static let extremeSecurityConfirmAction = String(localized: "app_info.settings.extreme_security.confirm_action", defaultValue: "turn on", comment: "Destructive button in the confirmation dialog that turns extreme security mode on")
 
             static let dangerTitle = String(localized: "app_info.settings.danger.title", defaultValue: "DANGER ZONE", comment: "Section header (uppercase) for destructive actions in settings")
             static let panicButton = String(localized: "app_info.settings.danger.panic_button", defaultValue: "panic wipe", comment: "Button in the settings danger zone that erases all local data after confirmation")
@@ -576,8 +590,9 @@ struct AppInfoView: View {
     }
 
     /// Privacy: what a locked, seized, or borrowed phone gives away without
-    /// being unlocked, and which images show without the blur. Two rows
-    /// share the section, so each explanation is its row's secondary text.
+    /// being unlocked, which images show without the blur, and whether
+    /// messages outlive leaving the app. Several rows share the section, so
+    /// each explanation is its row's secondary text.
     private var privacySection: some View {
         Section {
             Toggle(isOn: Binding(
@@ -600,6 +615,37 @@ struct AppInfoView: View {
             )) {
                 Text(verbatim: Strings.Settings.autoRevealFavoritesTitle)
                 Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle)
+            }
+
+            // Turning the mode on decides to delete conversations for good,
+            // so it asks first; the switch stays off until confirmed.
+            // Turning it off needs no confirmation.
+            Toggle(isOn: Binding(
+                get: { extremeSecurityEnabled },
+                set: { newValue in
+                    if newValue {
+                        showExtremeSecurityConfirmation = true
+                    } else {
+                        extremeSecurityEnabled = false
+                        ExtremeSecuritySettings.isEnabled = false
+                    }
+                }
+            )) {
+                Text(verbatim: Strings.Settings.extremeSecurityTitle)
+                Text(verbatim: Strings.Settings.extremeSecuritySubtitle)
+            }
+            .confirmationDialog(
+                Strings.Settings.extremeSecurityConfirmTitle,
+                isPresented: $showExtremeSecurityConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button(Strings.Settings.extremeSecurityConfirmAction, role: .destructive) {
+                    extremeSecurityEnabled = true
+                    ExtremeSecuritySettings.isEnabled = true
+                }
+                Button("common.cancel", role: .cancel) {}
+            } message: {
+                Text(verbatim: Strings.Settings.extremeSecurityConfirmMessage)
             }
 
             if let blockedAccountsProvider, let onUnblock {
