@@ -12,11 +12,10 @@ import SwiftUI
 /// title with an optional detail line under it, and trailing accessories
 /// (unread, favorite).
 ///
-/// Colors are concrete `Color`s on purpose. Inside a list-row `Button` the
-/// hierarchical `.primary`/`.secondary` styles resolve against the button
-/// tint, so names would render in the accent color.
+/// Text uses the hierarchical `.primary`/`.secondary` styles, not concrete
+/// colors, so a selected sidebar row switches it to the highlight's text
+/// color.
 struct PeopleRow<Title: View, Accessories: View>: View {
-    @ThemedPalette private var palette
     /// One column width for every leading glyph, so names line up even
     /// though the glyphs differ in width. Scales with Dynamic Type.
     @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 28
@@ -49,7 +48,7 @@ struct PeopleRow<Title: View, Accessories: View>: View {
                     if let subtitle {
                         Text(verbatim: subtitle)
                             .font(.subheadline)
-                            .foregroundColor(palette.secondary)
+                            .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
                 }
@@ -89,22 +88,18 @@ extension PeopleRow where Accessories == EmptyView {
 /// A person's name with the disambiguating "#abcd" suffix dimmed, so two
 /// people with one nickname stay apart without the suffix shouting.
 struct PeopleRowName: View {
-    @ThemedPalette private var palette
-
     let name: String
-    var isEmphasized = false
 
     var body: some View {
         let (base, suffix) = name.splitSuffix()
         HStack(spacing: 0) {
             Text(verbatim: base)
-                .fontWeight(isEmphasized ? .semibold : .regular)
-                .foregroundColor(palette.primary)
+                .foregroundStyle(.primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
             if !suffix.isEmpty {
                 Text(verbatim: suffix)
-                    .foregroundColor(palette.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .fixedSize()
             }
@@ -125,10 +120,8 @@ struct PeopleUnreadIndicator: View {
 
 /// The only row of the sidebar's people when there is nobody to list.
 struct PeopleEmptyRow: View {
-    @ThemedPalette private var palette
-
     var body: some View {
         Text("geohash_people.none_nearby")
-            .foregroundColor(palette.secondary)
+            .foregroundStyle(.secondary)
     }
 }

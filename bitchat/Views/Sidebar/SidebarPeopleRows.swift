@@ -164,13 +164,13 @@ private struct SidebarMeshPeerRow: View {
                     // Optical centering: lock glyph ink is bottom-heavy, so
                     // geometric centering reads low.
                     .offset(y: icon.hasPrefix("lock") ? -0.5 : 0)
-                    .foregroundColor(palette.secondary)
+                    .foregroundStyle(.secondary)
             }
             // Vouched (transitively verified): the unfilled seal, distinct
             // from verified's filled one. Never shown with a verified badge.
             if peer.showsVouchedBadge {
                 Image(systemName: "checkmark.seal")
-                    .foregroundColor(palette.secondary)
+                    .foregroundStyle(.secondary)
                     .help(Strings.vouchedTooltip)
             }
             if peer.hasUnread {
@@ -511,8 +511,6 @@ struct SidebarBridgedPeopleRows: View {
 /// A private group this device belongs to. Selecting it opens the group
 /// chat.
 struct SidebarGroupRow: View {
-    @ThemedPalette private var palette
-
     let group: GroupChatRow
 
     private enum Strings {
@@ -529,7 +527,6 @@ struct SidebarGroupRow: View {
             subtitle: memberCount
         ) {
             hashtagText
-                .foregroundColor(palette.primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
         } accessories: {

@@ -259,7 +259,6 @@ struct ContentView: View {
             .onChange(of: colorScheme) { newValue in
                 conversationUIModel.setCurrentColorScheme(newValue)
             }
-        .foregroundColor(palette.primary)
         #if os(macOS)
         .frame(minWidth: 600, minHeight: 400)
         #endif
@@ -526,6 +525,9 @@ struct ContentView: View {
                 publicChat
             }
         }
+        // The chats' text color. Not on the whole split view: the sidebar
+        // keeps the system's, which follows the selection highlight.
+        .foregroundColor(palette.primary)
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 380, ideal: 640)
         #endif
