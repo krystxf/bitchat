@@ -248,37 +248,16 @@ struct AppInfoView: View {
     }
 
     var body: some View {
-        // NavigationStack, not NavigationView: on macOS a NavigationView is a
-        // two-column split view and squeezes this content into its sidebar.
-        NavigationStack {
-            VStack(spacing: 0) {
-                #if os(macOS)
-                // A macOS sheet does not show principal toolbar items, so the
-                // pane picker stays at the top of the content there.
-                panePicker
-                    .padding(.horizontal)
-                    .padding(.top, 12)
-                #endif
-
-                ScrollView {
-                    paneContent
-                }
-            }
-            .navigationTitle(Text(Strings.appName))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                SheetCloseToolbarItem { dismiss() }
-                #if os(iOS)
-                // A segmented control in the title slot, as in the system
-                // apps; it replaces the title on screen.
-                ToolbarItem(placement: .principal) {
-                    panePicker
-                }
-                #endif
-            }
+        ScrollView {
+            paneContent
         }
+        // A segmented control in the title slot, as in the system apps; it
+        // replaces the title on screen.
+        .sheetChrome(
+            title: Text(Strings.appName),
+            onClose: { dismiss() },
+            principal: { panePicker }
+        )
         #if os(macOS)
         .frame(width: 600, height: 700)
         #endif
@@ -298,6 +277,8 @@ struct AppInfoView: View {
         }
         .pickerStyle(.segmented)
         .labelsHidden()
+        // The control's own width, not the whole title slot.
+        .fixedSize()
     }
 
     @ViewBuilder
