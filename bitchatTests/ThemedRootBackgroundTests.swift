@@ -3,18 +3,18 @@ import SwiftUI
 import Testing
 @testable import bitchat
 
-/// The themed backdrop has to cover the safe-area insets too. If it stops at
-/// the safe area, a sheet's own background shows through the home-indicator
-/// inset: a dark-gray band under the people list in dark mode.
+/// The window backdrop has to cover the safe-area insets too. If it stops at
+/// the safe area, the window's own background shows through the
+/// home-indicator inset as a flat band under the gradient.
 @Suite("ThemedRootBackground")
 @MainActor
 struct ThemedRootBackgroundTests {
     @Test(arguments: ColorScheme.allCases)
-    func sheetBackground_fillsBottomSafeAreaInset(colorScheme: ColorScheme) throws {
+    func backdrop_fillsBottomSafeAreaInset(colorScheme: ColorScheme) throws {
         // A SwiftUI safe-area inset stands in for the home indicator: it
-        // reserves the bottom 20 pt, the way a sheet's bottom inset does.
+        // reserves the bottom 20 pt, the way the window's bottom inset does.
         let view = Color.clear
-            .themedSheetBackground()
+            .background(ThemedRootBackground())
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 Color.clear.frame(height: 20)
             }

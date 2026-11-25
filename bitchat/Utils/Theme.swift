@@ -154,10 +154,4 @@ extension View {
     func themedOverlayPanel() -> some View {
         modifier(GlassPanel(shape: RoundedRectangle(cornerRadius: 12, style: .continuous)))
     }
-
-    /// Root background for sheets — same backdrop as the main window so every
-    /// surface speaks one visual language.
-    func themedSheetBackground() -> some View {
-        background(ThemedRootBackground())
-    }
 }
