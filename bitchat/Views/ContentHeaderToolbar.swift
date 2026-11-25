@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// Native title bar for the main chat: the channel's name as a button that
-/// opens the channel's info page, with my nickname and the head count under
-/// it. Notices, bookmark, share, the channel list, the background and the
-/// people live on that page, so the title bar keeps only two indicators:
+/// Native title bar for the main chat: the channel's name, with my nickname
+/// and the head count under it. On iOS the title is a button that opens
+/// the channel's info page; on macOS a details button at the trailing end
+/// opens it as an inspector. Notices, bookmark, share, the channel list,
+/// the background and the people live on that page, so the title bar
+/// keeps only two indicators besides:
 ///
 /// - The orange envelope for an unread private chat. In a phone's chat the
 ///   sidebar is out of sight, so it is the only sign that someone wrote,
@@ -31,7 +33,7 @@ struct ContentHeaderToolbar: ViewModifier {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar { toolbarContent }
-            .conversationTitleBar(hidesNativeTitle: true)
+            .conversationTitleBar(subtitle: subtitle)
             .conversationInfo(isPresented: $showsInfo) {
                 ChannelInfoPage(background: $backgroundOption, backgroundKey: backgroundKey)
             }
@@ -55,12 +57,6 @@ struct ContentHeaderToolbar: ViewModifier {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ConversationTitleToolbarItem(
-            title: Text(verbatim: ChannelTitle.text(for: locationChannelsModel.selectedChannel)),
-            subtitle: subtitle
-        ) {
-            showsInfo.toggle()
-        }
         if carriedMailCount > 0 || appChromeModel.hasUnreadPrivateMessages {
             ToolbarItemGroup(placement: .primaryAction) {
                 if carriedMailCount > 0 {
@@ -70,6 +66,13 @@ struct ContentHeaderToolbar: ViewModifier {
                     unreadPrivateChatButton
                 }
             }
+        }
+        // Last, so macOS puts the details button at the trailing end.
+        ConversationTitleToolbarItem(
+            title: Text(verbatim: ChannelTitle.text(for: locationChannelsModel.selectedChannel)),
+            subtitle: subtitle
+        ) {
+            showsInfo.toggle()
         }
     }
 

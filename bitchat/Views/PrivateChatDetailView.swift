@@ -15,9 +15,10 @@ import UIKit
 /// A direct conversation (a DM or a private group) as the detail of the
 /// main window's split view: the messages under a native title bar with the
 /// person's name and status, and the orange privacy caption and the
-/// composer floating over them. The title opens the conversation's info
-/// page, which holds everything else (favorite, verify, background, group
-/// members). The split view supplies the way back.
+/// composer floating over them. The title (on macOS, the details button)
+/// opens the conversation's info page, which holds everything else
+/// (favorite, verify, background, group members). The split view supplies
+/// the way back.
 struct PrivateChatDetailView: View {
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
@@ -81,7 +82,7 @@ struct PrivateChatDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar { toolbarContent }
-        .conversationTitleBar(hidesNativeTitle: headerState != nil)
+        .conversationTitleBar(subtitle: statusText)
         .conversationInfo(isPresented: $showsInfo) {
             if headerState?.isGroupConversation == true {
                 GroupInfoPage(

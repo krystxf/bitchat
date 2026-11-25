@@ -170,31 +170,52 @@ enum ConversationInfoMetrics {
     }
 }
 
-/// The conversation's name and status as the title bar's title item, a
-/// button that opens the info page. Messages and Instagram open details
-/// the same way. It replaces the system title, so apply
-/// `conversationTitleBar(hidesNativeTitle:)` with it.
+/// The title bar's way into the conversation info page.
+///
+/// - iOS: the conversation's name and status as the title, a button, as
+///   in Messages and Instagram.
+/// - macOS: a "details" (info) button at the trailing end of the toolbar,
+///   with Command-I, as Mail and Notes toggle their inspectors. The native
+///   title and subtitle stay (`conversationTitleBar(subtitle:)`). A custom
+///   title item in the window toolbar kept AppKit re-laying out the
+///   toolbar on every frame: the main thread ran at full load in an idle
+///   window.
 struct ConversationTitleToolbarItem: ToolbarContent {
     let title: Text
     let subtitle: String?
-    /// What VoiceOver says instead of the title and subtitle.
+    /// What VoiceOver says instead of the title and subtitle (iOS).
     var accessibilityLabel: String?
     let action: () -> Void
 
     var body: some ToolbarContent {
-        #if compiler(>=6.2)
-        if #available(iOS 26.0, macOS 26.0, *) {
+        #if os(macOS)
+        ToolbarItem(placement: .primaryAction) {
+            Button(action: action) {
+                Label {
+                    Text(verbatim: Strings.title)
+                } icon: {
+                    Image(systemName: "info.circle")
+                }
+            }
+            .accessibilityHint(Text(verbatim: ConversationInfoStrings.openHint))
+            .help(ConversationInfoStrings.openHint)
+            // Messages' shortcut for a conversation's details.
+            .keyboardShortcut("i", modifiers: .command)
+        }
+        #elseif compiler(>=6.2)
+        if #available(iOS 26.0, *) {
             // It reads as the title, not as one more glass button.
-            item.sharedBackgroundVisibility(.hidden)
+            titleItem.sharedBackgroundVisibility(.hidden)
         } else {
-            item
+            titleItem
         }
         #else
-        item
+        titleItem
         #endif
     }
 
-    private var item: some ToolbarContent {
+    #if os(iOS)
+    private var titleItem: some ToolbarContent {
         ToolbarItem(placement: .principal) {
             ConversationTitleButton(
                 title: title,
@@ -204,28 +225,23 @@ struct ConversationTitleToolbarItem: ToolbarContent {
             )
         }
     }
+    #endif
 }
 
 extension View {
-    /// macOS shows the window title at the start of the detail column's
-    /// toolbar. With the title button in the toolbar's center, that title
-    /// would show twice, so it goes; the window keeps it for the Window
-    /// menu and Mission Control. iOS needs nothing: a principal item
-    /// replaces the title.
+    /// The status line under the native title on macOS. iOS needs
+    /// nothing: its title button shows the status and replaces the title.
     @ViewBuilder
-    func conversationTitleBar(hidesNativeTitle: Bool) -> some View {
+    func conversationTitleBar(subtitle: String) -> some View {
         #if os(macOS)
-        if hidesNativeTitle {
-            toolbar(removing: .title)
-        } else {
-            self
-        }
+        navigationSubtitle(Text(verbatim: subtitle))
         #else
         self
         #endif
     }
 }
 
+#if os(iOS)
 /// The conversation's name and status, as a button. A small chevron after
 /// the name says that it opens something, as in Messages.
 struct ConversationTitleButton: View {
@@ -259,18 +275,13 @@ struct ConversationTitleButton: View {
             .padding(.horizontal, 8)
             .contentShape(Rectangle())
         }
-        // Plain, not the toolbar's default style: that one fixes the item
-        // at one line's height and clips the subtitle on macOS.
+        // Plain: it reads as the title, not as a bordered button.
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .modifier(OptionalAccessibilityLabel(label: accessibilityLabel, value: subtitle))
         .accessibilityAddTraits([.isHeader, .isButton])
         .accessibilityHint(Text(verbatim: ConversationInfoStrings.openHint))
         .help(ConversationInfoStrings.openHint)
-        #if os(macOS)
-        // Messages' shortcut for a conversation's details.
-        .keyboardShortcut("i", modifiers: .command)
-        #endif
     }
 }
 
@@ -291,6 +302,8 @@ private struct OptionalAccessibilityLabel: ViewModifier {
     }
 }
 
+#endif
+
 extension View {
     /// Presents a conversation's info page, the most native way on each
     /// platform:
@@ -299,7 +312,7 @@ extension View {
     ///   Messages and Instagram do. The back button returns to the chat.
     /// - macOS shows it in an inspector, a column on the window's trailing
     ///   edge, as Mail and Notes do. The chat stays visible and usable next
-    ///   to it, and the title button (or Command-I) hides it again.
+    ///   to it, and the details button (Command-I) hides it again.
     func conversationInfo<Page: View>(
         isPresented: Binding<Bool>,
         @ViewBuilder page: @escaping () -> Page
