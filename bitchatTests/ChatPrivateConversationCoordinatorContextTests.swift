@@ -1239,3 +1239,66 @@ struct ChatPrivateConversationCoordinatorContextTests {
         #expect(context.privateChats[peerID]?.first?.deliveryStatus == .sending)
     }
 }
+
+// MARK: - Reaction lines
+
+struct PrivateReactionLineTests {
+    private let peerID = PeerID(str: "aabbccddeeff0011")
+
+    @MainActor
+    private func line(_ target: BitchatMessage, removes: Bool = false) -> BitchatMessage {
+        BitchatMessage(
+            sender: "bob",
+            content: MessageReaction.format(emoji: "👍", target: target, removes: removes),
+            timestamp: Date(),
+            isRelay: false,
+            isPrivate: true,
+            recipientNickname: "me",
+            senderPeerID: peerID
+        )
+    }
+
+    @Test @MainActor
+    func reactionLinesNeverMarkUnreadAndAlertOnlyForMyMessages() {
+        let context = MockChatPrivateConversationContext()
+        let coordinator = ChatPrivateConversationCoordinator(context: context)
+        let mine = BitchatMessage(id: "mine", sender: "me", content: "my message", timestamp: Date(), isRelay: false, isPrivate: true, senderPeerID: context.myPeerID)
+        let theirs = BitchatMessage(id: "theirs", sender: "bob", content: "their message", timestamp: Date(), isRelay: false, isPrivate: true, senderPeerID: peerID)
+        context.privateChats[peerID] = [mine, theirs]
+
+        coordinator.handlePrivateMessage(line(theirs))
+        coordinator.handlePrivateMessage(line(mine, removes: true))
+        #expect(context.unreadPrivateMessages.isEmpty)
+        #expect(context.privateMessageNotifications.isEmpty)
+
+        coordinator.handlePrivateMessage(line(mine))
+        #expect(context.unreadPrivateMessages.isEmpty)
+        #expect(context.privateMessageNotifications.count == 1)
+        #expect(context.privateMessageNotifications.allSatisfy { !$0.message.contains("⟨r:") && !$0.message.contains("reacted to") })
+
+        // An ordinary message still marks the chat unread and alerts with its text.
+        let text = BitchatMessage(sender: "bob", content: "hello", timestamp: Date(), isRelay: false, isPrivate: true, senderPeerID: peerID)
+        coordinator.handlePrivateMessage(text)
+        #expect(context.unreadPrivateMessages == [peerID])
+        #expect(context.privateMessageNotifications.last?.message == "hello")
+    }
+
+    @Test @MainActor
+    func anOrphanReactionLineNeverMarksUnreadOrAlerts() {
+        let context = MockChatPrivateConversationContext()
+        let coordinator = ChatPrivateConversationCoordinator(context: context)
+        let missing = BitchatMessage(id: "not-loaded", sender: "me", content: "gone", timestamp: Date(), isRelay: false, isPrivate: true, senderPeerID: context.myPeerID)
+        coordinator.handlePrivateMessage(line(missing))
+        #expect(context.unreadPrivateMessages.isEmpty)
+        #expect(context.privateMessageNotifications.isEmpty)
+    }
+
+    @Test @MainActor
+    func sidebarActivityIgnoresReactionLines() {
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+        let message = BitchatMessage(id: "m", sender: "bob", content: "hello", timestamp: start, isRelay: false, isPrivate: true)
+        let reaction = BitchatMessage(sender: "me", content: MessageReaction.format(emoji: "❤️", target: message), timestamp: start.addingTimeInterval(600), isRelay: false, isPrivate: true)
+        #expect(PeerListModel.lastActivity(in: [message, reaction]) == start)
+        #expect(PeerListModel.lastActivity(in: [reaction]) == nil)
+    }
+}

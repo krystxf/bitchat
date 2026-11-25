@@ -47,6 +47,8 @@ protocol ChatGroupContext: AnyObject {
     @discardableResult
     func appendPrivateMessage(_ message: BitchatMessage, to peerID: PeerID) -> Bool
     func markPrivateChatUnread(_ peerID: PeerID)
+    /// A group chat's timeline, which a reaction's target is looked up in.
+    func privateMessages(for peerID: PeerID) -> [BitchatMessage]
     func removePrivateChat(_ peerID: PeerID)
     func startPrivateChat(with peerID: PeerID)
     func endPrivateChat()
@@ -445,12 +447,25 @@ final class ChatGroupCoordinator {
 
         let isViewing = context.selectedPrivateChatPeer == groupPeerID
         if !isViewing {
-            context.markPrivateChatUnread(groupPeerID)
             let isRecent = Date().timeIntervalSince(messageDate) < 30
-            if isRecent {
+            // A reaction line is no unread message, and it alerts only as a
+            // reaction to one of my messages, never with its raw text.
+            let alert: String?
+            if message.isReactionLine {
+                let myPeerID = context.myPeerID
+                alert = isRecent ? MessageReaction.alertText(
+                    for: message,
+                    in: context.privateMessages(for: groupPeerID),
+                    isMine: { $0.isOwn(myPeerID: myPeerID, myGeoChatPeerID: nil) }
+                ) : nil
+            } else {
+                context.markPrivateChatUnread(groupPeerID)
+                alert = isRecent ? plaintext.content : nil
+            }
+            if let alert {
                 context.notifyPrivateMessage(
                     from: "\(senderName) @ \(group.name)",
-                    message: plaintext.content,
+                    message: alert,
                     peerID: groupPeerID
                 )
             }

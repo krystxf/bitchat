@@ -525,6 +525,9 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
     }
 
     func checkForMentions(_ message: BitchatMessage) {
+        // A reaction line quotes its target, so it can carry the target's
+        // @mention; that is no new mention of me.
+        guard !message.isReactionLine else { return }
         let myNickname = context.nickname.normalizedNickname
         var myTokens: Set<String> = [myNickname]
         let meshPeers = context.meshPeerNicknames()

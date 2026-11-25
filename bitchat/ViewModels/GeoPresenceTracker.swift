@@ -139,6 +139,9 @@ final class GeoPresenceTracker {
         // conversation hint or a notification either. Its sender still
         // counts as present, as recorded above.
         if hidesMessagesWithoutWork(), LocationProofOfWorkSettings.filterHides(event) { return }
+        // A reaction line is no chat message: it must not become the nearby
+        // conversation's preview or alert with its raw text.
+        if MessageReaction.event(in: content) != nil { return }
 
         // Non-empty content on a sampled event means an actual chat message
         // (presence events are empty) — feed the nearby-conversation hint.

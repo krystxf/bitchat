@@ -14633,6 +14633,42 @@
         }
       }
     },
+    "notification.reaction.body" : {
+      "comment" : "Alert for a reaction to one of my messages; placeholders are the person's name and the emoji",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ تفاعل بـ %2$@ مع رسالتك" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ আপনার বার্তায় %2$@ দিয়ে প্রতিক্রিয়া জানিয়েছেন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ hat mit %2$@ auf deine Nachricht reagiert" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ Reacted %2$@ to Your Message" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ reaccionó con %2$@ a tu mensaje" } },
+        "fa" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ با %2$@ به پیام شما واکنش نشان داد" } },
+        "fil" : { "stringUnit" : { "state" : "translated", "value" : "Nag-react si %1$@ ng %2$@ sa iyong mensahe" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ a réagi avec %2$@ à votre message" } },
+        "he" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ הגיב/ה %2$@ להודעה שלך" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ ने आपके संदेश पर %2$@ से प्रतिक्रिया दी" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ menanggapi pesan Anda dengan %2$@" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ ha reagito con %2$@ al tuo messaggio" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%1$@さんがあなたのメッセージに%2$@でリアクションしました" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "%1$@님이 내 메시지에 %2$@ 반응을 남겼습니다" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ bertindak balas %2$@ pada mesej anda" } },
+        "ne" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ ले तपाईंको सन्देशमा %2$@ प्रतिक्रिया दिनुभयो" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ reageerde met %2$@ op je bericht" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ zareagował(a) %2$@ na Twoją wiadomość" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ reagiu com %2$@ à sua mensagem" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ reagiu com %2$@ à sua mensagem" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ отреагировал(а) %2$@ на ваше сообщение" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ reagerade med %2$@ på ditt meddelande" } },
+        "ta" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ உங்கள் செய்திக்கு %2$@ மூலம் எதிர்வினையாற்றினார்" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ แสดงความรู้สึก %2$@ ต่อข้อความของคุณ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ mesajına %2$@ ile tepki verdi" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ відреагував(ла) %2$@ на ваше повідомлення" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ نے آپ کے پیغام پر %2$@ سے ردعمل دیا" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ đã bày tỏ cảm xúc %2$@ với tin nhắn của bạn" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ 对你的消息回应了 %2$@" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ 對你的訊息回應了 %2$@" } }
+      }
+    },
     "system.screenshot.you" : {
       "comment" : "Local system line after your screenshot notice was sent to the DM peer",
       "extractionState" : "manual",

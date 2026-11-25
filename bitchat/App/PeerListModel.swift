@@ -362,7 +362,7 @@ final class PeerListModel: ObservableObject {
             let peerID = handle.routingPeerID
             // Groups have their own section; blocked people get no row.
             guard !peerID.isGroup else { continue }
-            guard let lastMessage = conversation.messages.last else { continue }
+            guard let lastActivity = Self.lastActivity(in: conversation.messages) else { continue }
             guard !chatViewModel.isPeerBlocked(peerID) else { continue }
 
             let fingerprint = chatViewModel.getFingerprint(for: peerID)
@@ -371,10 +371,10 @@ final class PeerListModel: ObservableObject {
 
             let identityKey = fingerprint ?? peerID.id
             if let existing = bestByIdentity[identityKey],
-               existing.lastActivity >= lastMessage.timestamp {
+               existing.lastActivity >= lastActivity {
                 continue
             }
-            bestByIdentity[identityKey] = Candidate(peerID: peerID, lastActivity: lastMessage.timestamp)
+            bestByIdentity[identityKey] = Candidate(peerID: peerID, lastActivity: lastActivity)
         }
 
         return bestByIdentity.values
@@ -392,6 +392,14 @@ final class PeerListModel: ObservableObject {
                     hasPetname: chatViewModel.localPetname(for: candidate.peerID) != nil
                 )
             }
+    }
+
+    /// When a chat row last saw activity: the time of its newest message
+    /// that shows as a row. Reaction lines do not count, so a reaction
+    /// neither previews in the sidebar nor moves the chat up. Nil when
+    /// nothing shows.
+    static func lastActivity(in messages: [BitchatMessage]) -> Date? {
+        messages.last(where: { !$0.isReactionLine })?.timestamp
     }
 
     /// GeoDM conversations resolve through the Nostr mapping —

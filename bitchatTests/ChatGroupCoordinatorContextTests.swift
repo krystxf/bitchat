@@ -61,6 +61,7 @@ private final class MockChatGroupContext: ChatGroupContext {
     @discardableResult
     func appendPrivateMessage(_ message: BitchatMessage, to peerID: PeerID) -> Bool { true }
     func markPrivateChatUnread(_ peerID: PeerID) {}
+    func privateMessages(for peerID: PeerID) -> [BitchatMessage] { [] }
     func removePrivateChat(_ peerID: PeerID) { removedPrivateChats.append(peerID) }
     func startPrivateChat(with peerID: PeerID) {}
     func endPrivateChat() { endPrivateChatCount += 1 }
