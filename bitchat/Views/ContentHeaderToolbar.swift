@@ -120,9 +120,29 @@ struct ContentHeaderToolbar: ViewModifier {
             if appChromeModel.hasUnreadPrivateMessages {
                 unreadPrivateChatButton
             }
+            channelButton
             noticesButton
             peopleButton
         }
+    }
+
+    /// Channel switcher. A click opens the location channels sheet; its menu
+    /// adds bookmark and share in a location channel. The title menu holds
+    /// the same actions, but macOS shows no menu on a window title, so the
+    /// button is the way in there.
+    private var channelButton: some View {
+        Menu {
+            channelMenu
+        } label: {
+            Label {
+                Text(verbatim: String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button"))
+            } icon: {
+                Image(systemName: "number")
+            }
+        } primaryAction: {
+            appChromeModel.isLocationChannelsSheetPresented = true
+        }
+        .help(String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button"))
     }
 
     /// The title's menu: everything about the current channel.
