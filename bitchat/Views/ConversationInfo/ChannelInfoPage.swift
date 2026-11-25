@@ -58,11 +58,11 @@ struct ChannelInfoPage: View {
             }
         )
         .confirmationDialog(
-            String(localized: "channel.share.precision_warning.title", defaultValue: "share a precise location channel?", comment: "Title of the confirmation before sharing a neighborhood-or-finer geohash invite"),
+            String(localized: "channel.share.precision_warning.title", defaultValue: "Share a Precise Location Channel?", comment: "Title of the confirmation before sharing a neighborhood-or-finer geohash invite"),
             isPresented: $showsSharePrecisionWarning,
             titleVisibility: .visible
         ) {
-            Button(String(localized: "channel.share.precision_warning.confirm", defaultValue: "share anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")) {
+            Button(String(localized: "channel.share.precision_warning.confirm", defaultValue: "Share anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")) {
                 if let geohash = pendingShareGeohash {
                     activeSharePayload = ChannelSharePayload(text: ChannelShare.payload(forGeohash: geohash))
                 }
@@ -72,7 +72,7 @@ struct ChannelInfoPage: View {
                 pendingShareGeohash = nil
             }
         } message: {
-            Text(String(localized: "channel.share.precision_warning.message", defaultValue: "this channel covers a small area. an invite sent over sms or imessage is visible to the carrier and both handsets — it discloses interest in that place, not only that someone uses bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite"))
+            Text(String(localized: "channel.share.precision_warning.message", defaultValue: "This channel covers a small area. An invite sent over sms or imessage is visible to the carrier and both handsets — it discloses interest in that place, not only that someone uses bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite"))
         }
         .sheet(item: $activeSharePayload) { payload in
             ShareActivityView(text: payload.text)
@@ -390,7 +390,7 @@ private enum Strings {
     static let addBookmark = String(localized: "location_channels.accessibility.add_bookmark", comment: "Accessibility action name for bookmarking a channel")
     static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
     static let share = String(localized: "conversation_info.action.share", defaultValue: "Share", comment: "Short label of the button on a location channel's details page that shares an invite to the channel")
-    static let shareChannel = String(localized: "channel.share.action", defaultValue: "share channel", comment: "Accessibility label for sharing the active location channel")
+    static let shareChannel = String(localized: "channel.share.action", defaultValue: "Share Channel", comment: "Accessibility label for sharing the active location channel")
     static let people = String(localized: "conversation_info.row.people", defaultValue: "People", comment: "Row on a channel's details page, and the title of the page it opens, listing the people in the channel")
     static let blocked = String(localized: "mesh_peers.state.blocked", comment: "State label for a blocked peer")
     static let openDMHint = String(localized: "mesh_peers.accessibility.open_dm_hint", comment: "Accessibility hint on a peer row explaining activation opens a private chat")

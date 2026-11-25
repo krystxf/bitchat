@@ -19,11 +19,11 @@ struct ProfileSheet: View {
     @State private var showsVerification = false
 
     private enum Strings {
-        static let title = String(localized: "profile.title", defaultValue: "profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it")
-        static let nicknameHeader = String(localized: "app_info.settings.nickname.title", defaultValue: "NICKNAME", comment: "Section header (uppercase) for the nickname field in settings")
+        static let title = String(localized: "profile.title", defaultValue: "Profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it")
+        static let nicknameHeader = String(localized: "app_info.settings.nickname.title", defaultValue: "Nickname", comment: "Section header (uppercase) for the nickname field in settings")
         static let verification = String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
         static let verificationDetail = String(localized: "content.help.verification", comment: "Help text for verification button")
-        static let nicknameFooter = String(localized: "profile.nickname.footer", defaultValue: "people nearby see this name next to your messages. you can change it any time.", comment: "Footer under the nickname field in the profile sheet")
+        static let nicknameFooter = String(localized: "profile.nickname.footer", defaultValue: "People nearby see this name next to your messages. You can change it any time.", comment: "Footer under the nickname field in the profile sheet")
     }
 
     private var nickname: Binding<String> {
@@ -63,8 +63,7 @@ struct ProfileSheet: View {
                     .onSubmit(commitAndClose)
                 }
             } header: {
-                // The catalog keeps the legacy uppercase; forms show title case.
-                Text(verbatim: Strings.nicknameHeader.localizedCapitalized)
+                Text(verbatim: Strings.nicknameHeader)
             } footer: {
                 Text(verbatim: Strings.nicknameFooter)
                     // Wrap once at the given width; a footer whose height

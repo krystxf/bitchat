@@ -320,15 +320,15 @@ private extension ContentComposerView {
 
     var recorderHintText: String {
         guard showsRecorder else {
-            return String(localized: "voice.recorder.hint.hold_to_record", defaultValue: "hold to record, release to send", comment: "Hint shown after a quick tap on the mic button, explaining how to record a voice message")
+            return String(localized: "voice.recorder.hint.hold_to_record", defaultValue: "Hold to record, release to send", comment: "Hint shown after a quick tap on the mic button, explaining how to record a voice message")
         }
         switch recorderPhase {
         case .lockArmed:
-            return String(localized: "voice.recorder.hint.release_to_lock", defaultValue: "release to go hands free", comment: "Hint above the voice recording bar when releasing would keep recording without holding the mic")
+            return String(localized: "voice.recorder.hint.release_to_lock", defaultValue: "Release to go hands free", comment: "Hint above the voice recording bar when releasing would keep recording without holding the mic")
         case .cancelArmed:
-            return String(localized: "voice.recorder.hint.release_to_cancel", defaultValue: "release to cancel", comment: "Hint above the voice recording bar when releasing would discard the recording")
+            return String(localized: "voice.recorder.hint.release_to_cancel", defaultValue: "Release to cancel", comment: "Hint above the voice recording bar when releasing would discard the recording")
         case .idle, .holding, .locked:
-            return String(localized: "voice.recorder.hint.swipe_to_cancel", defaultValue: "swipe left to cancel or release to send", comment: "Hint above the voice recording bar while holding the mic button")
+            return String(localized: "voice.recorder.hint.swipe_to_cancel", defaultValue: "Swipe left to cancel or release to send", comment: "Hint above the voice recording bar while holding the mic button")
         }
     }
 
@@ -389,7 +389,7 @@ private extension ContentComposerView {
     var recorderTrashButton: some View {
         let isDiscarding = voiceRecordingVM.isDiscarding
         let isHighlighted = recorderPhase == .cancelArmed || isDiscarding
-        let deleteLabel = String(localized: "voice.recorder.accessibility.delete", defaultValue: "delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar")
+        let deleteLabel = String(localized: "voice.recorder.accessibility.delete", defaultValue: "Delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar")
         return Button(action: voiceRecordingVM.discardRecording) {
             Image(systemName: isHighlighted ? "trash.fill" : "trash")
                 .font(.bitchatSystem(size: 17, weight: .medium))
@@ -441,7 +441,7 @@ private extension ContentComposerView {
 
     /// Stops and sends a hands-free recording; takes the mic's place.
     var handsFreeSendButton: some View {
-        let sendLabel = String(localized: "voice.recorder.accessibility.send", defaultValue: "send voice message", comment: "Accessibility label and tooltip for the send button of a hands-free voice recording")
+        let sendLabel = String(localized: "voice.recorder.accessibility.send", defaultValue: "Send voice message", comment: "Accessibility label and tooltip for the send button of a hands-free voice recording")
         return Button {
             voiceRecordingVM.sendHandsFree(completion: conversationUIModel.sendVoiceNote)
         } label: {
@@ -456,7 +456,7 @@ private extension ContentComposerView {
         .buttonStyle(.plain)
         .transition(.scale(scale: 0.6).combined(with: .opacity))
         .accessibilityLabel(sendLabel)
-        .accessibilityAction(named: Text(String(localized: "voice.recorder.accessibility.delete", defaultValue: "delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar"))) {
+        .accessibilityAction(named: Text(String(localized: "voice.recorder.accessibility.delete", defaultValue: "Delete recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar"))) {
             voiceRecordingVM.discardRecording()
         }
         .help(sendLabel)

@@ -97,12 +97,12 @@ struct ContentSidebarView: View {
     private var profileButton: some View {
         Button(action: { showsProfile = true }) {
             Label {
-                Text(verbatim: String(localized: "profile.title", defaultValue: "profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
+                Text(verbatim: String(localized: "profile.title", defaultValue: "Profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
             } icon: {
                 Image(systemName: "person.crop.circle")
             }
         }
-        .help(String(localized: "profile.title", defaultValue: "profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
+        .help(String(localized: "profile.title", defaultValue: "Profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
         .sheet(isPresented: $showsProfile) {
             ProfileSheet()
                 .environmentObject(appChromeModel)
@@ -270,9 +270,9 @@ struct ContentSidebarView: View {
 private extension ContentSidebarView {
     enum Strings {
         static let appName = String(localized: "app_info.app_name", comment: "The app's name")
-        static let channels = String(localized: "sidebar.section.channels", defaultValue: "channels", comment: "Sidebar section header above the public channels and private groups")
-        static let contacts = String(localized: "sidebar.section.contacts", defaultValue: "contacts", comment: "Sidebar section header above people the user knows: favorites, verified people and accepted conversations")
-        static let unknown = String(localized: "sidebar.unknown.title", defaultValue: "unknown", comment: "Collapsed sidebar group holding people the user does not know yet and their message requests")
+        static let channels = String(localized: "sidebar.section.channels", defaultValue: "Channels", comment: "Sidebar section header above the public channels and private groups")
+        static let contacts = String(localized: "sidebar.section.contacts", defaultValue: "Contacts", comment: "Sidebar section header above people the user knows: favorites, verified people and accepted conversations")
+        static let unknown = String(localized: "sidebar.unknown.title", defaultValue: "Unknown", comment: "Collapsed sidebar group holding people the user does not know yet and their message requests")
         static let locationChannels = String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button") + "…"
         static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")

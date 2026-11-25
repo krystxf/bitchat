@@ -71,7 +71,7 @@ enum PersonPresence: CaseIterable, Equatable {
         case .teleported:
             String(localized: "geohash_people.state.teleported", comment: "State label for someone who joined the location channel from elsewhere")
         case .bridged:
-            String(localized: "bridge_people.section_title", defaultValue: "across the bridge", comment: "Section header in the people sheet for participants reachable via the mesh bridge")
+            String(localized: "bridge_people.section_title", defaultValue: "Across the Bridge", comment: "Section header in the people sheet for participants reachable via the mesh bridge")
         }
     }
 }

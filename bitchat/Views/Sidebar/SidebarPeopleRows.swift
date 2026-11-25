@@ -319,7 +319,7 @@ private struct SidebarChatRow: View {
     private enum Strings {
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")
         static let favorite = String(localized: "mesh_peers.state.favorite", comment: "State label for a favorited peer")
-        static let openChatHint = String(localized: "chats.accessibility.open_hint", defaultValue: "opens this conversation", comment: "Accessibility hint on a recent chat row explaining activation opens the direct conversation")
+        static let openChatHint = String(localized: "chats.accessibility.open_hint", defaultValue: "Opens this conversation", comment: "Accessibility hint on a recent chat row explaining activation opens the direct conversation")
         static let directMessage = String(localized: "content.actions.direct_message", comment: "Action that opens a private chat with the person")
         static let addFavorite = String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
         static let removeFavorite = String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")

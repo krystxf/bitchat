@@ -408,7 +408,7 @@ struct ContentView: View {
         .modifier(LegacyPrivateMediaConsentDialog())
         .confirmationDialog(
             Text(
-                String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")
+                String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "Wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")
             ),
             isPresented: $appChromeModel.showPanicConfirmation,
             titleVisibility: .visible
@@ -417,12 +417,12 @@ struct ContentView: View {
                 appChromeModel.panicClearAllData()
             } label: {
                 Text(
-                    String(localized: "app_info.settings.danger.panic_confirm_action", defaultValue: "wipe everything", comment: "Destructive confirmation button that performs the panic wipe")
+                    String(localized: "app_info.settings.danger.panic_confirm_action", defaultValue: "Wipe everything", comment: "Destructive confirmation button that performs the panic wipe")
                 )
             }
             Button("common.cancel", role: .cancel) {}
         }
-        .alert(Text(String(localized: "voice.error.title", defaultValue: "recording error", comment: "Title of the voice recording error alert")), isPresented: rootVoiceAlertBinding, actions: {
+        .alert(Text(String(localized: "voice.error.title", defaultValue: "Recording Error", comment: "Title of the voice recording error alert")), isPresented: rootVoiceAlertBinding, actions: {
             Button("common.ok", role: .cancel) {}
             if voiceRecordingVM.state == .permissionDenied {
                 Button("location_channels.action.open_settings") {

@@ -30,7 +30,7 @@ final class VoiceRecordingViewModel: ObservableObject {
         var alertMessage: String {
             switch self {
             case .error(let message): message
-            case .permissionDenied: String(localized: "voice.error.mic_permission", defaultValue: "microphone access is required to record voice notes.", comment: "Alert message when the microphone permission is denied")
+            case .permissionDenied: String(localized: "voice.error.mic_permission", defaultValue: "Microphone access is required to record voice notes.", comment: "Alert message when the microphone permission is denied")
             case .idle, .requestingPermission, .preparing, .recording: ""
             }
         }
@@ -313,7 +313,7 @@ final class VoiceRecordingViewModel: ObservableObject {
                     }
                 }
                 activeSession = nil
-                state = .error(message: String(localized: "voice.error.start_failed", defaultValue: "could not start recording.", comment: "Alert message when the recorder fails to start"))
+                state = .error(message: String(localized: "voice.error.start_failed", defaultValue: "Could not start recording.", comment: "Alert message when the recorder fails to start"))
             }
         }
     }
@@ -361,8 +361,8 @@ final class VoiceRecordingViewModel: ObservableObject {
                     guard state == .idle else { return }
                     state = .error(
                         message: finalDuration < VoiceRecorder.minRecordingDuration
-                        ? String(localized: "voice.error.too_short", defaultValue: "recording is too short.", comment: "Alert message when a voice note is released too quickly to save")
-                        : String(localized: "voice.error.save_failed", defaultValue: "recording failed to save.", comment: "Alert message when a finished voice note cannot be saved")
+                        ? String(localized: "voice.error.too_short", defaultValue: "Recording is too short.", comment: "Alert message when a voice note is released too quickly to save")
+                        : String(localized: "voice.error.save_failed", defaultValue: "Recording failed to save.", comment: "Alert message when a finished voice note cannot be saved")
                     )
                     return
                 }
@@ -371,8 +371,8 @@ final class VoiceRecordingViewModel: ObservableObject {
                 guard generation == holdGeneration, state == .idle else { return }
                 state = .error(
                     message: finalDuration < VoiceRecorder.minRecordingDuration
-                    ? String(localized: "voice.error.too_short", defaultValue: "recording is too short.", comment: "Alert message when a voice note is released too quickly to save")
-                    : String(localized: "voice.error.save_failed", defaultValue: "recording failed to save.", comment: "Alert message when a finished voice note cannot be saved")
+                    ? String(localized: "voice.error.too_short", defaultValue: "Recording is too short.", comment: "Alert message when a voice note is released too quickly to save")
+                    : String(localized: "voice.error.save_failed", defaultValue: "Recording failed to save.", comment: "Alert message when a finished voice note cannot be saved")
                 )
             }
         }

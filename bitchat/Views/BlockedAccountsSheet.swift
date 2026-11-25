@@ -19,11 +19,11 @@ struct BlockedAccountsSheet: View {
     @State private var accounts: [BlockedAccount] = []
 
     enum Strings {
-        static let title = String(localized: "blocked_accounts.title", defaultValue: "blocked accounts", comment: "Title of the blocked accounts list, and of the settings row that opens it")
-        static let empty = String(localized: "blocked_accounts.empty", defaultValue: "no blocked accounts", comment: "Shown in the blocked accounts list when nobody is blocked")
-        static let footer = String(localized: "blocked_accounts.footer", defaultValue: "blocked people can't message you and their messages stay hidden. unblock someone to see them again.", comment: "Footer under the blocked accounts list explaining what blocking does")
-        static let mesh = String(localized: "blocked_accounts.kind.mesh", defaultValue: "mesh", comment: "Label for an account blocked on the Bluetooth mesh, in the blocked accounts list")
-        static let location = String(localized: "blocked_accounts.kind.location", defaultValue: "location channels", comment: "Label for an account blocked in location (geohash) channels, in the blocked accounts list")
+        static let title = String(localized: "blocked_accounts.title", defaultValue: "Blocked Accounts", comment: "Title of the blocked accounts list, and of the settings row that opens it")
+        static let empty = String(localized: "blocked_accounts.empty", defaultValue: "No blocked accounts", comment: "Shown in the blocked accounts list when nobody is blocked")
+        static let footer = String(localized: "blocked_accounts.footer", defaultValue: "Blocked people can't message you and their messages stay hidden. Unblock someone to see them again.", comment: "Footer under the blocked accounts list explaining what blocking does")
+        static let mesh = String(localized: "blocked_accounts.kind.mesh", defaultValue: "Mesh", comment: "Label for an account blocked on the Bluetooth mesh, in the blocked accounts list")
+        static let location = String(localized: "blocked_accounts.kind.location", defaultValue: "Location channels", comment: "Label for an account blocked in location (geohash) channels, in the blocked accounts list")
         static let unblock = String(localized: "geohash_people.action.unblock", comment: "Action to unblock a person")
     }
 

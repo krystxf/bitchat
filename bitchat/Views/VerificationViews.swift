@@ -420,10 +420,9 @@ struct VerificationSheetView: View {
             .onDisappear { showingScanner = false }
     }
 
-    /// The catalog keeps this title in capitals; show it in lower case like
-    /// the other sheet titles.
+    /// Sheet title supplied with standard capitalization by the catalog.
     private var title: String {
-        String(localized: "verification.sheet.title").lowercased()
+        String(localized: "verification.sheet.title")
     }
 
     private var sheetContent: some View {

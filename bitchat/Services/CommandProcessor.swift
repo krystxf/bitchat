@@ -95,7 +95,7 @@ final class CommandProcessor {
     @MainActor
     func process(_ command: String) -> CommandResult {
         let parts = command.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
-        guard let cmd = parts.first else { return .error(message: String(localized: "command.error.invalid", defaultValue: "invalid command", comment: "Error for an empty or unparseable slash command")) }
+        guard let cmd = parts.first else { return .error(message: String(localized: "command.error.invalid", defaultValue: "Invalid command", comment: "Error for an empty or unparseable slash command")) }
         let args = parts.count > 1 ? String(parts[1]) : ""
         
         // Geohash context: disable mesh-only diagnostics in public geohash or GeoDM
@@ -121,10 +121,10 @@ final class CommandProcessor {
         case "/unblock":
             return handleUnblock(args)
         case "/ping":
-            if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.ping_mesh_only", defaultValue: "ping only works for mesh peers in #mesh", comment: "Error when /ping is used outside the mesh channel")) }
+            if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.ping_mesh_only", defaultValue: "Ping only works for mesh peers in #mesh", comment: "Error when /ping is used outside the mesh channel")) }
             return handlePing(args)
         case "/trace":
-            if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.trace_mesh_only", defaultValue: "trace only works for mesh peers in #mesh", comment: "Error when /trace is used outside the mesh channel")) }
+            if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.trace_mesh_only", defaultValue: "Trace only works for mesh peers in #mesh", comment: "Error when /trace is used outside the mesh channel")) }
             return handleTrace(args)
         case "/pay":
             return handlePay(args)
@@ -133,7 +133,7 @@ final class CommandProcessor {
         case "/help":
             return .success(message: Self.helpText)
         default:
-            return .error(message: String(format: String(localized: "command.error.unknown", defaultValue: "unknown command: %@ — type /help for commands", comment: "Error for an unrecognized slash command; placeholder is the typed command"), locale: .current, String(cmd)))
+            return .error(message: String(format: String(localized: "command.error.unknown", defaultValue: "Unknown command: %@ — type /help for commands", comment: "Error for an unrecognized slash command; placeholder is the typed command"), locale: .current, String(cmd)))
         }
     }
 
@@ -150,22 +150,22 @@ final class CommandProcessor {
     /// reads it.
     private func handleDrop(_ args: String) -> CommandResult {
         guard LocationNotesSettings.enabled else {
-            return .error(message: String(localized: "command.drop.notes_off", defaultValue: "location notes are off — enable them in the info screen", comment: "Error when /drop is used while location notes are disabled"))
+            return .error(message: String(localized: "command.drop.notes_off", defaultValue: "Location notes are off — enable them in the info screen", comment: "Error when /drop is used while location notes are disabled"))
         }
         guard let content = args.trimmedOrNilIfEmpty else {
-            return .error(message: String(localized: "command.drop.usage", defaultValue: "usage: /drop <message>", comment: "Usage hint for /drop"))
+            return .error(message: String(localized: "command.drop.usage", defaultValue: "Usage: /drop <message>", comment: "Usage hint for /drop"))
         }
         let location = LocationChannelManager.shared
         guard location.permissionState == .authorized else {
-            return .error(message: String(localized: "command.drop.needs_location", defaultValue: "leaving a note needs location — enable it in the info screen", comment: "Error when /drop is used without location permission"))
+            return .error(message: String(localized: "command.drop.needs_location", defaultValue: "Leaving a note needs location — enable it in the info screen", comment: "Error when /drop is used without location permission"))
         }
         guard let geohash = location.availableChannels.first(where: { $0.level == .building })?.geohash else {
             location.refreshChannels()
-            return .error(message: String(localized: "command.drop.finding_place", defaultValue: "still finding this place — try again in a moment", comment: "Error when /drop runs before a location fix arrives"))
+            return .error(message: String(localized: "command.drop.finding_place", defaultValue: "Still finding this place — try again in a moment", comment: "Error when /drop runs before a location fix arrives"))
         }
         guard let nickname = contextProvider?.nickname,
               LocationNotesManager.postDrop(content: content, nickname: nickname, geohash: geohash) else {
-            return .error(message: String(localized: "command.drop.no_relays", defaultValue: "no geo relays reachable — note not left", comment: "Error when /drop finds no reachable geo relays"))
+            return .error(message: String(localized: "command.drop.no_relays", defaultValue: "No geo relays reachable — note not left", comment: "Error when /drop finds no reachable geo relays"))
         }
         // Leaving a note is an explicit notes act: it unlocks the passive
         // nearby-notes counter (tap-to-reveal) so the sender sees their own
@@ -181,22 +181,22 @@ final class CommandProcessor {
         switch contextProvider?.activeChannel ?? .mesh {
         case .location(let ch):
             // Geohash context: show visible geohash participants (exclude self)
-            guard let vm = contextProvider else { return .success(message: String(localized: "command.who.nobody", defaultValue: "nobody around", comment: "Reply to /who when no context is available")) }
+            guard let vm = contextProvider else { return .success(message: String(localized: "command.who.nobody", defaultValue: "Nobody around", comment: "Reply to /who when no context is available")) }
             let myHex = (try? vm.idBridge.deriveIdentity(forGeohash: ch.geohash))?.publicKeyHex.lowercased()
             let people = vm.getVisibleGeoParticipants().filter { person in
                 if let me = myHex { return person.id.lowercased() != me }
                 return true
             }
             let names = people.map { $0.displayName }
-            if names.isEmpty { return .success(message: String(localized: "command.who.none_online", defaultValue: "no one else is online right now", comment: "Reply to /who when nobody else is online")) }
-            return .success(message: String(format: String(localized: "command.who.online", defaultValue: "online: %@", comment: "Reply to /who; placeholder is the list of names"), locale: .current, names.sorted().joined(separator: ", ")))
+            if names.isEmpty { return .success(message: String(localized: "command.who.none_online", defaultValue: "No one else is online right now", comment: "Reply to /who when nobody else is online")) }
+            return .success(message: String(format: String(localized: "command.who.online", defaultValue: "Online: %@", comment: "Reply to /who; placeholder is the list of names"), locale: .current, names.sorted().joined(separator: ", ")))
         case .mesh:
             // Mesh context: show connected peer nicknames
             guard let peers = meshService?.getPeerNicknames(), !peers.isEmpty else {
-                return .success(message: String(localized: "command.who.none_online", defaultValue: "no one else is online right now", comment: "Reply to /who when nobody else is online"))
+                return .success(message: String(localized: "command.who.none_online", defaultValue: "No one else is online right now", comment: "Reply to /who when nobody else is online"))
             }
             let onlineList = peers.values.sorted().joined(separator: ", ")
-            return .success(message: String(format: String(localized: "command.who.online", defaultValue: "online: %@", comment: "Reply to /who; placeholder is the list of names"), locale: .current, onlineList))
+            return .success(message: String(format: String(localized: "command.who.online", defaultValue: "Online: %@", comment: "Reply to /who; placeholder is the list of names"), locale: .current, onlineList))
         }
     }
     
@@ -212,14 +212,14 @@ final class CommandProcessor {
     private func handleEmote(_ args: String, command: String, action: String, emoji: String, suffix: String = "") -> CommandResult {
         let targetName = args.trimmed
         guard !targetName.isEmpty else {
-            return .error(message: String(format: String(localized: "command.action.usage", defaultValue: "usage: /%@ <nickname>", comment: "Usage hint for a command that takes a nickname; placeholder is the command name"), locale: .current, command))
+            return .error(message: String(format: String(localized: "command.action.usage", defaultValue: "Usage: /%@ <nickname>", comment: "Usage hint for a command that takes a nickname; placeholder is the command name"), locale: .current, command))
         }
         
         let nickname = targetName.hasPrefix("@") ? String(targetName.dropFirst()) : targetName
         
         guard let targetPeerID = contextProvider?.getPeerIDForNickname(nickname),
               let myNickname = contextProvider?.nickname else {
-            return .error(message: String(format: String(localized: "command.action.not_found", defaultValue: "cannot %1$@ %2$@: not found", comment: "Error when an action command can't resolve its target; placeholders are the command and the nickname"), locale: .current, command, nickname))
+            return .error(message: String(format: String(localized: "command.action.not_found", defaultValue: "Cannot %1$@ %2$@: not found", comment: "Error when an action command can't resolve its target; placeholders are the command and the nickname"), locale: .current, command, nickname))
         }
         
         let emoteContent = "* \(emoji) \(myNickname) \(action) \(nickname)\(suffix) *"
@@ -286,7 +286,7 @@ final class CommandProcessor {
 
             let meshList = blockedNicknames.isEmpty ? "none" : blockedNicknames.sorted().joined(separator: ", ")
             let geoList = geoNames.isEmpty ? "none" : geoNames.sorted().joined(separator: ", ")
-            return .success(message: String(format: String(localized: "command.block.list", defaultValue: "blocked peers: %1$@ | geohash blocks: %2$@", comment: "Reply to /block with no argument; placeholders are the mesh and geohash block lists"), locale: .current, meshList, geoList))
+            return .success(message: String(format: String(localized: "command.block.list", defaultValue: "Blocked peers: %1$@ | geohash blocks: %2$@", comment: "Reply to /block with no argument; placeholders are the mesh and geohash block lists"), locale: .current, meshList, geoList))
         }
         
         let nickname = targetName.hasPrefix("@") ? String(targetName.dropFirst()) : targetName
@@ -316,7 +316,7 @@ final class CommandProcessor {
             // Scrub their carried public messages now, while the peerID is
             // resolvable, so they can't resurface as archived echoes.
             meshArchive?.purgeArchivedPublicMessages(from: peerID)
-            return .success(message: String(format: String(localized: "command.block.done", defaultValue: "blocked %@. you will no longer see their messages", comment: "Confirmation after blocking a mesh peer"), locale: .current, nickname))
+            return .success(message: String(format: String(localized: "command.block.done", defaultValue: "Blocked %@. You will no longer see their messages", comment: "Confirmation after blocking a mesh peer"), locale: .current, nickname))
         }
         // Mesh lookup failed; try geohash (Nostr) participant by display name
         if let pub = contextProvider?.nostrPubkeyForDisplayName(nickname) {
@@ -325,16 +325,16 @@ final class CommandProcessor {
             }
             identityManager.setNostrBlocked(pub, isBlocked: true)
             contextProvider?.geohashBlockListDidChange()
-            return .success(message: String(format: String(localized: "command.block.done_geo", defaultValue: "blocked %@ in geohash chats", comment: "Confirmation after blocking a geohash participant"), locale: .current, nickname))
+            return .success(message: String(format: String(localized: "command.block.done_geo", defaultValue: "Blocked %@ in geohash chats", comment: "Confirmation after blocking a geohash participant"), locale: .current, nickname))
         }
         
-        return .error(message: String(format: String(localized: "command.block.failed", defaultValue: "cannot block %@: not found or unable to verify identity", comment: "Error when /block can't resolve or verify the target"), locale: .current, nickname))
+        return .error(message: String(format: String(localized: "command.block.failed", defaultValue: "Cannot block %@: not found or unable to verify identity", comment: "Error when /block can't resolve or verify the target"), locale: .current, nickname))
     }
     
     private func handleUnblock(_ args: String) -> CommandResult {
         let targetName = args.trimmed
         guard !targetName.isEmpty else {
-            return .error(message: String(localized: "command.unblock.usage", defaultValue: "usage: /unblock <nickname>", comment: "Usage hint for /unblock"))
+            return .error(message: String(localized: "command.unblock.usage", defaultValue: "Usage: /unblock <nickname>", comment: "Usage hint for /unblock"))
         }
         
         let nickname = targetName.hasPrefix("@") ? String(targetName.dropFirst()) : targetName
@@ -345,7 +345,7 @@ final class CommandProcessor {
                 return .success(message: String(format: String(localized: "command.unblock.not_blocked", defaultValue: "%@ is not blocked", comment: "Reply when /unblock targets a nickname that isn't blocked"), locale: .current, nickname))
             }
             identityManager.setBlocked(fingerprint, isBlocked: false)
-            return .success(message: String(format: String(localized: "command.unblock.done", defaultValue: "unblocked %@", comment: "Confirmation after unblocking a mesh peer"), locale: .current, nickname))
+            return .success(message: String(format: String(localized: "command.unblock.done", defaultValue: "Unblocked %@", comment: "Confirmation after unblocking a mesh peer"), locale: .current, nickname))
         }
         // Try geohash unblock
         if let pub = contextProvider?.nostrPubkeyForDisplayName(nickname) {
@@ -354,9 +354,9 @@ final class CommandProcessor {
             }
             identityManager.setNostrBlocked(pub, isBlocked: false)
             contextProvider?.geohashBlockListDidChange()
-            return .success(message: String(format: String(localized: "command.unblock.done_geo", defaultValue: "unblocked %@ in geohash chats", comment: "Confirmation after unblocking a geohash participant"), locale: .current, nickname))
+            return .success(message: String(format: String(localized: "command.unblock.done_geo", defaultValue: "Unblocked %@ in geohash chats", comment: "Confirmation after unblocking a geohash participant"), locale: .current, nickname))
         }
-        return .error(message: String(format: String(localized: "command.unblock.failed", defaultValue: "cannot unblock %@: not found", comment: "Error when /unblock can't resolve the target"), locale: .current, nickname))
+        return .error(message: String(format: String(localized: "command.unblock.failed", defaultValue: "Cannot unblock %@: not found", comment: "Error when /unblock can't resolve the target"), locale: .current, nickname))
     }
     
     // MARK: - Mesh Diagnostics
@@ -371,12 +371,12 @@ final class CommandProcessor {
     private func resolveMeshPeer(_ args: String, command: String) -> MeshPeerResolution {
         let targetName = args.trimmed
         guard !targetName.isEmpty else {
-            return .failed(.error(message: String(format: String(localized: "command.action.usage", defaultValue: "usage: /%@ <nickname>", comment: "Usage hint for a command that takes a nickname; placeholder is the command name"), locale: .current, command)))
+            return .failed(.error(message: String(format: String(localized: "command.action.usage", defaultValue: "Usage: /%@ <nickname>", comment: "Usage hint for a command that takes a nickname; placeholder is the command name"), locale: .current, command)))
         }
         let nickname = targetName.hasPrefix("@") ? String(targetName.dropFirst()) : targetName
         guard let peerID = contextProvider?.getPeerIDForNickname(nickname),
               !peerID.isGeoDM, !peerID.isGeoChat else {
-            return .failed(.error(message: String(format: String(localized: "command.action.not_found_mesh", defaultValue: "cannot %1$@ %2$@: not found on mesh", comment: "Error when a mesh-only command can't resolve its target; placeholders are the command and the nickname"), locale: .current, command, nickname)))
+            return .failed(.error(message: String(format: String(localized: "command.action.not_found_mesh", defaultValue: "Cannot %1$@ %2$@: not found on mesh", comment: "Error when a mesh-only command can't resolve its target; placeholders are the command and the nickname"), locale: .current, command, nickname)))
         }
         return .resolved(peerID: peerID, nickname: nickname)
     }
@@ -405,7 +405,7 @@ final class CommandProcessor {
             } ?? ""
             provider?.addCommandOutput("pong from \(nickname): \(result.rttMs) ms\(hopText)", to: destination)
         }
-        return .success(message: String(format: String(localized: "command.ping.started", defaultValue: "pinging %@…", comment: "Confirmation that /ping sent a probe"), locale: .current, nickname))
+        return .success(message: String(format: String(localized: "command.ping.started", defaultValue: "Pinging %@…", comment: "Confirmation that /ping sent a probe"), locale: .current, nickname))
     }
 
     private func handleTrace(_ args: String) -> CommandResult {
@@ -417,19 +417,19 @@ final class CommandProcessor {
 
         guard let mesh = meshService,
               let intermediates = meshDiagnostics?.computeMeshPath(to: target.peerID) else {
-            return .success(message: String(format: String(localized: "command.trace.no_path", defaultValue: "no known path to %@", comment: "Reply when /trace has no mesh path to the target"), locale: .current, target.nickname))
+            return .success(message: String(format: String(localized: "command.trace.no_path", defaultValue: "No known path to %@", comment: "Reply when /trace has no mesh path to the target"), locale: .current, target.nickname))
         }
         // Graph-derived from gossiped neighbor claims, not route-recorded —
         // present it as an estimate.
         let hopNames = intermediates.map { hop in
             mesh.peerNickname(peerID: hop) ?? "\(hop.id.prefix(8))…"
         }
-        let you = String(localized: "command.trace.you", defaultValue: "you", comment: "Label for the local device at the start of a /trace path")
+        let you = String(localized: "command.trace.you", defaultValue: "You", comment: "Label for the local device at the start of a /trace path")
         let chain = ([you] + hopNames + [target.nickname]).joined(separator: " → ")
         let hops = intermediates.count + 1
         let pathMessage = hops == 1
-            ? String(format: String(localized: "command.trace.path_one", defaultValue: "estimated path: %@ (1 hop)", comment: "Reply to /trace for a single-hop path; placeholder is the node chain"), locale: .current, chain)
-            : String(format: String(localized: "command.trace.path_many", defaultValue: "estimated path: %1$@ (%2$lld hops)", comment: "Reply to /trace; placeholders are the node chain and hop count"), locale: .current, chain, hops)
+            ? String(format: String(localized: "command.trace.path_one", defaultValue: "Estimated path: %@ (1 hop)", comment: "Reply to /trace for a single-hop path; placeholder is the node chain"), locale: .current, chain)
+            : String(format: String(localized: "command.trace.path_many", defaultValue: "Estimated path: %1$@ (%2$lld hops)", comment: "Reply to /trace; placeholders are the node chain and hop count"), locale: .current, chain, hops)
         return .success(message: pathMessage)
     }
 
@@ -441,32 +441,32 @@ final class CommandProcessor {
     private func handlePay(_ args: String) -> CommandResult {
         var parts = args.trimmed.split(separator: " ").map(String.init)
         guard !parts.isEmpty else {
-            return .success(message: String(localized: "command.pay.usage", defaultValue: "usage: /pay <token> — paste a cashu token: /pay cashuA…", comment: "Usage hint for /pay"))
+            return .success(message: String(localized: "command.pay.usage", defaultValue: "Usage: /pay <token> — paste a cashu token: /pay cashuA…", comment: "Usage hint for /pay"))
         }
 
         let confirmedPublic = parts.count > 1 && parts.last?.lowercased() == "public"
         if confirmedPublic { parts.removeLast() }
 
         guard parts.count == 1, let token = CashuTokenDecoder.bareToken(from: parts[0]) else {
-            return .error(message: String(localized: "command.pay.not_token", defaultValue: "that doesn't look like a cashu token — expected cashuA… or cashuB…", comment: "Error when /pay input has no cashu prefix"))
+            return .error(message: String(localized: "command.pay.not_token", defaultValue: "That doesn't look like a cashu token — expected cashuA… or cashuB…", comment: "Error when /pay input has no cashu prefix"))
         }
         guard let info = CashuTokenDecoder.decode(token, strict: true) else {
-            return .error(message: String(localized: "command.pay.invalid", defaultValue: "invalid cashu token — it doesn't decode to a known token with an amount, not sending it", comment: "Error when /pay input fails to decode"))
+            return .error(message: String(localized: "command.pay.invalid", defaultValue: "Invalid cashu token — it doesn't decode to a known token with an amount, not sending it", comment: "Error when /pay input fails to decode"))
         }
 
         let summary = info.displayAmount ?? "a cashu token"
 
         if let peerID = contextProvider?.selectedPrivateChatPeer {
             contextProvider?.sendPrivateMessage(token, to: peerID)
-            return .success(message: String(format: String(localized: "command.pay.sent_private", defaultValue: "sent %@ — cashu is a bearer token; whoever redeems it first gets the funds", comment: "Confirmation after sending a cashu token in a private chat; placeholder is the amount summary"), locale: .current, summary))
+            return .success(message: String(format: String(localized: "command.pay.sent_private", defaultValue: "Sent %@ — cashu is a bearer token; whoever redeems it first gets the funds", comment: "Confirmation after sending a cashu token in a private chat; placeholder is the amount summary"), locale: .current, summary))
         }
 
         guard confirmedPublic else {
-            return .error(message: String(localized: "command.pay.public_confirm", defaultValue: "this is a public channel — anyone reading it can redeem the token. send anyway: /pay <token> public", comment: "Confirmation gate before sending a cashu token to a public channel"))
+            return .error(message: String(localized: "command.pay.public_confirm", defaultValue: "This is a public channel — anyone reading it can redeem the token. Send anyway: /pay <token> public", comment: "Confirmation gate before sending a cashu token to a public channel"))
         }
 
         contextProvider?.sendPublicMessage(token)
-        return .success(message: String(format: String(localized: "command.pay.sent_public", defaultValue: "sent %@ to the public channel — anyone here can redeem it", comment: "Confirmation after sending a cashu token to a public channel; placeholder is the amount summary"), locale: .current, summary))
+        return .success(message: String(format: String(localized: "command.pay.sent_public", defaultValue: "Sent %@ to the public channel — anyone here can redeem it", comment: "Confirmation after sending a cashu token to a public channel; placeholder is the amount summary"), locale: .current, summary))
     }
 
 

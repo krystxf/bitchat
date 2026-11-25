@@ -65,7 +65,7 @@ struct LocationPoWMiningBar: View {
 
 extension LocationPoWMiningBar {
     enum Strings {
-        static let mining = String(localized: "content.pow.mining", defaultValue: "mining proof of work…", comment: "Shown above the composer while a location channel message is still doing its proof of work before it is sent")
-        static let sendNow = String(localized: "content.pow.send_now", defaultValue: "send now", comment: "Button above the composer that sends a location channel message right away with the proof of work done so far")
+        static let mining = String(localized: "content.pow.mining", defaultValue: "Mining proof of work…", comment: "Shown above the composer while a location channel message is still doing its proof of work before it is sent")
+        static let sendNow = String(localized: "content.pow.send_now", defaultValue: "Send now", comment: "Button above the composer that sends a location channel message right away with the proof of work done so far")
     }
 }

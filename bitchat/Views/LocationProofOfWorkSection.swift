@@ -44,9 +44,7 @@ struct LocationProofOfWorkSection: View {
                 .pickerStyle(.menu)
             }
         } header: {
-            // Same treatment as the other settings headers: the catalog
-            // keeps them all caps, the form shows them in title case.
-            Text(verbatim: Strings.header.localizedCapitalized)
+            Text(verbatim: Strings.header)
         } footer: {
             if isEnabled {
                 Text(verbatim: Strings.footer)
@@ -122,14 +120,14 @@ extension LocationProofOfWorkSection {
 
 extension LocationProofOfWorkSection {
     enum Strings {
-        static let header = String(localized: "app_info.settings.location_channels.title", defaultValue: "LOCATION CHANNELS", comment: "Section header (uppercase) for location channel settings such as proof of work")
-        static let title = String(localized: "app_info.settings.pow.title", defaultValue: "proof of work", comment: "Title of the setting that makes the device do NIP-13 proof of work before each location channel message")
-        static let subtitle = String(localized: "app_info.settings.pow.subtitle", defaultValue: "your device does a little extra work before each location channel message. it takes you a moment but makes flooding a channel slow for spammers, and apps that check it let your messages past their spam limits. on by default.", comment: "Subtitle explaining what proof of work on location channel messages does and why")
-        static let difficulty = String(localized: "app_info.settings.pow.difficulty", defaultValue: "difficulty", comment: "Label of the picker that chooses how much proof of work each location channel message carries")
-        static let footer = String(localized: "app_info.settings.pow.footer", defaultValue: "each step takes 16 times the work of the one before. times are estimates for an older phone. a message never waits more than a minute: if mining runs long, or you send again, it goes out with the work done so far.", comment: "Footer under the proof of work settings explaining the difficulty levels, the time estimates, and the one-minute limit")
+        static let header = String(localized: "app_info.settings.location_channels.title", defaultValue: "Location Channels", comment: "Section header (uppercase) for location channel settings such as proof of work")
+        static let title = String(localized: "app_info.settings.pow.title", defaultValue: "Proof of Work", comment: "Title of the setting that makes the device do NIP-13 proof of work before each location channel message")
+        static let subtitle = String(localized: "app_info.settings.pow.subtitle", defaultValue: "Your device does a little extra work before each location channel message. It takes you a moment but makes flooding a channel slow for spammers, and apps that check it let your messages past their spam limits. On by default.", comment: "Subtitle explaining what proof of work on location channel messages does and why")
+        static let difficulty = String(localized: "app_info.settings.pow.difficulty", defaultValue: "Difficulty", comment: "Label of the picker that chooses how much proof of work each location channel message carries")
+        static let footer = String(localized: "app_info.settings.pow.footer", defaultValue: "Each step takes 16 times the work of the one before. Times are estimates for an older phone. A message never waits more than a minute: if mining runs long, or you send again, it goes out with the work done so far.", comment: "Footer under the proof of work settings explaining the difficulty levels, the time estimates, and the one-minute limit")
 
-        static let hideUnprovenTitle = String(localized: "app_info.settings.pow.hide_unproven.title", defaultValue: "hide messages without proof of work", comment: "Title of the setting that hides incoming location channel messages that carry no proof of work")
-        static let hideUnprovenFooter = String(localized: "app_info.settings.pow.hide_unproven.footer", defaultValue: "hides location channel messages that carry no proof of work. many apps don't add it, including older versions of this one, so with this on you stop seeing the people who use them, and they can't tell. off by default.", comment: "Footer explaining that hiding messages without proof of work also hides everyone on older or other clients, without them knowing")
+        static let hideUnprovenTitle = String(localized: "app_info.settings.pow.hide_unproven.title", defaultValue: "Hide Messages Without Proof of Work", comment: "Title of the setting that hides incoming location channel messages that carry no proof of work")
+        static let hideUnprovenFooter = String(localized: "app_info.settings.pow.hide_unproven.footer", defaultValue: "Hides location channel messages that carry no proof of work. Many apps don't add it, including older versions of this one, so with this on you stop seeing the people who use them, and they can't tell. Off by default.", comment: "Footer explaining that hiding messages without proof of work also hides everyone on older or other clients, without them knowing")
 
         /// One picker option: "16 bits · under a second".
         static func level(_ bits: Int) -> String {
@@ -147,15 +145,15 @@ extension LocationProofOfWorkSection {
         static func estimate(_ estimate: MiningTimeEstimate) -> String {
             switch estimate {
             case .instant:
-                return String(localized: "app_info.settings.pow.time.instant", defaultValue: "instant", comment: "Estimated mining time for a proof of work level that finishes at once")
+                return String(localized: "app_info.settings.pow.time.instant", defaultValue: "Instant", comment: "Estimated mining time for a proof of work level that finishes at once")
             case .underASecond:
-                return String(localized: "app_info.settings.pow.time.under_second", defaultValue: "under a second", comment: "Estimated mining time for a proof of work level that takes less than one second")
+                return String(localized: "app_info.settings.pow.time.under_second", defaultValue: "Under a second", comment: "Estimated mining time for a proof of work level that takes less than one second")
             case .about(let seconds):
                 let duration = Duration.seconds(seconds).formatted(
                     .units(allowed: [.hours, .minutes, .seconds], width: .abbreviated, maximumUnitCount: 1)
                 )
                 return String(
-                    format: String(localized: "app_info.settings.pow.time.about", defaultValue: "about %@", comment: "Estimated mining time for a proof of work level; %@ is a short duration such as 4 sec or 1 min"),
+                    format: String(localized: "app_info.settings.pow.time.about", defaultValue: "About %@", comment: "Estimated mining time for a proof of work level; %@ is a short duration such as 4 sec or 1 min"),
                     locale: .current,
                     duration
                 )

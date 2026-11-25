@@ -52,23 +52,23 @@ struct AppInfoView: View {
         /// New keys carry their English copy inline (defaultValue) until the
         /// i18n pass lands them in the catalog; moved keys keep their homes.
         enum Settings {
-            static let tabPickerLabel = String(localized: "app_info.tab.picker_label", defaultValue: "view", comment: "Accessibility label for the segmented control switching between the settings and info panes of the app info sheet")
-            static let tabSettings = String(localized: "app_info.tab.settings", defaultValue: "settings", comment: "Segmented control label for the settings pane of the app info sheet")
-            static let tabInfo = String(localized: "app_info.tab.info", defaultValue: "info", comment: "Segmented control label for the info pane of the app info sheet")
+            static let tabPickerLabel = String(localized: "app_info.tab.picker_label", defaultValue: "View", comment: "Accessibility label for the segmented control switching between the settings and info panes of the app info sheet")
+            static let tabSettings = String(localized: "app_info.tab.settings", defaultValue: "Settings", comment: "Segmented control label for the settings pane of the app info sheet")
+            static let tabInfo = String(localized: "app_info.tab.info", defaultValue: "Info", comment: "Segmented control label for the info pane of the app info sheet")
 
-            static let connectivityTitle = String(localized: "app_info.settings.connectivity.title", defaultValue: "CONNECTIVITY", comment: "Section header (uppercase) for the connectivity toggles: mesh bridge, internet gateway, tor routing")
+            static let connectivityTitle = String(localized: "app_info.settings.connectivity.title", defaultValue: "Connectivity", comment: "Section header (uppercase) for the connectivity toggles: mesh bridge, internet gateway, tor routing")
 
 
-            static let bridgeTitle = String(localized: "app_info.settings.bridge.title", defaultValue: "mesh bridge", comment: "Title of the mesh bridge toggle in settings")
-            static let bridgeSubtitle = String(localized: "app_info.settings.bridge.subtitle", defaultValue: "joins nearby mesh islands over the internet: what you say in the mesh channel also reaches people in your area beyond radio range, and their messages appear here marked with the network glyph. while you have internet, your device also carries bridge and location-channel traffic for phones around you that have none.", comment: "Subtitle explaining what the mesh bridge toggle does")
+            static let bridgeTitle = String(localized: "app_info.settings.bridge.title", defaultValue: "Mesh Bridge", comment: "Title of the mesh bridge toggle in settings")
+            static let bridgeSubtitle = String(localized: "app_info.settings.bridge.subtitle", defaultValue: "Joins nearby mesh islands over the internet: what you say in the mesh channel also reaches people in your area beyond radio range, and their messages appear here marked with the network glyph. While you have internet, your device also carries bridge and location-channel traffic for phones around you that have none.", comment: "Subtitle explaining what the mesh bridge toggle does")
             static func bridgeCell(_ cell: String) -> String {
                 String(
-                    format: String(localized: "app_info.settings.bridge.cell", defaultValue: "rendezvous cell: %@", comment: "Caption under the mesh bridge toggle showing the geohash cell the bridge is meeting on"),
+                    format: String(localized: "app_info.settings.bridge.cell", defaultValue: "Rendezvous cell: %@", comment: "Caption under the mesh bridge toggle showing the geohash cell the bridge is meeting on"),
                     locale: .current,
                     cell
                 )
             }
-            static let bridgeNoCell = String(localized: "app_info.settings.bridge.no_cell", defaultValue: "no rendezvous cell yet — needs location access or a nearby bridge peer", comment: "Caption under the mesh bridge toggle when the bridge is on but has no geohash cell to meet on")
+            static let bridgeNoCell = String(localized: "app_info.settings.bridge.no_cell", defaultValue: "No rendezvous cell yet — needs location access or a nearby bridge peer", comment: "Caption under the mesh bridge toggle when the bridge is on but has no geohash cell to meet on")
 
             // Moved from LocationChannelsSheet; keys unchanged. (The former
             // internet-gateway toggle is gone: the bridge switch drives all
@@ -78,53 +78,53 @@ struct AppInfoView: View {
             // setting as location-channels-only. It covers private messages and
             // relay-directory refreshes too, and said nothing about the cost of
             // switching it off.
-            static let torSubtitle = String(localized: "app_info.settings.tor.subtitle", defaultValue: "sends internet traffic through tor, so relay operators see tor's address instead of yours. covers location channels and private messages delivered over the internet. recommended: on.", comment: "Subtitle for the tor routing toggle in settings, explaining what it covers")
-            static let torOffWarning = String(localized: "app_info.settings.tor.off_warning", defaultValue: "tor is off: every relay you connect to can see your IP address, including relays carrying your private messages.", comment: "Warning shown under the tor toggle while tor is switched off, stating that relay operators can see the device IP address")
+            static let torSubtitle = String(localized: "app_info.settings.tor.subtitle", defaultValue: "Sends internet traffic through tor, so relay operators see tor's address instead of yours. Covers location channels and private messages delivered over the internet. Recommended: on.", comment: "Subtitle for the tor routing toggle in settings, explaining what it covers")
+            static let torOffWarning = String(localized: "app_info.settings.tor.off_warning", defaultValue: "Tor is off: every relay you connect to can see your IP address, including relays carrying your private messages.", comment: "Warning shown under the tor toggle while tor is switched off, stating that relay operators can see the device IP address")
 
-            static let relaysTitle = String(localized: "app_info.settings.relays.title", defaultValue: "private message relays", comment: "Title of the relay list editor in settings")
-            static let relaysSubtitle = String(localized: "app_info.settings.relays.subtitle", defaultValue: "when the mesh can't reach someone, private messages travel through these relays. the built-in ones are well-known addresses that a network filter can block, so you can add your own — including .onion addresses.", comment: "Subtitle explaining what the relay list is for and why someone would add a relay")
-            static let relayBuiltIn = String(localized: "app_info.settings.relays.built_in", defaultValue: "built in", comment: "Label marking a relay as one of the built-in relays, which cannot be removed")
-            static let relayPlaceholder = String(localized: "app_info.settings.relays.placeholder", defaultValue: "wss://relay.example.com", comment: "Placeholder text in the field for adding a relay address")
-            static let relayAdd = String(localized: "app_info.settings.relays.add", defaultValue: "add", comment: "Button that adds the typed relay address to the list")
-            static let relayRemove = String(localized: "app_info.settings.relays.remove", defaultValue: "remove relay", comment: "Accessibility label for the button that removes an added relay")
+            static let relaysTitle = String(localized: "app_info.settings.relays.title", defaultValue: "Private Message Relays", comment: "Title of the relay list editor in settings")
+            static let relaysSubtitle = String(localized: "app_info.settings.relays.subtitle", defaultValue: "When the mesh can't reach someone, private messages travel through these relays. The built-in ones are well-known addresses that a network filter can block, so you can add your own — including .onion addresses.", comment: "Subtitle explaining what the relay list is for and why someone would add a relay")
+            static let relayBuiltIn = String(localized: "app_info.settings.relays.built_in", defaultValue: "Built in", comment: "Label marking a relay as one of the built-in relays, which cannot be removed")
+            static let relayPlaceholder = String(localized: "app_info.settings.relays.placeholder", defaultValue: "Wss://relay.example.com", comment: "Placeholder text in the field for adding a relay address")
+            static let relayAdd = String(localized: "app_info.settings.relays.add", defaultValue: "Add", comment: "Button that adds the typed relay address to the list")
+            static let relayRemove = String(localized: "app_info.settings.relays.remove", defaultValue: "Remove relay", comment: "Accessibility label for the button that removes an added relay")
 
             static func relayError(_ failure: NostrRelaySettings.AddFailure) -> String {
                 switch failure {
                 case .malformed:
-                    return String(localized: "app_info.settings.relays.error.malformed", defaultValue: "that doesn't look like a relay address. try wss://host.", comment: "Error shown when a typed relay address cannot be parsed")
+                    return String(localized: "app_info.settings.relays.error.malformed", defaultValue: "That doesn't look like a relay address. Try wss://host.", comment: "Error shown when a typed relay address cannot be parsed")
                 case .alreadyPresent:
-                    return String(localized: "app_info.settings.relays.error.duplicate", defaultValue: "that relay is already in the list.", comment: "Error shown when the typed relay address is already in the list")
+                    return String(localized: "app_info.settings.relays.error.duplicate", defaultValue: "That relay is already in the list.", comment: "Error shown when the typed relay address is already in the list")
                 case .limitReached:
                     return String(
-                        format: String(localized: "app_info.settings.relays.error.limit", defaultValue: "you can add up to %d relays.", comment: "Error shown when the relay list is already at its maximum size; %d is that maximum"),
+                        format: String(localized: "app_info.settings.relays.error.limit", defaultValue: "You can add up to %d relays.", comment: "Error shown when the relay list is already at its maximum size; %d is that maximum"),
                         locale: .current,
                         NostrRelaySettings.maxCustomRelays
                     )
                 }
             }
-            static let privacyTitle = String(localized: "app_info.settings.privacy.title", defaultValue: "PRIVACY", comment: "Section header (uppercase) for privacy settings such as hiding notification previews")
-            static let hidePreviewsTitle = String(localized: "app_info.settings.hide_previews.title", defaultValue: "hide message previews", comment: "Title of the setting that keeps message text, sender names, and geohashes out of lock-screen notifications")
-            static let hidePreviewsSubtitle = String(localized: "app_info.settings.hide_previews.subtitle", defaultValue: "notifications say that something arrived without showing the message, who sent it, or which location channel it came from. anyone holding your locked phone learns nothing from the lock screen. on by default.", comment: "Subtitle explaining what hiding notification message previews does")
-            static let autoRevealFavoritesTitle = String(localized: "app_info.settings.auto_reveal_favorites.title", defaultValue: "show images from favorites", comment: "Title of the setting that shows images from favorite contacts without the tap-to-reveal blur")
-            static let autoRevealFavoritesSubtitle = String(localized: "app_info.settings.auto_reveal_favorites.subtitle", defaultValue: "images from people you marked as favorites show right away. images from everyone else stay blurred until you tap them. off by default.", comment: "Subtitle explaining that only favorite contacts' images skip the blur")
+            static let privacyTitle = String(localized: "app_info.settings.privacy.title", defaultValue: "Privacy", comment: "Section header (uppercase) for privacy settings such as hiding notification previews")
+            static let hidePreviewsTitle = String(localized: "app_info.settings.hide_previews.title", defaultValue: "Hide Message Previews", comment: "Title of the setting that keeps message text, sender names, and geohashes out of lock-screen notifications")
+            static let hidePreviewsSubtitle = String(localized: "app_info.settings.hide_previews.subtitle", defaultValue: "Notifications say that something arrived without showing the message, who sent it, or which location channel it came from. Anyone holding your locked phone learns nothing from the lock screen. On by default.", comment: "Subtitle explaining what hiding notification message previews does")
+            static let autoRevealFavoritesTitle = String(localized: "app_info.settings.auto_reveal_favorites.title", defaultValue: "Show Images from Favorites", comment: "Title of the setting that shows images from favorite contacts without the tap-to-reveal blur")
+            static let autoRevealFavoritesSubtitle = String(localized: "app_info.settings.auto_reveal_favorites.subtitle", defaultValue: "Images from people you marked as favorites show right away. Images from everyone else stay blurred until you tap them. Off by default.", comment: "Subtitle explaining that only favorite contacts' images skip the blur")
 
-            static let extremeSecurityTitle = String(localized: "app_info.settings.extreme_security.title", defaultValue: "extreme security mode", comment: "Title of the setting that deletes every message when the user leaves the app")
+            static let extremeSecurityTitle = String(localized: "app_info.settings.extreme_security.title", defaultValue: "Extreme Security Mode", comment: "Title of the setting that deletes every message when the user leaves the app")
             /// When the mode applies differs: leaving the app on iOS, quitting
             /// or closing the window on macOS (see `ExtremeSecurityExitPolicy`).
             #if os(macOS)
-            static let extremeSecuritySubtitle = String(localized: "app_info.settings.extreme_security.subtitle_macos", defaultValue: "deletes every message, image and voice note when you quit the app or close its window. your identity, contacts and settings stay. off by default.", comment: "Subtitle of the extreme security mode setting on Mac: what is deleted when the user quits the app or closes its window, and what stays")
+            static let extremeSecuritySubtitle = String(localized: "app_info.settings.extreme_security.subtitle_macos", defaultValue: "Deletes every message, image and voice note when you quit the app or close its window. Your identity, contacts and settings stay. Off by default.", comment: "Subtitle of the extreme security mode setting on Mac: what is deleted when the user quits the app or closes its window, and what stays")
             #else
-            static let extremeSecuritySubtitle = String(localized: "app_info.settings.extreme_security.subtitle_ios", defaultValue: "deletes every message, image and voice note as soon as you leave the app. your identity, contacts and settings stay. off by default.", comment: "Subtitle of the extreme security mode setting on iPhone and iPad: what is deleted when the user leaves the app (goes home or switches apps) and what stays")
+            static let extremeSecuritySubtitle = String(localized: "app_info.settings.extreme_security.subtitle_ios", defaultValue: "Deletes every message, image and voice note as soon as you leave the app. Your identity, contacts and settings stay. Off by default.", comment: "Subtitle of the extreme security mode setting on iPhone and iPad: what is deleted when the user leaves the app (goes home or switches apps) and what stays")
             #endif
-            static let extremeSecurityConfirmTitle = String(localized: "app_info.settings.extreme_security.confirm_title", defaultValue: "turn on extreme security mode?", comment: "Title of the confirmation dialog shown before extreme security mode is turned on")
-            static let extremeSecurityConfirmMessage = String(localized: "app_info.settings.extreme_security.confirm_message", defaultValue: "deleted messages can't be recovered, not even by you. messages that haven't reached their recipient yet are dropped too.", comment: "Message of the confirmation dialog before extreme security mode is turned on: deleted messages are gone for good, and undelivered outgoing messages are dropped")
-            static let extremeSecurityConfirmAction = String(localized: "app_info.settings.extreme_security.confirm_action", defaultValue: "turn on", comment: "Destructive button in the confirmation dialog that turns extreme security mode on")
+            static let extremeSecurityConfirmTitle = String(localized: "app_info.settings.extreme_security.confirm_title", defaultValue: "Turn on extreme security mode?", comment: "Title of the confirmation dialog shown before extreme security mode is turned on")
+            static let extremeSecurityConfirmMessage = String(localized: "app_info.settings.extreme_security.confirm_message", defaultValue: "Deleted messages can't be recovered, not even by you. Messages that haven't reached their recipient yet are dropped too.", comment: "Message of the confirmation dialog before extreme security mode is turned on: deleted messages are gone for good, and undelivered outgoing messages are dropped")
+            static let extremeSecurityConfirmAction = String(localized: "app_info.settings.extreme_security.confirm_action", defaultValue: "Turn on", comment: "Destructive button in the confirmation dialog that turns extreme security mode on")
 
-            static let dangerTitle = String(localized: "app_info.settings.danger.title", defaultValue: "DANGER ZONE", comment: "Section header (uppercase) for destructive actions in settings")
-            static let panicButton = String(localized: "app_info.settings.danger.panic_button", defaultValue: "panic wipe", comment: "Button in the settings danger zone that erases all local data after confirmation")
-            static let panicNote = String(localized: "app_info.settings.danger.panic_note", defaultValue: "erases all messages, keys, and identity. triple-tapping the bitchat/ logo does the same, instantly.", comment: "Caption under the panic wipe button explaining what it does and the triple-tap shortcut")
-            static let panicConfirmTitle = String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")
-            static let panicConfirmAction = String(localized: "app_info.settings.danger.panic_confirm_action", defaultValue: "wipe everything", comment: "Destructive confirmation button that performs the panic wipe")
+            static let dangerTitle = String(localized: "app_info.settings.danger.title", defaultValue: "Danger Zone", comment: "Section header (uppercase) for destructive actions in settings")
+            static let panicButton = String(localized: "app_info.settings.danger.panic_button", defaultValue: "Panic wipe", comment: "Button in the settings danger zone that erases all local data after confirmation")
+            static let panicNote = String(localized: "app_info.settings.danger.panic_note", defaultValue: "Erases all messages, keys, and identity. Triple-tapping the bitchat/ logo does the same.", comment: "Caption under the panic wipe button explaining what it does and the triple-tap shortcut")
+            static let panicConfirmTitle = String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "Wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")
+            static let panicConfirmAction = String(localized: "app_info.settings.danger.panic_confirm_action", defaultValue: "Wipe everything", comment: "Destructive confirmation button that performs the panic wipe")
         }
 
         enum Features {
@@ -161,8 +161,8 @@ struct AppInfoView: View {
             )
             static let bridge = AppInfoFeatureInfo(
                 icon: "network",
-                resolvedTitle: String(localized: "app_info.features.bridge.title", defaultValue: "mesh bridging", comment: "Feature row title for the mesh bridge in the app info sheet"),
-                resolvedDescription: String(localized: "app_info.features.bridge.description", defaultValue: "links nearby mesh islands through the internet so one crowd isn't split by radio range", comment: "Feature row description for the mesh bridge in the app info sheet")
+                resolvedTitle: String(localized: "app_info.features.bridge.title", defaultValue: "Mesh Bridging", comment: "Feature row title for the mesh bridge in the app info sheet"),
+                resolvedDescription: String(localized: "app_info.features.bridge.description", defaultValue: "Links nearby mesh islands through the internet so one crowd isn't split by radio range", comment: "Feature row description for the mesh bridge in the app info sheet")
             )
         }
 
@@ -175,7 +175,7 @@ struct AppInfoView: View {
                 ("antenna.radiowaves.left.and.right", nil, String(localized: "app_info.legend.mesh_connected")),
                 ("point.3.filled.connected.trianglepath.dotted", nil, String(localized: "app_info.legend.mesh_relayed")),
                 ("globe", nil, String(localized: "app_info.legend.nostr")),
-                ("network", Color.cyan, String(localized: "app_info.legend.bridged", defaultValue: "message arrived across a mesh bridge", comment: "Symbols legend entry for the cyan network glyph shown on messages carried across a mesh bridge")),
+                ("network", Color.cyan, String(localized: "app_info.legend.bridged", defaultValue: "Message arrived across a mesh bridge", comment: "Symbols legend entry for the cyan network glyph shown on messages carried across a mesh bridge")),
                 ("person", nil, String(localized: "app_info.legend.offline")),
                 ("mappin.and.ellipse", nil, String(localized: "app_info.legend.location_nearby")),
                 ("face.dashed", nil, String(localized: "app_info.legend.teleported")),
@@ -275,11 +275,9 @@ struct AppInfoView: View {
         }
     }
 
-    /// A section header in title case. The catalog keeps the old all-caps
-    /// headers; iOS sets its own case for grouped headers, and macOS shows
-    /// them as written.
+    /// Section header supplied in title case by the localization catalog.
     private func sectionHeader(_ title: String) -> Text {
-        Text(verbatim: title.localizedCapitalized)
+        Text(verbatim: title)
     }
 
     // MARK: - Settings pane
@@ -589,7 +587,7 @@ struct AppInfoView: View {
                 }
             }
         } header: {
-            sectionHeader(String(localized: "app_info.settings.appearance.title", defaultValue: "appearance", comment: "Settings section for chat appearance defaults"))
+            sectionHeader(String(localized: "app_info.settings.appearance.title", defaultValue: "Appearance", comment: "Settings section for chat appearance defaults"))
         }
     }
 
