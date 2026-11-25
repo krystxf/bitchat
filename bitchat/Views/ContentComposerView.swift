@@ -421,7 +421,7 @@ private extension ContentComposerView {
                 if isLive {
                     Text(
                         "live \(elapsed)",
-                        comment: "Recording HUD label while a voice message streams live to the recipient"
+                        comment: "Recording bar label while a voice message streams live to the recipient; the placeholder is the elapsed time"
                     )
                     .monospacedDigit()
                     .bitchatFont(size: 13, weight: .bold)
