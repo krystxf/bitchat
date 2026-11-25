@@ -4,10 +4,30 @@ import BitLogger
 
 /// Controls playback for a single voice note and coordinates exclusive playback across the app.
 final class VoiceNotePlaybackController: NSObject, ObservableObject, AVAudioPlayerDelegate {
+    private static let playbackRateDefaultsKey = "voiceNotePlaybackRate"
+    static let playbackRates: [Float] = [1, 1.5, 2]
+
     @Published private(set) var isPlaying: Bool = false
     @Published private(set) var currentTime: TimeInterval = 0
     @Published private(set) var duration: TimeInterval = 0
     @Published private(set) var progress: Double = 0
+    @Published private(set) var playbackRate: Float = VoiceNotePlaybackController.storedPlaybackRate
+
+    private static var storedPlaybackRate: Float {
+        let stored = UserDefaults.standard.float(forKey: playbackRateDefaultsKey)
+        return playbackRates.contains(stored) ? stored : 1
+    }
+
+    static func nextPlaybackRate(after rate: Float) -> Float {
+        guard let index = playbackRates.firstIndex(of: rate) else { return playbackRates[0] }
+        return playbackRates[(index + 1) % playbackRates.count]
+    }
+
+    func cyclePlaybackRate() {
+        playbackRate = Self.nextPlaybackRate(after: playbackRate)
+        UserDefaults.standard.set(playbackRate, forKey: Self.playbackRateDefaultsKey)
+        player?.rate = playbackRate
+    }
 
     /// Internal lifecycle visibility for deterministic acquisition tests.
     var isPlaybackStartPending: Bool { sessionAcquireInFlight }
@@ -162,6 +182,8 @@ final class VoiceNotePlaybackController: NSObject, ObservableObject, AVAudioPlay
         // hardware outside the AudioSessionCoordinator token lifetime.
         do {
             let player = try AVAudioPlayer(contentsOf: url)
+            player.enableRate = true
+            player.rate = playbackRate
             player.delegate = self
             self.player = player
             duration = player.duration
@@ -230,7 +252,10 @@ final class VoiceNotePlaybackController: NSObject, ObservableObject, AVAudioPlay
 
     @discardableResult
     private func startPreparedPlayer() -> Bool {
-        guard let player,
+        guard let player else { return false }
+        player.enableRate = true
+        player.rate = playbackRate
+        guard
               player.prepareToPlay(),
               player.play()
         else {

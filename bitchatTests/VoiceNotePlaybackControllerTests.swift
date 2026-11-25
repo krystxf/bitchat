@@ -46,6 +46,13 @@ private struct PlaybackSessionError: Error {}
 
 @MainActor
 struct VoiceNotePlaybackControllerTests {
+    @Test func playbackRateCyclesThroughSupportedSpeeds() {
+        #expect(VoiceNotePlaybackController.nextPlaybackRate(after: 1) == 1.5)
+        #expect(VoiceNotePlaybackController.nextPlaybackRate(after: 1.5) == 2)
+        #expect(VoiceNotePlaybackController.nextPlaybackRate(after: 2) == 1)
+        #expect(VoiceNotePlaybackController.nextPlaybackRate(after: 1.25) == 1)
+    }
+
     /// A short silent PCM file `AVAudioPlayer` can open on the test host.
     private func makeTempVoiceNote(seconds: Double = 0.2) throws -> URL {
         let url = FileManager.default.temporaryDirectory
