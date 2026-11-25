@@ -37,18 +37,12 @@ private struct SidebarMeshPeerRow: View {
     @EnvironmentObject private var peerListModel: PeerListModel
     @EnvironmentObject private var appChromeModel: AppChromeModel
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
-    @Environment(\.colorScheme) private var colorScheme
-    @ThemedPalette private var palette
 
     let peer: MeshPeerRow
     let onOpen: (PeerID) -> Void
 
     private enum Strings {
         static let blockedTooltip = String(localized: "geohash_people.tooltip.blocked", comment: "Tooltip shown next to a blocked peer indicator")
-        static let connected = String(localized: "content.accessibility.connected_mesh", comment: "Accessibility label for mesh-connected peer indicator")
-        static let reachable = String(localized: "content.accessibility.reachable_mesh", comment: "Accessibility label for mesh-reachable peer indicator")
-        static let nostr = String(localized: "content.accessibility.available_nostr", comment: "Accessibility label for Nostr-available peer indicator")
-        static let offline = String(localized: "mesh_peers.state.offline", comment: "State label for a peer that is not currently reachable")
         static let favorite = String(localized: "mesh_peers.state.favorite", comment: "State label for a favorited peer")
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")
         static let blocked = String(localized: "mesh_peers.state.blocked", comment: "State label for a blocked peer")
@@ -146,12 +140,10 @@ private struct SidebarMeshPeerRow: View {
     }
 
     private var rowContent: some View {
-        let reachability = self.reachability
-        return PeopleRow(
-            systemImage: reachability.icon,
-            iconColor: reachability.color,
-            subtitle: reachability.label
-        ) {
+        let presence = peer.presence
+        return PeopleRow(subtitle: presence.label) {
+            SidebarPersonAvatar(name: peer.displayName, peerID: peer.peerID, presence: presence)
+        } title: {
             PeopleRowName(name: peer.displayName)
         } accessories: {
             if peer.isBlocked {
@@ -183,24 +175,6 @@ private struct SidebarMeshPeerRow: View {
         }
     }
 
-    /// The leading glyph encodes HOW the peer is reachable (radio, relayed,
-    /// Nostr). The tint is the color the peer's name has in the chat, which
-    /// ties the row to their messages.
-    private var reachability: (icon: String, color: Color, label: String) {
-        let assigned = peerListModel.colorForMeshPeer(id: peer.peerID, isDark: colorScheme == .dark)
-        if peer.isConnected {
-            return ("antenna.radiowaves.left.and.right", assigned, Strings.connected)
-        }
-        if peer.isReachable {
-            return ("point.3.filled.connected.trianglepath.dotted", assigned, Strings.reachable)
-        }
-        if peer.isMutualFavorite {
-            return ("globe", .purple, Strings.nostr)
-        }
-        // Offline: the slashed variant of the connected glyph.
-        return ("antenna.radiowaves.left.and.right.slash", palette.secondary, Strings.offline)
-    }
-
     /// Connected peers show their live session state. Offline peers prefer
     /// the verified seal from persisted fingerprints, then whatever the last
     /// session left (likely a lock).
@@ -214,16 +188,7 @@ private struct SidebarMeshPeerRow: View {
     /// One spoken sentence per row: name, how they're reachable, and any
     /// state badges. The visual row is icon soup for VoiceOver otherwise.
     private var accessibilityDescription: String {
-        var parts: [String] = [peer.displayName]
-        if peer.isConnected {
-            parts.append(Strings.connected)
-        } else if peer.isReachable {
-            parts.append(Strings.reachable)
-        } else if peer.isMutualFavorite {
-            parts.append(Strings.nostr)
-        } else {
-            parts.append(Strings.offline)
-        }
+        var parts: [String] = [peer.displayName, peer.presence.label]
         if peer.showsVouchedBadge { parts.append(Strings.vouched) }
         if peer.isFavorite { parts.append(Strings.favorite) }
         if peer.hasUnread { parts.append(Strings.unread) }
@@ -255,7 +220,6 @@ struct SidebarGeohashPeopleRows: View {
 
 private struct SidebarGeohashPersonRow: View {
     @EnvironmentObject private var peerListModel: PeerListModel
-    @Environment(\.colorScheme) private var colorScheme
 
     let person: GeohashPersonRow
     let onOpen: (PeerID) -> Void
@@ -264,19 +228,16 @@ private struct SidebarGeohashPersonRow: View {
         static let blockedTooltip = String(localized: "geohash_people.tooltip.blocked", comment: "Tooltip shown next to users blocked in geohash channels")
         static let unblock = String(localized: "geohash_people.action.unblock", comment: "Context menu action to unblock a person")
         static let block = String(localized: "geohash_people.action.block", comment: "Context menu action to block a person")
-        static let teleported = String(localized: "geohash_people.state.teleported", comment: "State label for someone who joined the location channel from elsewhere")
-        static let nearby = String(localized: "geohash_people.state.nearby", comment: "State label for someone physically in the location channel's area")
         static let blockedState = String(localized: "mesh_peers.state.blocked", comment: "State label for a blocked peer")
         static let openDMHint = String(localized: "mesh_peers.accessibility.open_dm_hint", comment: "Accessibility hint on a peer row explaining activation opens a private chat")
         static let directMessage = String(localized: "content.actions.direct_message", comment: "Action that opens a private chat with the person")
     }
 
     var body: some View {
-        PeopleRow(
-            systemImage: person.isTeleported ? "face.dashed" : "mappin.and.ellipse",
-            iconColor: peerListModel.colorForGeohashPerson(id: person.id, isDark: colorScheme == .dark),
-            subtitle: person.isTeleported ? Strings.teleported : Strings.nearby
-        ) {
+        PeopleRow(subtitle: person.presence.label) {
+            // Seeded by their Nostr key, as beside their channel messages.
+            SidebarPersonAvatar(name: person.displayName, peerID: PeerID(nostr_: person.id), presence: person.presence)
+        } title: {
             PeopleRowName(name: person.displayName)
         } accessories: {
             if person.isBlocked {
@@ -326,8 +287,7 @@ private struct SidebarGeohashPersonRow: View {
 
     /// One spoken sentence per row: name, presence type, and block state.
     private var accessibilityDescription: String {
-        var parts: [String] = [person.displayName]
-        parts.append(person.isTeleported ? Strings.teleported : Strings.nearby)
+        var parts: [String] = [person.displayName, person.presence.label]
         if person.isBlocked { parts.append(Strings.blockedState) }
         return parts.joined(separator: ", ")
     }
@@ -352,7 +312,6 @@ private struct SidebarChatRow: View {
     @EnvironmentObject private var peerListModel: PeerListModel
     @EnvironmentObject private var appChromeModel: AppChromeModel
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
-    @ThemedPalette private var palette
 
     let chat: RecentChatRow
     let onOpen: (PeerID) -> Void
@@ -379,11 +338,11 @@ private struct SidebarChatRow: View {
     private var hasMeshIdentity: Bool { !chat.peerID.isGeoDM }
 
     var body: some View {
-        PeopleRow(
-            systemImage: "bubble.left.and.bubble.right",
-            iconColor: palette.secondary,
-            subtitle: lastActivityText
-        ) {
+        // No presence badge: nobody listed here is in a roster, and the
+        // detail line is the last activity, as in Messages.
+        PeopleRow(subtitle: lastActivityText) {
+            SidebarPersonAvatar(name: chat.displayName, peerID: chat.peerID)
+        } title: {
             PeopleRowName(name: chat.displayName)
         } accessories: {
             if chat.hasUnread {
@@ -489,16 +448,14 @@ struct SidebarBridgedPeopleRows: View {
 
     private enum Strings {
         static let rowHint = String(localized: "bridge_people.accessibility.row_hint", defaultValue: "In your area, connected through the bridge", comment: "Accessibility hint for a person listed in the bridge section of the people sheet")
-        static let acrossTheBridge = String(localized: "bridge_people.section_title", defaultValue: "across the bridge", comment: "Section header in the people sheet for participants reachable via the mesh bridge")
     }
 
     var body: some View {
         ForEach(people) { person in
-            PeopleRow(
-                systemImage: "network",
-                iconColor: Color.cyan,
-                subtitle: Strings.acrossTheBridge
-            ) {
+            PeopleRow(subtitle: PersonPresence.bridged.label) {
+                // The seed of their bridged messages' sender ID.
+                SidebarPersonAvatar(name: person.displayName, peerID: PeerID(bridge: person.pubkey), presence: .bridged)
+            } title: {
                 PeopleRowName(name: person.displayName)
             }
             .accessibilityElement(children: .ignore)
@@ -521,11 +478,9 @@ struct SidebarGroupRow: View {
     }
 
     var body: some View {
-        PeopleRow(
-            systemImage: "person.3.fill",
-            iconColor: Color.accentColor,
-            subtitle: memberCount
-        ) {
+        PeopleRow(subtitle: memberCount) {
+            PeopleRowGlyph(systemImage: "person.3.fill", color: Color.accentColor)
+        } title: {
             hashtagText
                 .lineLimit(1)
                 .truncationMode(.tail)

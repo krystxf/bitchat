@@ -63,7 +63,7 @@ extension InitialsAvatar {
     }
 }
 
-private extension Color {
+extension Color {
     init(avatarRGB rgb: AvatarIdentity.RGB) {
         self.init(
             .sRGB,

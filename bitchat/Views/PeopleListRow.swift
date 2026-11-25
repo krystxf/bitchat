@@ -8,34 +8,27 @@
 
 import SwiftUI
 
-/// The standard row of the sidebar's people and groups: a leading glyph, a
-/// title with an optional detail line under it, and trailing accessories
-/// (unread, favorite).
+/// The standard row of the sidebar's people and groups: a leading icon (an
+/// avatar or a glyph), a title with an optional detail line under it, and
+/// trailing accessories (unread, favorite).
 ///
 /// Text uses the hierarchical `.primary`/`.secondary` styles, not concrete
 /// colors, so a selected sidebar row switches it to the highlight's text
 /// color.
-struct PeopleRow<Title: View, Accessories: View>: View {
-    /// One column width for every leading glyph, so names line up even
-    /// though the glyphs differ in width. Scales with Dynamic Type.
-    @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 28
-
-    let systemImage: String
-    let iconColor: Color
+struct PeopleRow<Icon: View, Title: View, Accessories: View>: View {
     let subtitle: String?
+    let icon: Icon
     let title: Title
     let accessories: Accessories
 
     init(
-        systemImage: String,
-        iconColor: Color,
         subtitle: String? = nil,
+        @ViewBuilder icon: () -> Icon,
         @ViewBuilder title: () -> Title,
         @ViewBuilder accessories: () -> Accessories
     ) {
-        self.systemImage = systemImage
-        self.iconColor = iconColor
         self.subtitle = subtitle
+        self.icon = icon()
         self.title = title()
         self.accessories = accessories()
     }
@@ -53,9 +46,7 @@ struct PeopleRow<Title: View, Accessories: View>: View {
                     }
                 }
             } icon: {
-                Image(systemName: systemImage)
-                    .foregroundColor(iconColor)
-                    .frame(width: iconWidth)
+                icon
             }
             Spacer(minLength: 8)
             HStack(spacing: 8) {
@@ -70,18 +61,27 @@ struct PeopleRow<Title: View, Accessories: View>: View {
 
 extension PeopleRow where Accessories == EmptyView {
     init(
-        systemImage: String,
-        iconColor: Color,
         subtitle: String? = nil,
+        @ViewBuilder icon: () -> Icon,
         @ViewBuilder title: () -> Title
     ) {
-        self.init(
-            systemImage: systemImage,
-            iconColor: iconColor,
-            subtitle: subtitle,
-            title: title,
-            accessories: { EmptyView() }
-        )
+        self.init(subtitle: subtitle, icon: icon, title: title, accessories: { EmptyView() })
+    }
+}
+
+/// A tinted SF Symbol as a row's leading icon.
+struct PeopleRowGlyph: View {
+    /// One column width for every glyph, so names line up even though the
+    /// glyphs differ in width. Scales with Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var width: CGFloat = 28
+
+    let systemImage: String
+    let color: Color
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .foregroundColor(color)
+            .frame(width: width)
     }
 }
 
