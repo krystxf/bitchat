@@ -669,8 +669,7 @@ struct LocationChannelsSheet: View {
 }
 
 // MARK: - Standardized Colors
-// (The tor and internet-gateway toggles moved to AppInfoView's Settings pane;
-// IRCToggleStyle now lives in Views/Components.)
+// (The tor and internet-gateway toggles moved to AppInfoView's Settings pane.)
 extension LocationChannelsSheet {
     private var standardGreen: Color { palette.primary }
     private var standardBlue: Color { palette.accentBlue }

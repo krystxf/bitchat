@@ -105,9 +105,6 @@ struct AppInfoView: View {
                     )
                 }
             }
-            static let toggleOn: LocalizedStringKey = "common.toggle.on"
-            static let toggleOff: LocalizedStringKey = "common.toggle.off"
-
             static let privacyTitle = String(localized: "app_info.settings.privacy.title", defaultValue: "PRIVACY", comment: "Section header (uppercase) for privacy settings such as hiding notification previews")
             static let hidePreviewsTitle = String(localized: "app_info.settings.hide_previews.title", defaultValue: "hide message previews", comment: "Title of the setting that keeps message text, sender names, and geohashes out of lock-screen notifications")
             static let hidePreviewsSubtitle = String(localized: "app_info.settings.hide_previews.subtitle", defaultValue: "notifications say that something arrived without showing the message, who sent it, or which location channel it came from. anyone holding your locked phone learns nothing from the lock screen. on by default.", comment: "Subtitle explaining what hiding notification message previews does")
@@ -370,7 +367,7 @@ struct AppInfoView: View {
                 }
             }
 
-            // Voice — same card + IRC pill as every other toggle setting.
+            // Voice — same card + switch as every other toggle setting.
             VStack(alignment: .leading, spacing: 12) {
                 SectionHeader(Strings.Voice.title)
 
@@ -429,7 +426,7 @@ struct AppInfoView: View {
                 relaySettingsCard
 
                 // Location notes / dead drops (merged from main's flat
-                // layout into the shared card + pill style). Turning it on
+                // layout into the shared card + switch style). Turning it on
                 // may need the location prompt; the permission control below
                 // covers the denied path.
                 settingsCard {
@@ -689,8 +686,8 @@ struct AppInfoView: View {
             .cornerRadius(8)
     }
 
-    /// A title+subtitle row driving an IRC-style on/off pill — the one
-    /// toggle style every setting uses.
+    /// A title+subtitle row with the system switch: the one toggle every
+    /// setting uses.
     private func settingToggle(title: Text, subtitle: Text, isOn: Binding<Bool>) -> some View {
         Toggle(isOn: isOn) {
             VStack(alignment: .leading, spacing: 2) {
@@ -701,8 +698,13 @@ struct AppInfoView: View {
                     .bitchatFont(size: 11)
                     .foregroundColor(secondaryTextColor)
             }
+            // macOS puts the switch right after its label. The label takes
+            // the spare width, so the switch sits on the trailing edge as it
+            // does on iOS.
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .toggleStyle(IRCToggleStyle(accent: palette.accent, onLabel: Strings.Settings.toggleOn, offLabel: Strings.Settings.toggleOff))
+        // The default style on macOS is a checkbox; ask for the switch.
+        .toggleStyle(.switch)
     }
 
     // MARK: - Info pane
