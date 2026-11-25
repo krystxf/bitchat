@@ -57,6 +57,12 @@ struct BlockRevealImageView: View {
         self.initiallyBlurred = initiallyBlurred
         self.onOpen = onOpen
         self.onDelete = onDelete
+        // Size the row before the first layout: the header gives the aspect
+        // ratio without decoding, and a row scrolling back in reuses its
+        // cached thumbnail. Otherwise the row grows after the image decodes
+        // and the timeline jumps.
+        _aspectRatio = State(initialValue: ChatImageCache.aspectRatio(for: url) ?? 1)
+        _platformImage = State(initialValue: ChatImageCache.cachedThumbnail(for: url))
     }
 
     private var fraction: Double {
@@ -172,7 +178,9 @@ struct BlockRevealImageView: View {
         } else {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(palette.secondary.opacity(0.2))
-                .frame(height: 200)
+                // Same shape as the image it stands in for, so nothing moves
+                // when the image arrives.
+                .aspectRatio(aspectRatio, contentMode: .fit)
                 .overlay {
                     if loadFailed {
                         Image(systemName: "photo")
@@ -227,19 +235,28 @@ struct BlockRevealImageView: View {
 
     private func loadImage() {
         loadFailed = false
+        if let ratio = ChatImageCache.aspectRatio(for: url) {
+            aspectRatio = ratio
+        }
+        if let cached = ChatImageCache.cachedThumbnail(for: url) {
+            platformImage = cached
+            return
+        }
+        let url = url
         DispatchQueue.global(qos: .userInitiated).async {
-            #if os(iOS)
-            let image = UIImage(contentsOfFile: url.path)
-            #else
-            let image = NSImage(contentsOf: url)
-            #endif
+            // A downsampled thumbnail: the bubble is at most 280 pt wide, so
+            // decoding the full photo only costs memory and scroll time.
+            let image = ChatImageCache.loadThumbnail(for: url)
             DispatchQueue.main.async {
+                guard self.url == url else { return }
                 guard let image else {
                     self.loadFailed = true
                     return
                 }
                 self.platformImage = image
-                self.aspectRatio = image.size.height > 0 ? image.size.width / image.size.height : 1
+                if image.size.height > 0 {
+                    self.aspectRatio = image.size.width / image.size.height
+                }
             }
         }
     }
