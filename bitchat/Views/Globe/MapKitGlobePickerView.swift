@@ -1,0 +1,169 @@
+import MapKit
+import SwiftUI
+
+@available(iOS 17.0, macOS 14.0, *)
+struct MapKitGlobePickerView: View {
+    let onSelect: (String) -> Void
+    let onCancel: () -> Void
+    @State private var position: MapCameraPosition
+    @State private var camera: MapCamera
+    @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 20, longitude: 0), span: MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360))
+    @State private var selectedGeohash: String
+    @State private var precision: Int
+    @ThemedPalette private var palette
+
+    private enum Strings {
+        static let title: LocalizedStringKey = "location_channels.action.teleport"
+        static let instruction = String(localized: "geohash_picker.instruction", defaultValue: "Drag to spin · Pinch to zoom · Tap to focus", comment: "Hint at the top of the globe geohash picker explaining its gestures")
+        static let noSelection = String(localized: "geohash_picker.no_selection", defaultValue: "Select location", comment: "Shown in the globe geohash picker before a geohash is under the crosshair")
+        static let select = String(localized: "geohash_picker.select", defaultValue: "Select", comment: "Button in the globe geohash picker that teleports to the geohash under the crosshair")
+        static let selectHint = String(localized: "geohash_picker.accessibility.select", defaultValue: "Select Geohash", comment: "Accessibility label for the globe picker's select button")
+        static let decrease = String(localized: "geohash_picker.accessibility.decrease_precision", defaultValue: "Decrease Precision", comment: "Accessibility label for the globe picker button that zooms out to a larger geohash cell")
+        static let increase = String(localized: "geohash_picker.accessibility.increase_precision", defaultValue: "Increase Precision", comment: "Accessibility label for the globe picker button that zooms in to a smaller geohash cell")
+    }
+
+    init(initialGeohash: String?, nearbyGeohashes: [String], onSelect: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
+        self.onSelect = onSelect
+        self.onCancel = onCancel
+        let target = GeohashPickerView.initialTarget(initialGeohash: initialGeohash, nearbyGeohashes: nearbyGeohashes)
+        let center = CLLocationCoordinate2D(latitude: target.lat, longitude: target.lon)
+        let startCamera = MapCamera(centerCoordinate: center, distance: 28_000_000, heading: 0, pitch: 0)
+        _camera = State(initialValue: startCamera)
+        _position = State(initialValue: .camera(startCamera))
+        _precision = State(initialValue: target.precision)
+        _selectedGeohash = State(initialValue: Geohash.encode(latitude: target.lat, longitude: target.lon, precision: target.precision))
+    }
+
+    var body: some View {
+        ZStack {
+            map
+            VStack(spacing: 0) {
+                Text(Strings.instruction)
+                    .bitchatFont(size: 12).foregroundColor(palette.primary)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: .infinity)
+                    .themedOverlayPanel()
+                Spacer(minLength: 0)
+                bottomControls
+            }
+            .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 20)
+        }
+        #if os(iOS)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        #endif
+        .sheetChrome(title: Text(Strings.title), onClose: onCancel)
+        #if os(macOS)
+        .frame(minWidth: 560, minHeight: 640)
+        #endif
+        .accessibilityElement(children: .contain)
+    }
+
+    private var map: some View {
+        MapReader { proxy in
+            Map(position: $position) {
+                ForEach(visibleCells) { cell in
+                    let selected = cell.geohash == selectedGeohash
+                    MapPolygon(coordinates: cell.coordinates)
+                        .foregroundStyle(selected ? palette.locationAccent.opacity(0.34) : palette.locationAccent.opacity(0.045))
+                        .stroke(selected ? palette.locationAccent : palette.locationAccent.opacity(0.4), lineWidth: selected ? 2 : 0.7)
+                }
+            }
+            .mapStyle(.imagery(elevation: .realistic))
+            .onMapCameraChange(frequency: .continuous) { context in
+                camera = context.camera
+                region = context.region
+                precision = GeohashMapGeometry.precision(forLatitudeSpan: context.region.span.latitudeDelta)
+                selectedGeohash = GeohashMapGeometry.geohash(
+                    latitude: context.camera.centerCoordinate.latitude,
+                    longitude: context.camera.centerCoordinate.longitude,
+                    precision: precision
+                )
+            }
+            .gesture(SpatialTapGesture().onEnded { event in
+                guard let coordinate = proxy.convert(event.location, from: .local) else { return }
+                selectedGeohash = GeohashMapGeometry.geohash(latitude: coordinate.latitude, longitude: coordinate.longitude, precision: precision)
+            })
+            .ignoresSafeArea()
+        }
+    }
+
+    private var visibleCells: [GeohashMapGeometry.Cell] {
+        let south = max(-90, region.center.latitude - region.span.latitudeDelta / 2)
+        let north = min(90, region.center.latitude + region.span.latitudeDelta / 2)
+        let left = region.center.longitude - region.span.longitudeDelta / 2
+        let right = region.center.longitude + region.span.longitudeDelta / 2
+        if left < -180 {
+            return GeohashMapGeometry.cells(south: south, north: north, west: -180, east: right, precision: precision)
+                + GeohashMapGeometry.cells(south: south, north: north, west: left + 360, east: 180, precision: precision)
+        }
+        if right > 180 {
+            return GeohashMapGeometry.cells(south: south, north: north, west: left, east: 180, precision: precision)
+                + GeohashMapGeometry.cells(south: south, north: north, west: -180, east: right - 360, precision: precision)
+        }
+        return GeohashMapGeometry.cells(south: south, north: north, west: left, east: right, precision: precision)
+    }
+
+    private var bottomControls: some View {
+        VStack(spacing: 10) {
+            VStack(spacing: 2) {
+                Text(verbatim: selectedGeohash.isEmpty ? Strings.noSelection : "#\(selectedGeohash)")
+                    .bitchatFont(size: 14, weight: .medium).foregroundColor(palette.primary)
+                if !selectedGeohash.isEmpty {
+                    Text(verbatim: "\(GeohashCoverage.level(forLength: selectedGeohash.count).displayName) • \(GeohashCoverage.string(forPrecision: selectedGeohash.count))")
+                        .bitchatFont(size: 10).foregroundColor(palette.secondary)
+                }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 8).themedOverlayPanel()
+            .accessibilityElement(children: .combine)
+            HStack(spacing: 10) {
+                precisionButton("minus", label: Strings.decrease) { adjustPrecision(-1) }
+                precisionButton("plus", label: Strings.increase) { adjustPrecision(1) }
+                Button { guard !selectedGeohash.isEmpty else { return }; onSelect(selectedGeohash) } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark").font(.bitchatSystem(size: 14, weight: .semibold))
+                        Text(verbatim: Strings.select).bitchatFont(size: 12)
+                    }
+                    .foregroundColor(palette.primary).pickerCapsule(fill: palette.accentBlue.opacity(0.12))
+                }
+                .buttonStyle(.plain).disabled(selectedGeohash.isEmpty).opacity(selectedGeohash.isEmpty ? 0.38 : 1)
+                .accessibilityLabel(Strings.selectHint)
+            }
+        }
+    }
+
+    private func precisionButton(_ image: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: image).font(.bitchatSystem(size: 16, weight: .semibold))
+                .foregroundColor(palette.locationAccent).pickerCapsule(fill: palette.locationAccent.opacity(0.12))
+        }
+        .buttonStyle(.plain).accessibilityLabel(label)
+    }
+
+    private func adjustPrecision(_ delta: Int) {
+        let next = min(max(precision + delta, 1), GlobeMath.maxPrecision)
+        guard next != precision else { return }
+        precision = next
+        selectedGeohash = Geohash.encode(latitude: camera.centerCoordinate.latitude, longitude: camera.centerCoordinate.longitude, precision: next)
+        let factor = delta > 0 ? 0.42 : 2.25
+        camera = MapCamera(centerCoordinate: camera.centerCoordinate, distance: max(700, min(40_000_000, camera.distance * factor)), heading: camera.heading, pitch: camera.pitch)
+        position = .camera(camera)
+    }
+
+    private func select(_ hash: String, centerMap: Bool) {
+        guard Geohash.isValidGeohash(hash) else { return }
+        selectedGeohash = hash
+        precision = hash.count
+        if centerMap {
+            let center = Geohash.decodeCenter(hash)
+            camera = MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: center.lat, longitude: center.lon),
+                               distance: max(900, min(camera.distance, 250_000)), heading: camera.heading, pitch: camera.pitch)
+            position = .camera(camera)
+        }
+    }
+}
+
+private extension View {
+    func pickerCapsule(fill: Color) -> some View {
+        padding(.horizontal, 24).frame(minHeight: 40).background(Capsule().fill(fill)).contentShape(Capsule())
+    }
+}

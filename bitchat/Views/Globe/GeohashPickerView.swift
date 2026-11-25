@@ -14,6 +14,8 @@ import SwiftUI
 struct GeohashPickerView: View {
     let onSelect: (String) -> Void
     let onCancel: () -> Void
+    private let initialGeohash: String?
+    private let nearbyGeohashes: [String]
 
     @StateObject private var state: GlobeState
     @State private var world: GlobeWorldData?
@@ -42,6 +44,8 @@ struct GeohashPickerView: View {
     ) {
         self.onSelect = onSelect
         self.onCancel = onCancel
+        self.initialGeohash = initialGeohash
+        self.nearbyGeohashes = nearbyGeohashes
         let target = Self.initialTarget(initialGeohash: initialGeohash, nearbyGeohashes: nearbyGeohashes)
         _state = StateObject(wrappedValue: GlobeState(
             targetLat: target.lat,
@@ -64,6 +68,21 @@ struct GeohashPickerView: View {
     }
 
     var body: some View {
+        Group {
+            if #available(iOS 17.0, macOS 14.0, *) {
+                MapKitGlobePickerView(
+                    initialGeohash: initialGeohash,
+                    nearbyGeohashes: nearbyGeohashes,
+                    onSelect: onSelect,
+                    onCancel: onCancel
+                )
+            } else {
+                legacyBody
+            }
+        }
+    }
+
+    private var legacyBody: some View {
         // The sheet top bar over the full-bleed globe: the globe runs under
         // it, and the bar holds the title and the glass close button.
         ZStack {
