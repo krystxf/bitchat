@@ -78,6 +78,41 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.sendMessage("/slap @\(sender)")
     }
 
+    func createGroup(named name: String, inviting peerID: PeerID? = nil) -> CommandResult {
+        let result = chatViewModel.groupCoordinator.createGroup(named: name)
+        guard case .success(_) = result else { return result }
+        if let peerID {
+            let nickname = chatViewModel.resolveNickname(for: peerID)
+            let invite = chatViewModel.groupCoordinator.inviteMember(nickname: nickname)
+            if case .error = invite { return invite }
+        }
+        return result
+    }
+
+    func selectedGroup() -> BitchatGroup? {
+        guard let peerID = privateConversationModel.selectedPeerID, peerID.isGroup else { return nil }
+        return chatViewModel.groupStore.group(for: peerID)
+    }
+
+    var currentNoiseFingerprint: String { chatViewModel.myNoiseFingerprint() }
+
+    func isGroupMember(_ peerID: PeerID, group: BitchatGroup) -> Bool {
+        guard let fingerprint = chatViewModel.meshFingerprint(for: peerID) else { return false }
+        return group.isMember(fingerprint: fingerprint)
+    }
+
+    func groupInvite(nickname: String) -> CommandResult { chatViewModel.groupCoordinator.inviteMember(nickname: nickname) }
+    func groupRemove(nickname: String) -> CommandResult { chatViewModel.groupCoordinator.removeMember(nickname: nickname) }
+    func groupLeave() -> CommandResult { chatViewModel.groupCoordinator.leaveGroup() }
+
+    func canCreateGroup(with peerID: PeerID) -> Bool {
+        guard !peerID.isGroup, peerID != chatViewModel.myPeerID,
+              let fingerprint = chatViewModel.meshFingerprint(for: peerID),
+              !chatViewModel.isFingerprintBlocked(fingerprint),
+              chatViewModel.cryptoIdentity(for: peerID) != nil else { return false }
+        return chatViewModel.isPeerConnected(peerID)
+    }
+
     func block(peerID: PeerID?, displayName: String?) {
         guard let displayName else { return }
 

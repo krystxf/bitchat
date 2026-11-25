@@ -74,6 +74,10 @@ struct MessageListView: View {
     var isTextFieldFocused: FocusState<Bool>.Binding
 
     @State private var showMessageActions = false
+    @State private var showCreateGroupPrompt = false
+    @State private var newGroupName = ""
+    @State private var createGroupPeerID: PeerID?
+    @State private var createGroupPeerName = ""
     @State private var showClearConfirmation = false
     @State private var lastScrollTime: Date = .distantPast
     @State private var scrollThrottleTimer: Timer?
@@ -321,6 +325,18 @@ struct MessageListView: View {
                     }
                 }
 
+                if let peerID = selectedMessageSenderID, conversationUIModel.canCreateGroup(with: peerID) {
+                    Button {
+                        createGroupPeerID = peerID
+                        createGroupPeerName = selectedMessageSender ?? ""
+                        newGroupName = GroupManagementPolicy.defaultName(with: createGroupPeerName)
+                        showCreateGroupPrompt = true
+                    } label: {
+                        Text(verbatim: String(format: String(localized: "group.action.create_with_peer"), selectedMessageSender ?? ""))
+                    }
+                    .accessibilityLabel(Text(verbatim: String(format: String(localized: "group.action.create_with_peer"), selectedMessageSender ?? "")))
+                }
+
                 Button("content.actions.hug") {
                     if let sender = selectedMessageSender {
                         conversationUIModel.sendHug(to: sender)
@@ -338,6 +354,17 @@ struct MessageListView: View {
                 }
 
                 Button("common.cancel", role: .cancel) {}
+            }
+            .alert("group.create.title", isPresented: $showCreateGroupPrompt) {
+                TextField("group.create.name", text: $newGroupName)
+                Button("common.cancel", role: .cancel) { createGroupPeerID = nil }
+                Button("group.create.action") {
+                    guard let peerID = createGroupPeerID else { return }
+                    _ = conversationUIModel.createGroup(named: newGroupName, inviting: peerID)
+                    createGroupPeerID = nil
+                }
+            } message: {
+                Text("group.create.prompt")
             }
             .onAppear {
                 // Also check when view appears
