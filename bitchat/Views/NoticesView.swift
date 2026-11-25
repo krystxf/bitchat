@@ -303,7 +303,6 @@ struct NoticesView: View {
         #if os(macOS)
         .frame(minWidth: 420, idealWidth: 440, minHeight: 620, idealHeight: 680)
         #endif
-        .themedSheetBackground()
         .onAppear {
             reconcileGeoSession()
         }

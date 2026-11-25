@@ -13,7 +13,7 @@ struct MyQRView: View {
     let qrString: String
     @Environment(\.colorScheme) var colorScheme
     @ThemedPalette private var palette
-    // Palette-tinted instead of a fixed gray band over the glass gradient.
+    // Palette-tinted, so the box follows the sheet in light and dark mode.
     private var boxColor: Color { palette.secondary.opacity(0.1) }
 
     private enum Strings {
@@ -488,7 +488,6 @@ struct VerificationSheetView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
         }
-        .themedSheetBackground()
         .onDisappear { showingScanner = false }
     }
 }

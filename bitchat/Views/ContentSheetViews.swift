@@ -590,7 +590,6 @@ private struct ContentPrivateChatSheetView: View {
             )
             #endif
         }
-        .themedSheetBackground()
         .foregroundColor(palette.primary)
     }
 

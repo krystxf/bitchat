@@ -264,7 +264,6 @@ struct AppInfoView: View {
                     paneContent
                 }
             }
-            .themedSheetBackground()
         }
         .frame(width: 600, height: 700)
         .sheet(isPresented: $showTopology) {
@@ -281,7 +280,6 @@ struct AppInfoView: View {
                     paneContent
                 }
             }
-            .themedSheetBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

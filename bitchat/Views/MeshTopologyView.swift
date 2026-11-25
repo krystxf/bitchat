@@ -55,11 +55,9 @@ struct MeshTopologyView: View {
             content
         }
         .frame(width: 500, height: 520)
-        .themedSheetBackground()
         #else
         NavigationView {
             content
-                .themedSheetBackground()
                 .navigationTitle(Text("topology.title"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

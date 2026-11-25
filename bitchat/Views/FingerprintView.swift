@@ -284,7 +284,6 @@ struct FingerprintView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .themedSheetBackground()
         .onAppear {
             syncAliasDraft(from: fingerprintState, force: true)
         }

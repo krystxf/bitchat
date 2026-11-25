@@ -63,9 +63,6 @@ struct GeohashPickerView: View {
 
     var body: some View {
         ZStack {
-            palette.background
-                .ignoresSafeArea()
-
             if let world {
                 GlobeView(state: state, colors: globeColors, world: world)
                     .ignoresSafeArea()

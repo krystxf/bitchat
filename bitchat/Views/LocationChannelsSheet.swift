@@ -186,7 +186,6 @@ struct LocationChannelsSheet: View {
         #if os(macOS)
         .frame(minWidth: 420, minHeight: 520)
         #endif
-        .themedSheetBackground()
         .onAppear {
             // Refresh channels when opening
             if locationChannelsModel.permissionState == .authorized {
