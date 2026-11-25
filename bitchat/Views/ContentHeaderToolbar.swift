@@ -94,10 +94,6 @@ struct ContentHeaderToolbar: ViewModifier {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .navigation) {
-            settingsButton
-        }
-
         ToolbarItemGroup(placement: .primaryAction) {
             if carriedMailCount > 0 {
                 carriedMailIndicator
@@ -177,17 +173,6 @@ struct ContentHeaderToolbar: ViewModifier {
                 }
             }
         }
-    }
-
-    private var settingsButton: some View {
-        Button(action: { appChromeModel.presentAppInfo() }) {
-            Label {
-                Text(verbatim: String(localized: "app_info.tab.settings", comment: "Settings"))
-            } icon: {
-                Image(systemName: "gearshape")
-            }
-        }
-        .help(String(localized: "app_info.tab.settings", comment: "Settings"))
     }
 
     private var carriedMailIndicator: some View {

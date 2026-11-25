@@ -81,6 +81,15 @@ struct ContentSidebarView: View {
         .listStyle(.sidebar)
         .navigationTitle(Text(verbatim: Strings.appName))
         .toolbar {
+            #if os(macOS)
+            ToolbarItem(placement: .navigation) {
+                settingsButton
+            }
+            #else
+            ToolbarItem(placement: .primaryAction) {
+                settingsButton
+            }
+            #endif
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showVerifySheet = true
@@ -90,6 +99,17 @@ struct ContentSidebarView: View {
                 .help(Strings.verificationHelp)
             }
         }
+    }
+
+    private var settingsButton: some View {
+        Button(action: { appChromeModel.presentAppInfo() }) {
+            Label {
+                Text(verbatim: String(localized: "app_info.tab.settings", comment: "Settings"))
+            } icon: {
+                Image(systemName: "gearshape")
+            }
+        }
+        .help(String(localized: "app_info.tab.settings", comment: "Settings"))
     }
 
     // MARK: - Channels
