@@ -65,6 +65,7 @@ struct MediaMessageView: View {
                     showsDeliveryDetail: $showDeliveryDetail
                 )
             }
+            .alignmentGuide(.messageBubbleBottom) { $0[.bottom] }
             if showsDeliveryStatus {
                 MessageDeliveryCaption(status: deliveryStatus, showsDetail: showDeliveryDetail)
             }

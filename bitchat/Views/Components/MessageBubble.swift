@@ -22,6 +22,11 @@ enum MessageBubbleStyle {
     /// Inset of the text inside a bubble. The sender's name above a bubble
     /// lines up with its text.
     static let textInsets = EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+    /// Side of the sender's avatar beside other people's bubbles, where
+    /// several people talk.
+    static let avatarSize: CGFloat = InitialsAvatar.defaultSize
+    /// Gap between that avatar and the bubble.
+    static let avatarSpacing: CGFloat = 8
 
     static var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -55,6 +60,18 @@ extension View {
                 .fill(isSelf ? palette.accent : MessageBubbleStyle.incomingFill)
         )
     }
+}
+
+extension VerticalAlignment {
+    private enum MessageBubbleBottom: AlignmentID {
+        static func defaultValue(in context: ViewDimensions) -> CGFloat {
+            context[.bottom]
+        }
+    }
+
+    /// The bottom of a message's bubble, which the sender's avatar lines up
+    /// with. It is the row's bottom unless something sits below the bubble.
+    static let messageBubbleBottom = VerticalAlignment(MessageBubbleBottom.self)
 }
 
 /// Puts a bubble and its meta (status glyphs) side by side, bottom-aligned,
@@ -213,7 +230,8 @@ struct MessageDeliveryCaption: View {
 
 /// Which rows open a new run of bubbles. A run is consecutive messages
 /// from one sender, close in time. Only its first row shows the sender's
-/// name and keeps the wider gap above it.
+/// name and keeps the wider gap above it, and only its last row shows the
+/// sender's avatar.
 enum MessageRunPolicy {
     /// Longest pause within one run.
     static let maxGap: TimeInterval = 5 * 60

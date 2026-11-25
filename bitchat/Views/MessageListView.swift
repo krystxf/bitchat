@@ -15,6 +15,9 @@ private struct MessageDisplayItem: Identifiable {
     /// Whether the row opens a run of bubbles from one sender (see
     /// `MessageRunPolicy`).
     let startsRun: Bool
+    /// Whether the row closes its run, which puts the sender's avatar
+    /// beside it. The next row decides, so it starts true for the newest.
+    var endsRun = true
     /// Whether the row opens a time group, which shows the time above it
     /// (see `MessageTimeLabel`).
     let startsTimeGroup: Bool
@@ -144,10 +147,12 @@ struct MessageListView: View {
                     ForEach(messageItems) { item in
                         let message = item.message
                         let isSelf = conversationUIModel.isSentByCurrentUser(message)
+                        let showsSender = isMultiPersonConversation && !isSelf && message.sender != "system"
                         messageRow(
                             for: message,
                             isSelf: isSelf,
-                            showsSenderName: item.startsRun && showsSenderNames,
+                            showsSenderName: item.startsRun && showsSender,
+                            avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
                             maxBubbleWidth: maxBubbleWidth
                         )
                             .onAppear {
@@ -620,9 +625,10 @@ private extension MessageListView {
         return "\(base), \(count)"
     }
 
-    /// Whether other people's names go above their bubbles: wherever
-    /// several people talk, so not in a 1:1 private chat.
-    var showsSenderNames: Bool {
+    /// Whether several people talk here: a public channel or a group
+    /// chat, not a 1:1 private chat. Other people's bubbles then show who
+    /// sent them: the name above a run, the avatar beside it.
+    var isMultiPersonConversation: Bool {
         privatePeer.map(\.isGroup) ?? true
     }
 
@@ -634,9 +640,10 @@ private extension MessageListView {
     }
 
     /// The rows of the rendered window, each marked with whether it opens a
-    /// run and a time group. The message just above the window decides both
-    /// for its first row, so a window that grows or shrinks never regroups
-    /// a row.
+    /// run and a time group, and whether it closes its run. The message just
+    /// above the window decides both openings for its first row, so a window
+    /// that grows or shrinks never regroups a row. The window always ends at
+    /// the newest message, so its last row closes its run.
     func displayItems(
         for windowedMessages: [BitchatMessage],
         of messages: [BitchatMessage],
@@ -648,10 +655,14 @@ private extension MessageListView {
         items.reserveCapacity(windowedMessages.count)
         // Whitespace-only messages get no row.
         for message in windowedMessages where !message.content.trimmed.isEmpty {
+            let startsRun = MessageRunPolicy.startsRun(message, after: previous)
+            if !items.isEmpty {
+                items[items.count - 1].endsRun = startsRun
+            }
             items.append(MessageDisplayItem(
                 id: "\(contextKey)|\(message.id)",
                 message: message,
-                startsRun: MessageRunPolicy.startsRun(message, after: previous),
+                startsRun: startsRun,
                 startsTimeGroup: MessageTimeLabel.startsTimeGroup(message, after: previous)
             ))
             previous = message
@@ -659,32 +670,35 @@ private extension MessageListView {
         return items
     }
 
+    /// What sits left of a row's bubble.
+    enum AvatarSlot {
+        /// No column: my bubbles, system lines, and 1:1 chats.
+        case absent
+        /// The sender's avatar, on the last row of their run.
+        case shown
+        /// An empty column as wide as the avatar, which keeps the other
+        /// rows of the run lined up with the last.
+        case space
+    }
+
     @ViewBuilder
     func messageRow(
         for message: BitchatMessage,
         isSelf: Bool,
         showsSenderName: Bool,
+        avatar: AvatarSlot,
         maxBubbleWidth: CGFloat
     ) -> some View {
         Group {
-            if message.sender == "system" {
-                systemMessageRow(message)
-            } else if let media = conversationUIModel.mediaAttachment(for: message) {
-                MediaMessageView(
-                    message: message,
-                    media: media,
-                    imagePreviewURL: $imagePreviewURL,
-                    isSelf: isSelf,
-                    showsSenderName: showsSenderName,
-                    maxBubbleWidth: maxBubbleWidth
-                )
+            if avatar == .absent {
+                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth)
             } else {
-                TextMessageView(
-                    message: message,
-                    isSelf: isSelf,
-                    showsSenderName: showsSenderName,
-                    maxBubbleWidth: maxBubbleWidth
-                )
+                // The avatar lines up with the bottom of the bubble, as in
+                // Messages, not with anything below it (payment chips).
+                HStack(alignment: .messageBubbleBottom, spacing: MessageBubbleStyle.avatarSpacing) {
+                    senderAvatar(for: message, isShown: avatar == .shown)
+                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth)
+                }
             }
         }
         // Archived echoes ("heard here earlier") render dimmed: real history,
@@ -692,6 +706,56 @@ private extension MessageListView {
         // their own (MessageRunPolicy), so the sender's name shows again
         // where the live conversation picks up.
         .opacity(message.isArchivedEcho ? 0.55 : 1)
+    }
+
+    @ViewBuilder
+    func messageContent(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        showsSenderName: Bool,
+        maxBubbleWidth: CGFloat
+    ) -> some View {
+        if message.sender == "system" {
+            systemMessageRow(message)
+        } else if let media = conversationUIModel.mediaAttachment(for: message) {
+            MediaMessageView(
+                message: message,
+                media: media,
+                imagePreviewURL: $imagePreviewURL,
+                isSelf: isSelf,
+                showsSenderName: showsSenderName,
+                maxBubbleWidth: maxBubbleWidth
+            )
+        } else {
+            TextMessageView(
+                message: message,
+                isSelf: isSelf,
+                showsSenderName: showsSenderName,
+                maxBubbleWidth: maxBubbleWidth
+            )
+        }
+    }
+
+    /// The avatar column of a row. A tap on the avatar opens the sender's
+    /// actions, as a tap on their name does. VoiceOver skips it: the name
+    /// above the run already says who wrote it.
+    func senderAvatar(for message: BitchatMessage, isShown: Bool) -> some View {
+        ZStack {
+            if isShown {
+                if let peerID = message.senderPeerID {
+                    Button {
+                        presentSenderActions(for: peerID)
+                    } label: {
+                        InitialsAvatar(name: message.sender, peerID: peerID, size: MessageBubbleStyle.avatarSize)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    InitialsAvatar(name: message.sender, peerID: nil, size: MessageBubbleStyle.avatarSize)
+                }
+            }
+        }
+        .frame(width: MessageBubbleStyle.avatarSize)
+        .accessibilityHidden(true)
     }
 
     /// Status lines ("* you're on #mesh *") stay plain, without a bubble.
@@ -736,20 +800,7 @@ private extension MessageListView {
         switch url.host {
         case "user":
             let id = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            let peerID = PeerID(str: id.removingPercentEncoding ?? id)
-            selectedMessageSenderID = peerID
-
-            selectedMessageSender = conversationUIModel.senderDisplayName(
-                for: peerID,
-                fallbackMessages: conversationMessages(for: privatePeer)
-            )
-
-            if conversationUIModel.isSelfSender(peerID: peerID, displayName: selectedMessageSender) {
-                selectedMessageSender = nil
-                selectedMessageSenderID = nil
-            } else {
-                showMessageActions = true
-            }
+            presentSenderActions(for: PeerID(str: id.removingPercentEncoding ?? id))
 
         case "geohash":
             let gh = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).lowercased()
@@ -759,6 +810,24 @@ private extension MessageListView {
 
         default:
             return
+        }
+    }
+
+    /// Opens the action sheet (mention, DM, hug, slap, block) for the
+    /// sender behind `peerID`, unless that is me. A tap on a sender's name
+    /// or avatar lands here.
+    func presentSenderActions(for peerID: PeerID) {
+        selectedMessageSenderID = peerID
+        selectedMessageSender = conversationUIModel.senderDisplayName(
+            for: peerID,
+            fallbackMessages: conversationMessages(for: privatePeer)
+        )
+
+        if conversationUIModel.isSelfSender(peerID: peerID, displayName: selectedMessageSender) {
+            selectedMessageSender = nil
+            selectedMessageSenderID = nil
+        } else {
+            showMessageActions = true
         }
     }
 
