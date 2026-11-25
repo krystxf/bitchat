@@ -142,10 +142,6 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.formatMessageAsText(message, colorScheme: colorScheme)
     }
 
-    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
-        chatViewModel.formatMessageHeader(message, colorScheme: colorScheme)
-    }
-
     func formatMessageBody(_ message: BitchatMessage, isSelf: Bool, colorScheme: ColorScheme) -> AttributedString {
         chatViewModel.formatMessageBody(message, isSelf: isSelf, colorScheme: colorScheme)
     }
