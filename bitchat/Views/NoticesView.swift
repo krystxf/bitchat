@@ -293,25 +293,18 @@ struct NoticesView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                headerSection
-                contentSection
-                if activeGeohash != nil {
-                    composer
-                }
-            }
-            .navigationTitle(Text(verbatim: scopeTitle))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    SheetCloseToolbarButton { dismiss() }
-                        .accessibilityLabel(Strings.closeHint)
-                }
+        VStack(spacing: 0) {
+            headerSection
+            contentSection
+            if activeGeohash != nil {
+                composer
             }
         }
+        .sheetChrome(
+            title: Text(verbatim: scopeTitle),
+            closeLabel: Text(verbatim: Strings.closeHint),
+            onClose: { dismiss() }
+        )
         #if os(macOS)
         .frame(minWidth: 420, idealWidth: 440, minHeight: 620, idealHeight: 680)
         #endif
