@@ -8,9 +8,9 @@
 
 import SwiftUI
 
-/// The standard row of the sidebar's people and groups: a leading icon (an
-/// avatar or a glyph), a title with an optional detail line under it, and
-/// trailing accessories (unread, favorite).
+/// The standard row of the sidebar's people and groups: a leading avatar, a
+/// title with an optional detail line under it, and trailing accessories
+/// (unread, favorite).
 ///
 /// Text uses the hierarchical `.primary`/`.secondary` styles, not concrete
 /// colors, so a selected sidebar row switches it to the highlight's text
@@ -66,22 +66,6 @@ extension PeopleRow where Accessories == EmptyView {
         @ViewBuilder title: () -> Title
     ) {
         self.init(subtitle: subtitle, icon: icon, title: title, accessories: { EmptyView() })
-    }
-}
-
-/// A tinted SF Symbol as a row's leading icon.
-struct PeopleRowGlyph: View {
-    /// One column width for every glyph, so names line up even though the
-    /// glyphs differ in width. Scales with Dynamic Type.
-    @ScaledMetric(relativeTo: .body) private var width: CGFloat = 28
-
-    let systemImage: String
-    let color: Color
-
-    var body: some View {
-        Image(systemName: systemImage)
-            .foregroundColor(color)
-            .frame(width: width)
     }
 }
 

@@ -479,7 +479,9 @@ struct SidebarGroupRow: View {
 
     var body: some View {
         PeopleRow(subtitle: memberCount) {
-            PeopleRowGlyph(systemImage: "person.3.fill", color: Color.accentColor)
+            SidebarAvatar { size in
+                GroupAvatar(groupID: group.peerID, size: size)
+            }
         } title: {
             hashtagText
                 .lineLimit(1)

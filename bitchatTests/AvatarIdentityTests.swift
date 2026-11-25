@@ -74,6 +74,13 @@ struct AvatarIdentityTests {
         #expect(AvatarIdentity.seed(for: peerID, nickname: "alice") == AvatarIdentity.seed(for: peerID, nickname: "alice2"))
     }
 
+    @Test func aGroupKeepsItsSeedWhenRenamed() {
+        let groupID = PeerID(groupID: Data(repeating: 0xAB, count: 16))
+        let seed = AvatarIdentity.seed(for: groupID, nickname: "trip")
+        #expect(seed == AvatarIdentity.seed(for: groupID, nickname: "weekend"))
+        #expect(seed == "group:" + String(repeating: "ab", count: 16))
+    }
+
     @Test func namesakesWithDistinctIdentitiesGetDistinctSeeds() {
         let one = AvatarIdentity.seed(for: PeerID(str: "00000000000000a1"), nickname: "alice")
         let two = AvatarIdentity.seed(for: PeerID(str: "00000000000000b1"), nickname: "alice")

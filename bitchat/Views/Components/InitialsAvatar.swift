@@ -27,19 +27,7 @@ struct InitialsAvatar: View {
         // Runs only when the name, seed or size change: SwiftUI skips the
         // body of an unchanged view.
         let initials = AvatarIdentity.initials(for: name)
-        Circle()
-            .fill(Color(avatarRGB: AvatarIdentity.color(forSeed: seed)))
-            // A soft shade toward the bottom, as on Messages' avatars. It
-            // only darkens, so the initials keep their contrast.
-            .overlay(
-                Circle().fill(
-                    LinearGradient(
-                        colors: [.clear, .black.opacity(0.12)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-            )
+        AvatarDisc(seed: seed)
             .overlay(
                 Text(verbatim: initials)
                     // A fixed size: the circle does not grow with Dynamic
@@ -60,6 +48,28 @@ extension InitialsAvatar {
     /// there is no peer ID.
     init(name: String, peerID: PeerID?, size: CGFloat = defaultSize) {
         self.init(name: name, seed: AvatarIdentity.seed(for: peerID, nickname: name), size: size)
+    }
+}
+
+/// The colored circle behind an avatar's initials or glyph: the color
+/// `AvatarIdentity` picks for `seed`, with a soft shade toward the bottom,
+/// as on Messages' avatars. The shade only darkens, so white content on
+/// top keeps its contrast.
+struct AvatarDisc: View {
+    let seed: String
+
+    var body: some View {
+        Circle()
+            .fill(Color(avatarRGB: AvatarIdentity.color(forSeed: seed)))
+            .overlay(
+                Circle().fill(
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.12)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            )
     }
 }
 

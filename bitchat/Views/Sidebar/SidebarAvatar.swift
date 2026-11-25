@@ -28,9 +28,9 @@ struct SidebarPersonAvatar: View {
     }
 }
 
-/// The frame every sidebar avatar shares: its size for the platform, the
-/// presence badge, and an outline that keeps it clear of the selection
-/// highlight.
+/// The frame every sidebar avatar (people and groups) shares: its size for
+/// the platform, the presence badge, and an outline that keeps it clear of
+/// the selection highlight.
 struct SidebarAvatar<Avatar: View>: View {
     #if os(macOS)
     @Environment(\.sidebarRowSize) private var rowSize
