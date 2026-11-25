@@ -33,6 +33,8 @@ struct PrivateChatDetailView: View {
     @ObservedObject var voiceRecordingVM: VoiceRecordingViewModel
     @Binding var autocompleteDebounceTimer: Timer?
     @State private var chatBackgroundOption: ChatBackgroundOption = .default
+    /// The conversation info page, opened from the title.
+    @State private var showsInfo = false
     @ThemedPalette private var palette
 
     let onSendMessage: () -> Void
@@ -78,8 +80,21 @@ struct PrivateChatDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar { toolbarContent }
+        .conversationTitleBar(hidesNativeTitle: showsTitleButton)
+        .conversationInfo(isPresented: $showsInfo) {
+            if headerState?.isGroupConversation == true {
+                GroupInfoPage(
+                    background: $chatBackgroundOption,
+                    backgroundKey: chatBackgroundConversationKey
+                )
+            }
+        }
         .onAppear { loadChatBackground() }
-        .onChange(of: privateConversationModel.selectedPeerID) { _ in loadChatBackground() }
+        .onChange(of: privateConversationModel.selectedPeerID) { _ in
+            loadChatBackground()
+            // The page belongs to the conversation it was opened from.
+            showsInfo = false
+        }
     }
 
     @ViewBuilder
@@ -109,6 +124,11 @@ struct PrivateChatDetailView: View {
         privateConversationModel.selectedHeaderState
     }
 
+    /// The title is a button that opens the conversation info page.
+    private var showsTitleButton: Bool {
+        headerState?.isGroupConversation == true
+    }
+
     /// iOS before 26 has no navigation subtitle, so there the title slot
     /// holds the name with the status line under it.
     private var needsTitleFallback: Bool {
@@ -124,7 +144,14 @@ struct PrivateChatDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if needsTitleFallback, let headerState {
+        if showsTitleButton, let headerState {
+            ConversationTitleToolbarItem(
+                title: Text(verbatim: headerState.displayName),
+                subtitle: statusText
+            ) {
+                showsInfo.toggle()
+            }
+        } else if needsTitleFallback, let headerState {
             ToolbarItem(placement: .principal) {
                 PrivateChatTitleView(
                     title: headerState.displayName,
@@ -132,16 +159,14 @@ struct PrivateChatDetailView: View {
                 )
             }
         }
-        if let headerState {
+        // A group's background, members and leave live on its info page.
+        if let headerState, !headerState.isGroupConversation {
             ToolbarItemGroup(placement: .primaryAction) {
                 ChatBackgroundPickerMenu(
                     conversationKey: chatBackgroundConversationKey,
                     selection: $chatBackgroundOption
                 )
-                // A group has no single fingerprint to show.
-                if !headerState.isGroupConversation {
-                    fingerprintButton(headerState)
-                }
+                fingerprintButton(headerState)
                 if headerState.supportsFavoriteToggle {
                     favoriteButton(headerState)
                 }

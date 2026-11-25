@@ -56,7 +56,7 @@ enum ConversationInfoPolicy {
     }
 
     /// An icon-over-label button in the row under the header.
-    enum QuickAction: Equatable {
+    enum QuickAction: Hashable {
         /// Open the channel's notices board.
         case notices
         /// Bookmark the location channel, or remove the bookmark.
@@ -75,7 +75,7 @@ enum ConversationInfoPolicy {
         case addPeople
     }
 
-    enum Row: Equatable {
+    enum Row: Hashable {
         /// The chat background picker.
         case background
         /// Who is in the public channel, on a page of its own.

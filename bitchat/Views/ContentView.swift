@@ -524,9 +524,20 @@ struct ContentView: View {
     }
 
     /// The open conversation, read from the models: a DM or private group
-    /// when one is open, the public channel otherwise.
+    /// when one is open, the public channel otherwise. On iOS in a
+    /// navigation stack, so the conversation's info page can push onto it.
     @ViewBuilder
     private var detail: some View {
+        #if os(iOS)
+        NavigationStack {
+            conversation
+        }
+        #else
+        conversation
+        #endif
+    }
+
+    private var conversation: some View {
         Group {
             if selectedPrivatePeerID != nil {
                 privateChat

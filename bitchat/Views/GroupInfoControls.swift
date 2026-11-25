@@ -1,47 +1,8 @@
 import SwiftUI
 
-/// Reusable group info content for the conversation info page and its sheet
-/// presentation. Each operation is also exposed as a standalone component.
-struct GroupInfoSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let group: BitchatGroup
-    let people: [MeshPeerRow]
-    let isCreator: Bool
-    let canInvite: (MeshPeerRow) -> Bool
-    let onRename: (String) -> Void
-    let onInvite: (String) -> Void
-    let onRemove: (String) -> Void
-    let onLeave: () -> Void
-
-    var body: some View {
-        List {
-            if isCreator {
-                GroupRenameControl(groupName: group.name, onRename: onRename)
-                GroupMemberList(
-                    members: group.members,
-                    creatorFingerprint: group.creatorFingerprint,
-                    canRemove: true,
-                    onRemove: onRemove
-                )
-                GroupAddPeoplePicker(people: people.filter(canInvite), onInvite: onInvite)
-            } else {
-                GroupMemberList(
-                    members: group.members,
-                    creatorFingerprint: group.creatorFingerprint,
-                    canRemove: false,
-                    onRemove: onRemove
-                )
-            }
-            GroupLeaveControl(onLeave: onLeave)
-        }
-        #if os(iOS)
-        .listStyle(.insetGrouped)
-        #else
-        .listStyle(.inset)
-        #endif
-        .sheetChrome(title: Text("group.info.title"), onClose: { dismiss() })
-    }
-}
+// The group controls the conversation info page hosts (`GroupInfoPage`):
+// the member list, the add-people picker, rename for the creator, and
+// leave.
 
 struct GroupMemberList: View {
     @State private var pendingRemoval: GroupMember?
@@ -105,25 +66,28 @@ struct GroupAddPeoplePicker: View {
     }
 }
 
+/// Renames the group, for its creator: a button that asks for the new
+/// name. The page shows it as the link under the group's name.
 struct GroupRenameControl: View {
     @State private var isPromptPresented = false
-    @State private var name: String
+    @State private var name = ""
+    let groupName: String
     let onRename: (String) -> Void
 
     init(groupName: String, onRename: @escaping (String) -> Void) {
-        _name = State(initialValue: groupName)
+        self.groupName = groupName
         self.onRename = onRename
     }
 
     var body: some View {
-        Section {
-            Button {
-                isPromptPresented = true
-            } label: {
-                Label("group.rename.action", systemImage: "pencil")
-            }
-            .accessibilityLabel(Text("group.rename.action"))
+        Button {
+            // Start from the current name, also after a rename.
+            name = groupName
+            isPromptPresented = true
+        } label: {
+            Text("group.rename.action")
         }
+        .accessibilityLabel(Text("group.rename.title"))
         .alert("group.rename.title", isPresented: $isPromptPresented) {
             TextField("group.create.name", text: $name)
             Button("common.cancel", role: .cancel) {}

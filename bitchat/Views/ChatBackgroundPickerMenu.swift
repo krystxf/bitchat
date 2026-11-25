@@ -36,6 +36,50 @@ struct ChatBackgroundPickerMenu: View {
     }
 }
 
+/// The background row of the conversation info page: a menu picker whose
+/// icon is a swatch of the current background. The choice applies at once
+/// and is stored for this conversation.
+struct ChatBackgroundPickerRow: View {
+    let conversationKey: ComposerDraftStore.Key
+    @Binding var selection: ChatBackgroundOption
+
+    var body: some View {
+        Picker(selection: Binding(
+            get: { selection },
+            set: { option in
+                selection = option
+                ChatBackgroundStore.shared.set(option, for: conversationKey)
+            }
+        )) {
+            ForEach(ChatBackgroundOption.allCases) { option in
+                Text(option.label).tag(option)
+            }
+        } label: {
+            Label {
+                Text(String(localized: "chat.background.title", comment: "Menu title for choosing a chat conversation background"))
+            } icon: {
+                ChatBackgroundSwatch(option: selection)
+            }
+        }
+        .pickerStyle(.menu)
+    }
+}
+
+/// A small disc in a background's color, with a hairline so the black OLED
+/// swatch shows on a dark row.
+private struct ChatBackgroundSwatch: View {
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 18
+    let option: ChatBackgroundOption
+
+    var body: some View {
+        Circle()
+            .fill(option.swatch)
+            .overlay(Circle().stroke(Color.primary.opacity(0.25), lineWidth: 0.5))
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+}
+
 private extension ChatBackgroundOption {
     var label: String {
         switch self {
