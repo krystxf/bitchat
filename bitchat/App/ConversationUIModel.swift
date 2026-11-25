@@ -81,7 +81,9 @@ final class ConversationUIModel: ObservableObject {
     func block(peerID: PeerID?, displayName: String?) {
         guard let displayName else { return }
 
-        if let peerID, peerID.isGeoChat,
+        // Geohash chat senders and geohash DM keys both map to the full
+        // Nostr pubkey the block needs.
+        if let peerID, peerID.isGeoChat || peerID.isGeoDM,
            let full = chatViewModel.fullNostrHex(forSenderPeerID: peerID) {
             chatViewModel.blockGeohashUser(pubkeyHexLowercased: full, displayName: displayName)
         } else if let peerID, !peerID.isGeoDM, !peerID.isGeoChat {
