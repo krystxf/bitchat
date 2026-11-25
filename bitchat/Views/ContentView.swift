@@ -107,7 +107,6 @@ struct ContentView: View {
     @State private var showSidebar = false
     @State private var selectedMessageSender: String?
     @State private var selectedMessageSenderID: PeerID?
-    @FocusState private var isNicknameFieldFocused: Bool
     @State private var isAtBottomPublic = true
     @State private var isAtBottomPrivate = true
     @State private var autocompleteDebounceTimer: Timer?
@@ -117,9 +116,6 @@ struct ContentView: View {
     @State private var showImagePicker = false
     @State private var imagePickerSourceType: UIImagePickerController.SourceType = .camera
     #endif
-    @ScaledMetric(relativeTo: .body) private var headerHeight: CGFloat = 44
-    @ScaledMetric(relativeTo: .subheadline) private var headerPeerIconSize: CGFloat = 11
-    @ScaledMetric(relativeTo: .subheadline) private var headerPeerCountFontSize: CGFloat = 12
     @State private var windowCountPublic: Int = 300
     @State private var windowCountPrivate: [PeerID: Int] = [:]
 
@@ -239,7 +235,6 @@ struct ContentView: View {
                 }
                 #if os(macOS)
                 DispatchQueue.main.async {
-                    isNicknameFieldFocused = false
                     isTextFieldFocused = true
                 }
                 #endif
@@ -254,7 +249,6 @@ struct ContentView: View {
             .onChange(of: colorScheme) { newValue in
                 conversationUIModel.setCurrentColorScheme(newValue)
             }
-        .background(ThemedRootBackground())
         .foregroundColor(palette.primary)
         #if os(macOS)
         .frame(minWidth: 600, minHeight: 400)
@@ -366,7 +360,12 @@ struct ContentView: View {
         .sheet(isPresented: $appChromeModel.isAppInfoPresented) {
             AppInfoView(
                 topologyProvider: { appChromeModel.meshTopologyDisplayModel() },
-                onPanicWipe: { appChromeModel.panicClearAllData() }
+                onPanicWipe: { appChromeModel.panicClearAllData() },
+                nickname: Binding(
+                    get: { appChromeModel.nickname },
+                    set: { appChromeModel.setNickname($0) }
+                ),
+                onNicknameCommit: { appChromeModel.validateAndSaveNickname() }
             )
             .environmentObject(locationChannelsModel)
         }
@@ -462,36 +461,35 @@ struct ContentView: View {
         }
     }
 
-    /// Full-bleed message list scrolling underneath floating chrome panels
-    /// (safe-area insets), so the translucency gains usable space instead of
-    /// losing it.
+    /// Full-bleed message list under the native title bar, with the status
+    /// banners and the composer floating over it (safe-area bars), so the
+    /// translucency gains usable space instead of losing it.
     private var mainContent: some View {
-        publicMessageList
-            .floatingBar(edge: .top) {
-                headerView
-            }
-            .floatingBar(edge: .bottom) {
-                if selectedPrivatePeerID == nil {
-                    composerView
+        NavigationStack {
+            publicMessageList
+                .floatingBar(edge: .top) {
+                    statusBanners
                 }
-            }
-            // macOS: drop an image anywhere on the chat to send it.
-            .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in
-                conversationUIModel.processSelectedImage(from: url)
-            }
+                .floatingBar(edge: .bottom) {
+                    if selectedPrivatePeerID == nil {
+                        composerView
+                    }
+                }
+                // macOS: drop an image anywhere on the chat to send it.
+                .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in
+                    conversationUIModel.processSelectedImage(from: url)
+                }
+                .background(ThemedRootBackground())
+                .modifier(ContentHeaderToolbar(
+                    showSidebar: $showSidebar,
+                    showVerifySheet: $showVerifySheet
+                ))
+        }
     }
 
-    private var headerView: some View {
+    /// Status that floats under the title bar while it applies.
+    private var statusBanners: some View {
         VStack(spacing: 0) {
-            ContentHeaderView(
-                showSidebar: $showSidebar,
-                showVerifySheet: $showVerifySheet,
-                isNicknameFieldFocused: $isNicknameFieldFocused,
-                headerHeight: headerHeight,
-                headerPeerIconSize: headerPeerIconSize,
-                headerPeerCountFontSize: headerPeerCountFontSize
-            )
-
             // Failed-wipe outranks connectivity: "your data may still be
             // here" matters more than "the radio is off".
             if appChromeModel.panicWipeBlocked {
@@ -505,8 +503,8 @@ struct ContentView: View {
                 ConnectivityStatusBanner(issue: issue)
             }
         }
-        // Hosted here rather than on the logo Text so the pending dialog
-        // survives whatever happens to the header chrome.
+        // Hosted here, outside the toolbar, so a pending dialog survives
+        // whatever happens to the title bar.
         .confirmationDialog(
             Text(
                 String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")

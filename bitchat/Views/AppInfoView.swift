@@ -16,8 +16,14 @@ struct AppInfoView: View {
     /// Wipes all local data. Nil (previews, missing wiring) hides the danger
     /// zone entirely.
     var onPanicWipe: (@MainActor () -> Void)?
+    /// Edits the nickname, which the main title bar shows as its subtitle.
+    /// Nil (previews, missing wiring) hides the row.
+    var nickname: Binding<String>?
+    /// Validates and saves the nickname when editing ends.
+    var onNicknameCommit: (@MainActor () -> Void)?
 
     @State private var showTopology = false
+    @FocusState private var isNicknameFocused: Bool
     @State private var liveVoiceEnabled = PTTSettings.liveVoiceEnabled
     @State private var locationNotesEnabled = LocationNotesSettings.enabled
     @State private var hideMessagePreviews = NotificationPrivacySettings.hideMessagePreviews
@@ -58,6 +64,7 @@ struct AppInfoView: View {
             static let connectivityTitle = String(localized: "app_info.settings.connectivity.title", defaultValue: "CONNECTIVITY", comment: "Section header (uppercase) for the connectivity toggles: mesh bridge, internet gateway, tor routing")
 
             static let languageTitle = String(localized: "app_info.settings.language.title", defaultValue: "LANGUAGE", comment: "Section header (uppercase) for the app language picker in settings")
+            static let nicknameTitle = String(localized: "app_info.settings.nickname.title", defaultValue: "NICKNAME", comment: "Section header (uppercase) for the nickname field in settings")
             static let languagePickerLabel = String(localized: "app_info.settings.language.picker_label", defaultValue: "app language", comment: "Label of the app language picker row in settings")
             static let languageSystem = String(localized: "app_info.settings.language.system", defaultValue: "system default", comment: "Menu option that clears the in-app language override so the app follows the device language")
             static let languageRestartNote = String(localized: "app_info.settings.language.restart_note", defaultValue: "restart bitchat to apply the new language", comment: "Caption shown after the user picks a different app language; the change takes effect on next launch")
@@ -308,6 +315,10 @@ struct AppInfoView: View {
     @ViewBuilder
     private var settingsContent: some View {
         VStack(alignment: .leading, spacing: 24) {
+            if let nickname {
+                nicknameSection(nickname)
+            }
+
             // Language — an in-app override so the UI language can differ
             // from the device language (takes effect on next launch).
             VStack(alignment: .leading, spacing: 12) {
@@ -662,6 +673,38 @@ struct AppInfoView: View {
             get: { locationChannelsModel.userTorEnabled },
             set: { locationChannelsModel.setUserTorEnabled($0) }
         )
+    }
+
+    /// Nickname editor. It lived in the main header until the header became
+    /// a native title bar, which shows the nickname as its subtitle.
+    private func nicknameSection(_ nickname: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(verbatim: Strings.Settings.nicknameTitle)
+
+            settingsCard {
+                HStack(spacing: 2) {
+                    Text(verbatim: "@")
+                        .foregroundColor(secondaryTextColor)
+                    TextField("content.input.nickname_placeholder", text: nickname)
+                        .textFieldStyle(.plain)
+                        .foregroundColor(textColor)
+                        .focused($isNicknameFocused)
+                        .autocorrectionDisabled(true)
+                        #if os(iOS)
+                        .textInputAutocapitalization(.never)
+                        #endif
+                        .submitLabel(.done)
+                        .onSubmit { onNicknameCommit?() }
+                }
+                .bitchatFont(size: 14)
+            }
+        }
+        .onChange(of: isNicknameFocused) { isFocused in
+            if !isFocused {
+                onNicknameCommit?()
+            }
+        }
+        .onDisappear { onNicknameCommit?() }
     }
 
     /// The padded card every connectivity setting sits in (moved look from
