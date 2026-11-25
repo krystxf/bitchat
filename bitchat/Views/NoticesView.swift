@@ -619,13 +619,15 @@ private struct NoticesList: View {
                     .padding(.vertical, 12)
                 }
             } else {
+                // Clear rows over a hidden list background: the notices sit
+                // on the sheet's own surface, like the header and composer.
                 List {
                     statusRows
-                        .listRowBackground(palette.background)
+                        .listRowBackground(Color.clear)
                         .listRowSeparatorTint(palette.divider)
                     ForEach(items) { item in
                         row(item)
-                            .listRowBackground(palette.background)
+                            .listRowBackground(Color.clear)
                             .listRowSeparatorTint(palette.divider)
                     }
                 }
