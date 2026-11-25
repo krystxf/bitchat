@@ -12,12 +12,15 @@ import Foundation
 enum GifProvider: String, Sendable {
     case giphy
     case tenor
+    /// nostr.build, the file host behind the GIFs Nostr search finds.
+    case nostrBuild
 
     /// The site named on the tap-to-load placeholder.
     var displayHost: String {
         switch self {
         case .giphy: return "giphy.com"
         case .tenor: return "tenor.com"
+        case .nostrBuild: return "nostr.build"
         }
     }
 }
@@ -40,6 +43,8 @@ struct GifLink: Hashable, Sendable {
         case tenorShortLink
         /// A file on Tenor's media hosts.
         case tenorMedia
+        /// A GIF or WebP file on nostr.build, used as it is.
+        case nostrBuildMedia(GifMediaFormat)
     }
 
     /// The link as the message holds it.
@@ -50,6 +55,7 @@ struct GifLink: Hashable, Sendable {
         switch source {
         case .giphy, .giphyShortLink: return .giphy
         case .tenorPage, .tenorShortLink, .tenorMedia: return .tenor
+        case .nostrBuildMedia: return .nostrBuild
         }
     }
 
@@ -61,7 +67,7 @@ struct GifLink: Hashable, Sendable {
             return isSticker ? "giphy-sticker:\(id)" : "giphy:\(id)"
         case .tenorPage(let id):
             return "tenor:\(id)"
-        case .giphyShortLink, .tenorShortLink, .tenorMedia:
+        case .giphyShortLink, .tenorShortLink, .tenorMedia, .nostrBuildMedia:
             return "url:\(url.absoluteString)"
         }
     }
@@ -73,6 +79,9 @@ enum GifHostPolicy {
     static let giphyPageHosts: Set<String> = ["giphy.com", "www.giphy.com"]
     static let giphyShortLinkHosts: Set<String> = ["gph.is"]
     static let tenorPageHosts: Set<String> = ["tenor.com", "www.tenor.com"]
+    /// nostr.build's media hosts. Nostr GIF search (NIP-94 events) points
+    /// at files here.
+    static let nostrBuildHosts: Set<String> = ["nostr.build", "image.nostr.build", "i.nostr.build", "cdn.nostr.build"]
 
     /// Giphy media: i.giphy.com, media.giphy.com and media0-9.giphy.com.
     static func isGiphyMediaHost(_ host: String) -> Bool {
@@ -90,6 +99,7 @@ enum GifHostPolicy {
             || tenorPageHosts.contains(host)
             || isGiphyMediaHost(host)
             || isTenorMediaHost(host)
+            || nostrBuildHosts.contains(host)
     }
 
     /// Whether the GIF code may send a request to this URL.
@@ -147,7 +157,29 @@ enum GifLinkParser {
         if GifHostPolicy.isTenorMediaHost(host) {
             return TenorMedia.isMediaPath(components) ? GifLink(url: url, source: .tenorMedia) : nil
         }
+        if GifHostPolicy.nostrBuildHosts.contains(host) {
+            return parseNostrBuildMedia(url, components: components)
+        }
         return nil
+    }
+
+    /// image.nostr.build/<hash>.gif and the same under a short folder
+    /// (/thumb/, /i/). Only GIF and WebP: nostr.build's MP4s are videos,
+    /// which can carry sound.
+    private static func parseNostrBuildMedia(_ url: URL, components: [String]) -> GifLink? {
+        guard (1...3).contains(components.count),
+              let filename = components.last,
+              let format = GifMediaFormat(pathExtension: (filename as NSString).pathExtension),
+              format != .mp4
+        else { return nil }
+        let stem = (filename as NSString).deletingPathExtension
+        guard (6...128).contains(stem.count),
+              stem.allSatisfy({ $0.isASCIILetterOrDigit || $0 == "-" || $0 == "_" }),
+              components.dropLast().allSatisfy({ folder in
+                  (1...16).contains(folder.count) && folder.allSatisfy { $0.isASCIILetterOrDigit }
+              })
+        else { return nil }
+        return GifLink(url: url, source: .nostrBuildMedia(format))
     }
 
     /// giphy.com/gifs/<slug>-<id>, /gifs/<id>, /stickers/<slug>-<id> and
@@ -298,6 +330,7 @@ enum GifMessageDetector {
         text.range(of: "giphy.com", options: .caseInsensitive) != nil
             || text.range(of: "gph.is", options: .caseInsensitive) != nil
             || text.range(of: "tenor.com", options: .caseInsensitive) != nil
+            || text.range(of: "nostr.build", options: .caseInsensitive) != nil
     }
 }
 

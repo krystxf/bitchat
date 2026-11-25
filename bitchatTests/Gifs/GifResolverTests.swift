@@ -74,6 +74,17 @@ struct GifResolverTests {
         #expect(fetcher.requests == ["https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.mp4"])
     }
 
+    @Test func nostrBuildFilesDownloadDirectly() async throws {
+        let fetcher = FakeGifFetcher()
+        let file = "https://image.nostr.build/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif"
+        fetcher.respond(file, mimeType: "image/gif", body: Self.gifBytes)
+
+        let media = try await GifResolver(fetcher: fetcher).media(for: link(file))
+
+        #expect(media.format == .gif)
+        #expect(fetcher.requests == [file])
+    }
+
     @Test func aMissingMP4FallsBackToTheGIF() async throws {
         let fetcher = FakeGifFetcher()
         fetcher.respond("https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.mp4", status: 404)

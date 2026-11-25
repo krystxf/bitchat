@@ -98,6 +98,42 @@ struct GifLinkTests {
         #expect(parse(link)?.source == .tenorMedia)
     }
 
+    // MARK: nostr.build
+
+    @Test(arguments: [
+        ("https://image.nostr.build/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif", GifMediaFormat.gif),
+        ("https://image.nostr.build/thumb/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif", .gif),
+        ("https://i.nostr.build/AbCd1234.webp", .webp),
+        ("https://nostr.build/i/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif", .gif)
+    ])
+    func nostrBuildFilesAreUsedAsTheyAre(link: String, format: GifMediaFormat) {
+        let parsed = parse(link)
+        #expect(parsed?.source == .nostrBuildMedia(format))
+        #expect(parsed?.provider == .nostrBuild)
+        #expect(parsed?.provider.displayHost == "nostr.build")
+        #expect(parsed?.cacheKey == "url:\(link)")
+    }
+
+    @Test(arguments: [
+        "http://image.nostr.build/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif",
+        "https://video.nostr.build/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.mp4",
+        "https://image.nostr.build/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.mp4",
+        "https://image.nostr.build/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.png",
+        "https://image.nostr.build.evil.example/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif",
+        "https://image.nostr.build/a/b/c/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif",
+        "https://image.nostr.build/x.gif",
+        "https://image.nostr.build/"
+    ])
+    func otherNostrBuildLinksAreNotGifs(link: String) {
+        #expect(parse(link) == nil)
+    }
+
+    @Test func nostrBuildLinksInMessagesAreDetected() {
+        let content = GifMessageDetector.detect(in: "https://image.nostr.build/0fe0c6b6c16262c07f7ff487a309bc070bf6edee91163e429b50b83002028afd.gif")
+        #expect(content?.isLinkOnly == true)
+        #expect(content?.link.provider == .nostrBuild)
+    }
+
     // MARK: Rejected
 
     @Test(arguments: [

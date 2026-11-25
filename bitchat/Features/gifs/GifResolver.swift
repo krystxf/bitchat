@@ -99,6 +99,8 @@ struct GifResolver: Sendable {
                 return GiphyMedia.candidates(id: id, isSticker: isSticker)
             case .tenorMedia:
                 return TenorMedia.candidates(forMediaLink: current.url)
+            case .nostrBuildMedia(let format):
+                return [GifMediaCandidate(url: current.url, format: format)]
             case .giphyShortLink, .tenorShortLink:
                 let response = try await fetcher.fetch(current.url, maxBytes: Self.maxRedirectBodyBytes, stopMarker: nil)
                 current = try nextLink(after: response)
