@@ -81,15 +81,12 @@ struct ContentSidebarView: View {
         .listStyle(.sidebar)
         .navigationTitle(Text(verbatim: Strings.appName))
         .toolbar {
-            #if os(macOS)
-            ToolbarItem(placement: .navigation) {
-                settingsButton
-            }
-            #else
+            // .primaryAction keeps the gear in the sidebar's own title bar on
+            // macOS, next to the QR button; .navigation renders at the start
+            // of the detail column's toolbar instead.
             ToolbarItem(placement: .primaryAction) {
                 settingsButton
             }
-            #endif
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showVerifySheet = true
