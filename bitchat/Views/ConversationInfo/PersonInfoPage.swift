@@ -84,6 +84,7 @@ private struct PersonInfoContent: View {
                 ForEach(layout.rows, id: \.self) { row in
                     if row == .background {
                         Section {
+                            ConversationMessageColorPickerRow(conversationKey: backgroundKey)
                             ChatBackgroundPickerRow(conversationKey: backgroundKey, selection: $background)
                         }
                     }

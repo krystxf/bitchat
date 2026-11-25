@@ -175,6 +175,7 @@ struct ChannelInfoPage: View {
     private func row(_ row: ConversationInfoPolicy.Row, roster: ChannelRoster) -> some View {
         switch row {
         case .background:
+            ConversationMessageColorPickerRow(conversationKey: backgroundKey)
             ChatBackgroundPickerRow(conversationKey: backgroundKey, selection: $background)
         case .people:
             ConversationInfoLinkRow(title: Strings.people) {

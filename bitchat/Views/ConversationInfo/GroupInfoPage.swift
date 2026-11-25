@@ -98,6 +98,7 @@ struct GroupInfoPage: View {
         switch row {
         case .background:
             Section {
+                ConversationMessageColorPickerRow(conversationKey: backgroundKey)
                 ChatBackgroundPickerRow(conversationKey: backgroundKey, selection: $background)
             }
         case .members(let canRemove):
