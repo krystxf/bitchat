@@ -76,14 +76,6 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.sendMessage("/clear")
     }
 
-    func sendHug(to sender: String) {
-        chatViewModel.sendMessage("/hug @\(sender)")
-    }
-
-    func sendSlap(to sender: String) {
-        chatViewModel.sendMessage("/slap @\(sender)")
-    }
-
     func createGroup(named name: String, inviting peerID: PeerID? = nil) -> CommandResult {
         let result = chatViewModel.groupCoordinator.createGroup(named: name)
         guard case .success(_) = result else { return result }

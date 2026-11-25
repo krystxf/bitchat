@@ -278,12 +278,6 @@ struct MessageListView: View {
                                             }
                                         }
                                     }
-                                    Button("content.actions.hug") {
-                                        conversationUIModel.sendHug(to: message.sender)
-                                    }
-                                    Button("content.actions.slap") {
-                                        conversationUIModel.sendSlap(to: message.sender)
-                                    }
                                 }
                                 Button("content.message.copy") {
                                     #if os(iOS)
@@ -398,18 +392,6 @@ struct MessageListView: View {
                         Text(verbatim: String(format: String(localized: "group.action.create_with_peer"), selectedMessageSender ?? ""))
                     }
                     .accessibilityLabel(Text(verbatim: String(format: String(localized: "group.action.create_with_peer"), selectedMessageSender ?? "")))
-                }
-
-                Button("content.actions.hug") {
-                    if let sender = selectedMessageSender {
-                        conversationUIModel.sendHug(to: sender)
-                    }
-                }
-
-                Button("content.actions.slap") {
-                    if let sender = selectedMessageSender {
-                        conversationUIModel.sendSlap(to: sender)
-                    }
                 }
 
                 Button("content.actions.block", role: .destructive) {
@@ -943,7 +925,7 @@ private extension MessageListView {
         }
     }
 
-    /// Opens the action sheet (mention, DM, hug, slap, block) for the
+    /// Opens the action sheet (mention, DM, new group, block) for the
     /// sender behind `peerID`, unless that is me. A tap on a sender's name
     /// or avatar lands here.
     func presentSenderActions(for peerID: PeerID) {
