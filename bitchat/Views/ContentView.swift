@@ -323,7 +323,6 @@ struct ContentView: View {
                 isTextFieldFocused: $isTextFieldFocused,
                 voiceRecordingVM: voiceRecordingVM,
                 autocompleteDebounceTimer: $autocompleteDebounceTimer,
-                headerHeight: headerHeight,
                 onSendMessage: sendMessage,
                 showImagePicker: $showImagePicker,
                 imagePickerSourceType: $imagePickerSourceType
@@ -352,7 +351,6 @@ struct ContentView: View {
                 isTextFieldFocused: $isTextFieldFocused,
                 voiceRecordingVM: voiceRecordingVM,
                 autocompleteDebounceTimer: $autocompleteDebounceTimer,
-                headerHeight: headerHeight,
                 onSendMessage: sendMessage
             )
             .environmentObject(appChromeModel)

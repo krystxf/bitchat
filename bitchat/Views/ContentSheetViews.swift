@@ -43,7 +43,6 @@ struct ContentPeopleSheetView: View {
     @State private var showVerifySheet = false
     @ThemedPalette private var palette
 
-    let headerHeight: CGFloat
     let onSendMessage: () -> Void
 
     #if os(iOS)
