@@ -36,26 +36,16 @@ struct MeshTopologyView: View {
     @State private var model: MeshTopologyDisplayModel = .empty
 
     var body: some View {
-        // NavigationStack, not NavigationView: on macOS a NavigationView is a
-        // two-column split view and squeezes this content into its sidebar.
-        NavigationStack {
-            content
-                .navigationTitle(Text("topology.title"))
-                #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                #endif
-                .toolbar {
-                    SheetCloseToolbarItem { dismiss() }
-                    // Trailing in the iOS navigation bar; leading in the
-                    // bottom button bar of a macOS sheet, away from Close.
-                    ToolbarItem(placement: .automatic) {
-                        refreshButton
-                    }
-                }
-        }
-        #if os(macOS)
-        .frame(width: 500, height: 520)
-        #endif
+        content
+            .sheetChrome(title: Text("topology.title"), onClose: { dismiss() }) {
+                refreshButton
+            }
+            #if os(macOS)
+            .frame(width: 500, height: 520)
+            #else
+            // A glance at the graph needs half the screen; drag up for more.
+            .presentationDetents([.medium, .large])
+            #endif
     }
 
     private var refreshButton: some View {
@@ -68,6 +58,7 @@ struct MeshTopologyView: View {
                 Image(systemName: "arrow.clockwise")
             }
         }
+        .help(Text("topology.refresh"))
     }
 
     @ViewBuilder
