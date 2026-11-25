@@ -37340,7 +37340,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Join the #Zzhold0Zz Channel on Bitchat: Bitchat:/Zzhold1Zz/Zzhold2Zz — New to Bitchat? Get It at Zzhold3Zz Then Type #Zzhold4Zz Under Location Channels."
+            "value" : "Join the #%1$@ channel on bitchat: bitchat://geohash/%1$@ — new to bitchat? Get it at %2$@ then type #%1$@ under location channels."
           }
         },
         "es" : {
@@ -72032,7 +72032,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zztoken0Zz [Zztoken1Zz]"
+            "value" : "%1$@ [%2$#@people_count@]"
           },
           "substitutions" : {
             "people_count" : {
@@ -102748,7 +102748,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create Group with Zzhold0Zz"
+            "value" : "Create Group with %@"
           }
         },
         "es" : {
@@ -104783,7 +104783,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invite Zzhold0Zz"
+            "value" : "Invite %@"
           }
         },
         "es" : {
