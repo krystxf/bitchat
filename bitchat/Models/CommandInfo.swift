@@ -19,7 +19,6 @@ enum CommandInfo: String, Identifiable {
     case group
     case help
     case hug
-    case message = "msg"
     case slap
     case pay
     case unblock
@@ -34,7 +33,7 @@ enum CommandInfo: String, Identifiable {
 
     var placeholder: String? {
         switch self {
-        case .block, .hug, .message, .slap, .unblock, .ping, .trace:
+        case .block, .hug, .slap, .unblock, .ping, .trace:
             return "<" + String(localized: "content.input.nickname_placeholder") + ">"
         case .group:
             return "<" + String(localized: "content.input.group_placeholder") + ">"
@@ -54,7 +53,6 @@ enum CommandInfo: String, Identifiable {
         case .group:        String(localized: "content.commands.group")
         case .help:         String(localized: "content.commands.help")
         case .hug:          String(localized: "content.commands.hug")
-        case .message:      String(localized: "content.commands.message")
         case .pay:          String(localized: "content.commands.pay")
         case .slap:         String(localized: "content.commands.slap")
         case .unblock:      String(localized: "content.commands.unblock")
@@ -66,7 +64,7 @@ enum CommandInfo: String, Identifiable {
     }
 
     static func all(isGeoPublic: Bool, isGeoDM: Bool) -> [CommandInfo] {
-        var commands: [CommandInfo] = [.block, .unblock, .clear, .drop, .help, .hug, .message, .slap, .who]
+        var commands: [CommandInfo] = [.block, .unblock, .clear, .drop, .help,  .hug, .slap, .who]
         // Cashu tokens are bearer instruments: in a public geohash any nearby
         // stranger can redeem one, so don't *suggest* /pay there (the
         // processor still allows it behind an explicit "public" confirm).

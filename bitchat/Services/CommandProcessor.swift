@@ -120,8 +120,6 @@ final class CommandProcessor {
         let inGeoDM = contextProvider?.selectedPrivateChatPeer?.isGeoDM == true
 
         switch cmd {
-        case "/m", "/msg":
-            return handleMessage(args)
         case "/w", "/who":
             return handleWho()
         case "/clear":
@@ -158,7 +156,7 @@ final class CommandProcessor {
     /// suggestion panel hides once arguments are typed, and typos used to
     /// dead-end in a bare "unknown command" — this is the way out.
     static var helpText: String {
-        String(localized: "command.help.text", defaultValue: "commands:\n/msg @name [message] — start a private chat\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/group create <name> — start an encrypted group\n/group invite @name · /group remove @name — manage members (creator)\n/group leave · /group list — leave or list your groups\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list", comment: "The /help reference list; command syntax stays verbatim, only the descriptions after each dash are translated")
+        String(localized: "command.help.text", defaultValue: "commands:\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/group create <name> — start an encrypted group\n/group invite @name · /group remove @name — manage members (creator)\n/group leave · /group list — leave or list your groups\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list", comment: "The /help reference list; command syntax stays verbatim, only the descriptions after each dash are translated")
     }
 
     /// /drop <text> — a dead drop: pins a note to the current building-level
@@ -192,29 +190,6 @@ final class CommandProcessor {
     }
 
     // MARK: - Command Handlers
-    
-    private func handleMessage(_ args: String) -> CommandResult {
-        let parts = args.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: false)
-        guard !parts.isEmpty else {
-            return .error(message: String(localized: "command.msg.usage", defaultValue: "usage: /msg @nickname [message]", comment: "Usage hint for /msg"))
-        }
-        
-        let targetName = String(parts[0])
-        let nickname = targetName.hasPrefix("@") ? String(targetName.dropFirst()) : targetName
-        
-        guard let peerID = contextProvider?.getPeerIDForNickname(nickname) else {
-            return .error(message: String(format: String(localized: "command.msg.not_found", defaultValue: "'%@' not found", comment: "Error when /msg can't resolve the nickname"), locale: .current, nickname))
-        }
-
-        contextProvider?.startPrivateChat(with: peerID)
-
-        if parts.count > 1 {
-            let message = String(parts[1])
-            contextProvider?.sendPrivateMessage(message, to: peerID)
-        }
-        
-        return .success(message: String(format: String(localized: "command.msg.started", defaultValue: "started private chat with %@", comment: "Confirmation after /msg opens a private chat"), locale: .current, nickname))
-    }
     
     private func handleWho() -> CommandResult {
         // Show geohash participants when in a geohash channel; otherwise mesh peers

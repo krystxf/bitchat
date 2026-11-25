@@ -46,30 +46,6 @@ struct CommandProcessorTests {
     }
 
     @MainActor
-    @Test func msgStartsPrivateChatAndSendsMessage() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider()
-        let peerID = PeerID(str: "abcd1234abcd1234")
-        context.nicknameToPeerID["alice"] = peerID
-        let processor = CommandProcessor(contextProvider: context, meshService: nil, identityManager: identityManager)
-
-        let result = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/msg @alice hello there")
-        }
-
-        switch result {
-        case .success(let message):
-            #expect(message == "started private chat with alice")
-        default:
-            Issue.record("Expected success result")
-        }
-        #expect(context.startedPrivateChats == [peerID])
-        #expect(context.sentPrivateMessages.count == 1)
-        #expect(context.sentPrivateMessages.first?.content == "hello there")
-        #expect(context.sentPrivateMessages.first?.peerID == peerID)
-    }
-
-    @MainActor
     @Test func whoInMeshListsSortedPeerNicknames() async {
         let identityManager = MockIdentityManager(MockKeychain())
         let context = MockCommandContextProvider()

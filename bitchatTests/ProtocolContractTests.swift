@@ -48,9 +48,6 @@ struct ProtocolContractTests {
     func commandInfo_exposesAliasesPlaceholdersAndGeoVariants() {
         // Aliases must match what CommandProcessor actually accepts —
         // the suggestion panel is the only command-discovery surface.
-        #expect(CommandInfo.message.id == "msg")
-        #expect(CommandInfo.message.alias == "/msg")
-        #expect(CommandInfo.message.placeholder != nil)
         #expect(CommandInfo.clear.placeholder == nil)
         #expect(CommandInfo.all(isGeoPublic: false, isGeoDM: false).contains(.help))
     }
