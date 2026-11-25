@@ -724,6 +724,29 @@ struct ChatViewModelFormattingTests {
         #expect(viewModel.formatMessageHeader(message, colorScheme: .dark) == header)
         #expect(viewModel.formatMessageAsText(message, colorScheme: .dark) == fullText)
     }
+
+    @Test @MainActor
+    func isSelfMessage_judgesBySenderIDNotNickname() async {
+        let (viewModel, transport) = makeTestableViewModel()
+        viewModel.nickname = "alice"
+        func row(_ sender: String, _ senderPeerID: PeerID?) -> BitchatMessage {
+            BitchatMessage(
+                sender: sender,
+                content: "hi",
+                timestamp: Date(),
+                isRelay: false,
+                senderPeerID: senderPeerID
+            )
+        }
+
+        // My ID makes a row mine, even under a name from before a rename.
+        #expect(viewModel.isSelfMessage(row("al", transport.myPeerID)))
+        // My name alone never does: a namesake must not render as me.
+        #expect(!viewModel.isSelfMessage(row("alice", nil)))
+        #expect(!viewModel.isSelfMessage(row("alice", PeerID(str: "00000000000000b4"))))
+        // Local system lines carry my ID but are nobody's message.
+        #expect(!viewModel.isSelfMessage(row("system", transport.myPeerID)))
+    }
 }
 
 // MARK: - Verification Tests

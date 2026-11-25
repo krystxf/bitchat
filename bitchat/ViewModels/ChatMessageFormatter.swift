@@ -30,29 +30,7 @@ final class ChatMessageFormatter {
 
     func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
         let design = Font.Design.default
-        let isSelf: Bool = {
-            if let spid = message.senderPeerID {
-                if case .location(let channel) = viewModel.activeChannel, spid.isGeoChat {
-                    let myGeo: NostrIdentity? = {
-                        if let cached = viewModel.cachedGeohashIdentity, cached.geohash == channel.geohash {
-                            return cached.identity
-                        }
-                        if let identity = try? viewModel.idBridge.deriveIdentity(forGeohash: channel.geohash) {
-                            viewModel.cachedGeohashIdentity = (channel.geohash, identity)
-                            return identity
-                        }
-                        return nil
-                    }()
-                    if let myGeo {
-                        return spid == PeerID(nostr: myGeo.publicKeyHex)
-                    }
-                }
-                return spid == viewModel.meshService.myPeerID
-            }
-            if message.sender == viewModel.nickname { return true }
-            if message.sender.hasPrefix(viewModel.nickname + "#") { return true }
-            return false
-        }()
+        let isSelf = isSelfMessage(message)
 
         let isDark = colorScheme == .dark
         let isVerifiedSender = !isSelf && isVerifiedSender(of: message)
@@ -368,18 +346,7 @@ final class ChatMessageFormatter {
 
     func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
         let design = Font.Design.default
-        let isSelf: Bool = {
-            if let spid = message.senderPeerID {
-                if case .location(let channel) = viewModel.activeChannel, spid.id.hasPrefix("nostr:"),
-                   let myGeo = try? viewModel.idBridge.deriveIdentity(forGeohash: channel.geohash) {
-                    return spid == PeerID(nostr: myGeo.publicKeyHex)
-                }
-                return spid == viewModel.meshService.myPeerID
-            }
-            if message.sender == viewModel.nickname { return true }
-            if message.sender.hasPrefix(viewModel.nickname + "#") { return true }
-            return false
-        }()
+        let isSelf = isSelfMessage(message)
 
         let isDark = colorScheme == .dark
         let isVerifiedSender = !isSelf && isVerifiedSender(of: message)
@@ -426,28 +393,16 @@ final class ChatMessageFormatter {
         return result
     }
 
+    /// Whether this device wrote the row: the one rule behind every
+    /// formatted variant. It is `BitchatMessage.isOwn`, the rule
+    /// `ConversationUIModel.isSentByCurrentUser` applies too, so a row is
+    /// styled as mine exactly when the rest of the UI treats it as mine. A
+    /// name alone never makes a row mine: a namesake must not render as me.
     func isSelfMessage(_ message: BitchatMessage) -> Bool {
-        if let spid = message.senderPeerID {
-            if case .location(let channel) = viewModel.activeChannel, spid.isGeoChat {
-                let myGeo: NostrIdentity? = {
-                    if let cached = viewModel.cachedGeohashIdentity, cached.geohash == channel.geohash {
-                        return cached.identity
-                    }
-                    if let identity = try? viewModel.idBridge.deriveIdentity(forGeohash: channel.geohash) {
-                        viewModel.cachedGeohashIdentity = (channel.geohash, identity)
-                        return identity
-                    }
-                    return nil
-                }()
-                if let myGeo {
-                    return spid == PeerID(nostr: myGeo.publicKeyHex)
-                }
-            }
-            return spid == viewModel.meshService.myPeerID
-        }
-        if message.sender == viewModel.nickname { return true }
-        if message.sender.hasPrefix(viewModel.nickname + "#") { return true }
-        return false
+        message.isOwn(
+            myPeerID: viewModel.meshService.myPeerID,
+            myGeoChatPeerID: myGeoChatPeerID()
+        )
     }
 
     func senderColor(for message: BitchatMessage, isDark: Bool) -> Color {
@@ -468,6 +423,15 @@ final class ChatMessageFormatter {
 }
 
 private extension ChatMessageFormatter {
+    /// My geochat sender ID in the location channel on screen (nil on
+    /// #mesh), from the identity slot the view model caches.
+    func myGeoChatPeerID() -> PeerID? {
+        guard case .location(let channel) = viewModel.activeChannel,
+              let identity = viewModel.geohashIdentity(for: channel.geohash)
+        else { return nil }
+        return PeerID(nostr: identity.publicKeyHex)
+    }
+
     /// Whether the message sender has a fingerprint the user has verified.
     /// Used for the in-chat seal next to `<@name>` so verification is visible
     /// without opening the fingerprint sheet (#1439).
