@@ -675,7 +675,7 @@ private final class PerfNostrContext: ChatNostrContext {
     func appendGeohashMessageIfAbsent(_ message: BitchatMessage, toGeohash geohash: String) -> Bool { true }
 
     private(set) var handledPublicMessageCount = 0
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int) { handledPublicMessageCount += 1 }
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int, allowHaptic: Bool) { handledPublicMessageCount += 1 }
     func checkForMentions(_ message: BitchatMessage) {}
     func sendHapticFeedback(for message: BitchatMessage) {}
     func parseMentions(from content: String) -> [String] {
@@ -685,7 +685,7 @@ private final class PerfNostrContext: ChatNostrContext {
     var selectedPrivateChatPeer: PeerID?
     var nostrKeyMapping: [PeerID: String] = [:]
     func registerNostrKeyMapping(_ pubkey: String, for peerID: PeerID) { nostrKeyMapping[peerID] = pubkey }
-    func handlePrivateMessage(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID, id: NostrIdentity, messageTimestamp: Date) {}
+    func handlePrivateMessage(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID, id: NostrIdentity, messageTimestamp: Date, allowHaptic: Bool) {}
     func handleDelivered(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID) {}
     func handleReadReceipt(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID) {}
     func startPrivateChat(with peerID: PeerID) {}

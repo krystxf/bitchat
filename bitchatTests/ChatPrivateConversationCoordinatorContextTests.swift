@@ -28,6 +28,7 @@ private final class MockChatPrivateConversationContext: ChatPrivateConversationC
     var activeChannel: ChannelID = .mesh
     var nostrKeyMapping: [PeerID: String] = [:]
     private(set) var notifyUIChangedCount = 0
+    private(set) var hapticMessageIDs: [String] = []
 
     @discardableResult
     func markReadReceiptSent(_ messageID: String) -> Bool {
@@ -47,6 +48,8 @@ private final class MockChatPrivateConversationContext: ChatPrivateConversationC
     func notifyUIChanged() {
         notifyUIChangedCount += 1
     }
+
+    func sendHapticFeedback(for message: BitchatMessage) { hapticMessageIDs.append(message.id) }
 
     // Conversation store intents (mirror `ConversationStore` semantics:
     // ordered insert, dedup by ID, no-downgrade status, unread carry on
@@ -1067,6 +1070,7 @@ struct ChatPrivateConversationCoordinatorContextTests {
         #expect(context.privateMessageNotifications.first?.message == "hi there")
         #expect(context.privateMessageNotifications.first?.peerID == peerID)
         #expect(context.meshReadReceipts.isEmpty)
+        #expect(context.hapticMessageIDs == ["pm-1"])
 
         // Viewing the chat: a READ ack is sent instead and no notification fires.
         context.selectedPrivateChatPeer = peerID
@@ -1074,6 +1078,7 @@ struct ChatPrivateConversationCoordinatorContextTests {
         #expect(context.meshReadReceipts.map(\.messageID) == ["pm-2"])
         #expect(context.sentReadReceipts.contains("pm-2"))
         #expect(context.privateMessageNotifications.count == 1)
+        #expect(context.hapticMessageIDs == ["pm-1", "pm-2"])
     }
 
     @Test @MainActor

@@ -54,6 +54,7 @@ protocol ChatGroupContext: AnyObject {
     func addLocalPrivateSystemMessage(_ content: String, to peerID: PeerID)
     func notifyUIChanged()
     func notifyPrivateMessage(from senderName: String, message: String, peerID: PeerID)
+    func sendHapticFeedback(for message: BitchatMessage)
 }
 
 extension ChatViewModel: ChatGroupContext {
@@ -440,6 +441,7 @@ final class ChatGroupCoordinator {
         )
 
         guard context.appendPrivateMessage(message, to: groupPeerID) else { return }
+        context.sendHapticFeedback(for: message)
 
         let isViewing = context.selectedPrivateChatPeer == groupPeerID
         if !isViewing {

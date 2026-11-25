@@ -274,12 +274,7 @@ struct ChatTransportEventCoordinatorContextTests {
             "pm-missing-sender",
             "pub"
         ])
-        #expect(context.hapticMessageIDs == [
-            stableMediaID,
-            "legacy-media",
-            "pm-missing-sender",
-            "pub"
-        ])
+        #expect(context.hapticMessageIDs.isEmpty)
         #expect(context.meshDeliveryAcks.isEmpty)
     }
 
@@ -327,7 +322,7 @@ struct ChatTransportEventCoordinatorContextTests {
         #expect(message.content == "hi @me")
         #expect(message.mentions == ["me"])
         #expect(message.senderPeerID == peerID)
-        #expect(context.hapticMessageIDs == ["m1"])
+        #expect(context.hapticMessageIDs.isEmpty)
     }
 
     @Test @MainActor

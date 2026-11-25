@@ -34,14 +34,16 @@ extension ChatViewModel {
         senderPubkey: String,
         convKey: PeerID,
         id: NostrIdentity,
-        messageTimestamp: Date
+        messageTimestamp: Date,
+        allowHaptic: Bool = true
     ) {
         privateConversationCoordinator.handlePrivateMessage(
             payload,
             senderPubkey: senderPubkey,
             convKey: convKey,
             id: id,
-            messageTimestamp: messageTimestamp
+            messageTimestamp: messageTimestamp,
+            allowHaptic: allowHaptic
         )
     }
 

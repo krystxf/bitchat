@@ -349,7 +349,6 @@ private extension ChatTransportEventCoordinator {
 
         context.handlePublicMessage(message)
         context.checkForMentions(message)
-        context.sendHapticFeedback(for: message)
     }
 
     @MainActor
@@ -368,7 +367,6 @@ private extension ChatTransportEventCoordinator {
         }
 
         context.checkForMentions(message)
-        context.sendHapticFeedback(for: message)
         return true
     }
 

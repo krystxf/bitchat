@@ -38,7 +38,7 @@ protocol NostrInboundPipelineContext: AnyObject {
     /// `powBits` is the validated NIP-13 difficulty of the source event
     /// (`NostrPoW.validatedDifficulty`); it relaxes the per-sender rate limit
     /// downstream.
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int)
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int, allowHaptic: Bool)
     func checkForMentions(_ message: BitchatMessage)
     func sendHapticFeedback(for message: BitchatMessage)
     func parseMentions(from content: String) -> [String]
@@ -49,7 +49,8 @@ protocol NostrInboundPipelineContext: AnyObject {
         senderPubkey: String,
         convKey: PeerID,
         id: NostrIdentity,
-        messageTimestamp: Date
+        messageTimestamp: Date,
+        allowHaptic: Bool
     )
     func handleDelivered(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID)
     func handleReadReceipt(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID)
@@ -230,10 +231,9 @@ final class NostrInboundPipeline {
         Task { @MainActor [weak context] in
             guard let context else { return }
             let isBlocked = context.isNostrBlocked(pubkeyHexLowercased: event.pubkey.lowercased())
-            context.handlePublicMessage(message, powBits: powBits)
+            context.handlePublicMessage(message, powBits: powBits, allowHaptic: !isHistoryReplay)
             if !isBlocked {
                 context.checkForMentions(message)
-                context.sendHapticFeedback(for: message)
             }
         }
     }
@@ -328,14 +328,13 @@ final class NostrInboundPipeline {
 
         Task { @MainActor [weak context] in
             guard let context else { return }
-            context.handlePublicMessage(message, powBits: powBits)
+            context.handlePublicMessage(message, powBits: powBits, allowHaptic: !isHistoryReplay)
             context.checkForMentions(message)
-            context.sendHapticFeedback(for: message)
         }
     }
 
     @MainActor
-    func subscribeGiftWrap(_ giftWrap: NostrEvent, id: NostrIdentity) {
+    func subscribeGiftWrap(_ giftWrap: NostrEvent, id: NostrIdentity, isHistoryReplay: Bool = false) {
         guard let context else { return }
         // Cheap dedup pre-check only; processGeohashGiftWrap does the
         // authoritative main-actor check-and-record before the off-main
@@ -349,12 +348,12 @@ final class NostrInboundPipeline {
         // drops its result instead of delivering plaintext post-wipe.
         let wipeGeneration = self.wipeGeneration
         Task.detached(priority: .userInitiated) { [weak self] in
-            await self?.processGeohashGiftWrap(giftWrap, id: id, verbose: false, wipeGeneration: wipeGeneration)
+            await self?.processGeohashGiftWrap(giftWrap, id: id, verbose: false, allowHaptic: !isHistoryReplay, wipeGeneration: wipeGeneration)
         }
     }
 
     @MainActor
-    func handleGiftWrap(_ giftWrap: NostrEvent, id: NostrIdentity) {
+    func handleGiftWrap(_ giftWrap: NostrEvent, id: NostrIdentity, isHistoryReplay: Bool = false) {
         guard let context else { return }
         // Cheap dedup pre-check only; see subscribeGiftWrap.
         if context.hasProcessedNostrEvent(giftWrap.id) {
@@ -364,7 +363,7 @@ final class NostrInboundPipeline {
         // Spawn-time wipe-generation capture; see subscribeGiftWrap.
         let wipeGeneration = self.wipeGeneration
         Task.detached(priority: .userInitiated) { [weak self] in
-            await self?.processGeohashGiftWrap(giftWrap, id: id, verbose: true, wipeGeneration: wipeGeneration)
+            await self?.processGeohashGiftWrap(giftWrap, id: id, verbose: true, allowHaptic: !isHistoryReplay, wipeGeneration: wipeGeneration)
         }
     }
 
@@ -383,6 +382,7 @@ final class NostrInboundPipeline {
         _ giftWrap: NostrEvent,
         id: NostrIdentity,
         verbose: Bool,
+        allowHaptic: Bool,
         wipeGeneration: UInt64
     ) async {
         guard let context else { return }
@@ -443,7 +443,8 @@ final class NostrInboundPipeline {
                     senderPubkey: senderPubkey,
                     convKey: convKey,
                     id: id,
-                    messageTimestamp: messageTimestamp
+                    messageTimestamp: messageTimestamp,
+                    allowHaptic: allowHaptic
                 )
             case .delivered:
                 context.handleDelivered(payload, senderPubkey: senderPubkey, convKey: convKey)
@@ -460,7 +461,7 @@ final class NostrInboundPipeline {
     }
 
     @MainActor
-    func handleNostrMessage(_ giftWrap: NostrEvent) {
+    func handleNostrMessage(_ giftWrap: NostrEvent, isHistoryReplay: Bool = false) {
         guard let context else { return }
         // Cheap dedup pre-check only; processNostrMessage does the
         // authoritative check-and-record before the off-main NIP-17 unwrap.
@@ -471,11 +472,11 @@ final class NostrInboundPipeline {
         if context.hasProcessedNostrEvent(giftWrap.id) { return }
 
         Task.detached(priority: .userInitiated) { [weak self] in
-            await self?.processNostrMessage(giftWrap)
+            await self?.processNostrMessage(giftWrap, allowHaptic: !isHistoryReplay)
         }
     }
 
-    func processNostrMessage(_ giftWrap: NostrEvent) async {
+    func processNostrMessage(_ giftWrap: NostrEvent, allowHaptic: Bool = true) async {
         guard let context else { return }
         // Authoritative check-and-record, atomic on the main actor so two
         // concurrent detached tasks can't both process the same event.
@@ -540,7 +541,8 @@ final class NostrInboundPipeline {
                                 senderPubkey: senderPubkey,
                                 convKey: targetPeerID,
                                 id: currentIdentity,
-                                messageTimestamp: messageTimestamp
+                                messageTimestamp: messageTimestamp,
+                                allowHaptic: allowHaptic
                             )
                         case .delivered:
                             context.handleDelivered(payload, senderPubkey: senderPubkey, convKey: targetPeerID)

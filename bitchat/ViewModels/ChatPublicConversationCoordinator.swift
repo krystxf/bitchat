@@ -32,6 +32,8 @@ protocol ChatPublicConversationContext: AnyObject {
     /// message with the same ID is already in that conversation.
     @discardableResult
     func appendPublicMessage(_ message: BitchatMessage, to conversationID: ConversationID) -> Bool
+    func publicMessage(withID messageID: String) -> BitchatMessage?
+    func privateMessage(withID messageID: String) -> BitchatMessage?
     func publicConversationContainsMessage(withID messageID: String, in conversationID: ConversationID) -> Bool
     /// Removes a message by ID from whichever public conversation contains it.
     @discardableResult
@@ -166,6 +168,7 @@ extension ChatViewModel: ChatPublicConversationContext {
 @MainActor
 final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
     private unowned let context: any ChatPublicConversationContext
+    private var incomingHapticPolicy = IncomingMessageHapticPolicy()
 
     init(context: any ChatPublicConversationContext) {
         self.context = context
@@ -454,7 +457,7 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         return "\(senderPeerID?.id ?? "")|\(msKey)|\(content)"
     }
 
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int = 0) {
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int = 0, allowHaptic: Bool = true) {
         let finalMessage = context.processActionMessage(message)
         if context.isMessageBlocked(finalMessage) { return }
 
@@ -518,6 +521,7 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
             // batch for; they land in the store immediately.
             context.appendPublicMessage(finalMessage, to: destination)
         }
+        if allowHaptic { sendHapticFeedback(for: finalMessage) }
     }
 
     func checkForMentions(_ message: BitchatMessage) {
@@ -541,6 +545,18 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         #if os(iOS)
         guard UIApplication.shared.applicationState == .active else { return }
 
+        let reaction = MessageReaction.parse(message.content)
+        let reactionTargetsOwnMessage: Bool? = reaction.flatMap { event in
+            let target = message.isPrivate
+                ? context.privateMessage(withID: event.targetID)
+                : context.publicMessage(withID: event.targetID)
+            guard let target,
+                  target.id != message.id,
+                  MessageReaction.format(emoji: event.emoji, target: target, removes: event.removes) == message.content
+            else { return false }
+            return isOwnMessage(target)
+        }
+
         var tokens: [String] = [context.nickname]
         switch context.activeChannel {
         case .location(let channel):
@@ -556,7 +572,7 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         let isHugForMe = message.content.contains("🫂") && hugsMe
         let isSlapForMe = message.content.contains("🐟") && slapsMe
 
-        if isHugForMe && !isOwnMessage(message) {
+        if message.sender != "system", isHugForMe && !isOwnMessage(message) {
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.prepare()
 
@@ -567,8 +583,20 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
                     impactFeedback.impactOccurred()
                 }
             }
-        } else if isSlapForMe && !isOwnMessage(message) {
+        } else if message.sender != "system", isSlapForMe && !isOwnMessage(message) {
             let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+            impactFeedback.prepare()
+            impactFeedback.impactOccurred()
+        } else if incomingHapticPolicy.shouldTap(
+            isIncoming: !isOwnMessage(message),
+            isSystem: message.sender == "system",
+            isForeground: UIApplication.shared.applicationState == .active,
+            hasStrongerFeedback: false,
+            isReaction: reaction != nil,
+            reactionTargetsOwnMessage: reactionTargetsOwnMessage,
+            now: Date()
+        ) {
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
             impactFeedback.prepare()
             impactFeedback.impactOccurred()
         }

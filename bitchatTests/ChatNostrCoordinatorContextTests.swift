@@ -67,10 +67,14 @@ private final class MockChatNostrContext: ChatNostrContext {
 
     // Inbound public messages
     private(set) var handledPublicMessages: [BitchatMessage] = []
+    private(set) var publicHapticEligibility: [Bool] = []
     private(set) var mentionCheckedMessageIDs: [String] = []
     private(set) var hapticMessageIDs: [String] = []
 
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int) { handledPublicMessages.append(message) }
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int, allowHaptic: Bool) {
+        handledPublicMessages.append(message)
+        publicHapticEligibility.append(allowHaptic)
+    }
     func checkForMentions(_ message: BitchatMessage) { mentionCheckedMessageIDs.append(message.id) }
     func sendHapticFeedback(for message: BitchatMessage) { hapticMessageIDs.append(message.id) }
     func parseMentions(from content: String) -> [String] { [] }
@@ -89,7 +93,8 @@ private final class MockChatNostrContext: ChatNostrContext {
         senderPubkey: String,
         convKey: PeerID,
         id: NostrIdentity,
-        messageTimestamp: Date
+        messageTimestamp: Date,
+        allowHaptic: Bool
     ) {
         handledPrivateMessages.append((payload, senderPubkey, convKey, messageTimestamp))
     }
@@ -304,7 +309,7 @@ struct ChatNostrCoordinatorContextTests {
         #expect(context.handledPublicMessages.first?.sender == "alice#1234")
         #expect(context.handledPublicMessages.first?.content == "hello geohash")
         #expect(context.mentionCheckedMessageIDs == [event.id])
-        #expect(context.hapticMessageIDs == [event.id])
+        #expect(context.publicHapticEligibility == [true])
 
         // A replay of the same event is dropped before any processing.
         coordinator.inbound.handleNostrEvent(event)

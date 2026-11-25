@@ -60,6 +60,7 @@ protocol ChatPrivateConversationContext: AnyObject {
     func handOffSelectedPrivateChat(from oldPeerIDs: [PeerID], to newPeerID: PeerID)
     /// Signals that message state changed so observers refresh (e.g. `objectWillChange.send()`).
     func notifyUIChanged()
+    func sendHapticFeedback(for message: BitchatMessage)
 
     // MARK: Peers & identity
     var myPeerID: PeerID { get }
@@ -487,7 +488,8 @@ final class ChatPrivateConversationCoordinator {
         senderPubkey: String,
         convKey: PeerID,
         id: NostrIdentity,
-        messageTimestamp: Date
+        messageTimestamp: Date,
+        allowHaptic: Bool = true
     ) {
         guard let pm = PrivateMessagePacket.decode(from: payload.data) else { return }
         let messageId = pm.messageID
@@ -548,7 +550,8 @@ final class ChatPrivateConversationCoordinator {
             deliveryStatus: .delivered(to: context.nickname, at: Date())
         )
 
-        context.appendPrivateMessage(message, to: conversationPeerID)
+        guard context.appendPrivateMessage(message, to: conversationPeerID) else { return }
+        if allowHaptic { context.sendHapticFeedback(for: message) }
 
         let isViewing = context.selectedPrivateChatPeer == conversationPeerID
         let wasReadBefore = context.sentReadReceipts.contains(messageId)
@@ -684,6 +687,7 @@ final class ChatPrivateConversationCoordinator {
         }
 
         addMessageToPrivateChatsIfNeeded(message, targetPeerID: peerID)
+        context.sendHapticFeedback(for: message)
         let noiseKey = peerID.noiseKey ?? context.noisePublicKey(for: peerID)
         mirrorToEphemeralIfNeeded(message, targetPeerID: peerID, key: noiseKey)
 

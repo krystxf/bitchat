@@ -44,6 +44,15 @@ private final class MockChatPublicConversationContext: ChatPublicConversationCon
         conversations[conversationID] ?? []
     }
 
+    func publicMessage(withID messageID: String) -> BitchatMessage? {
+        conversations.filter { key, _ in
+            if case .direct = key { return false }
+            return true
+        }.values.flatMap { $0 }.first { $0.id == messageID }
+    }
+
+    func privateMessage(withID messageID: String) -> BitchatMessage? { nil }
+
     @discardableResult
     func appendPublicMessage(_ message: BitchatMessage, to conversationID: ConversationID) -> Bool {
         guard conversations[conversationID]?.contains(where: { $0.id == message.id }) != true else {

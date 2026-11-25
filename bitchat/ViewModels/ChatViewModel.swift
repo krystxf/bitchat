@@ -1020,6 +1020,28 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         conversations.conversation(for: ConversationID(channelID: channel)).messages
     }
 
+    @MainActor
+    func publicMessage(withID messageID: String) -> BitchatMessage? {
+        for (conversationID, conversation) in conversations.conversationsByID {
+            switch conversationID {
+            case .mesh, .geohash:
+                if let message = conversation.message(withID: messageID) { return message }
+            case .direct:
+                continue
+            }
+        }
+        return nil
+    }
+
+    @MainActor
+    func privateMessage(withID messageID: String) -> BitchatMessage? {
+        for (conversationID, conversation) in conversations.conversationsByID {
+            guard case .direct = conversationID else { continue }
+            if let message = conversation.message(withID: messageID) { return message }
+        }
+        return nil
+    }
+
     /// `true` when the conversation contains a message with `messageID`.
     @MainActor
     func publicConversationContainsMessage(withID messageID: String, in conversationID: ConversationID) -> Bool {
@@ -2514,8 +2536,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     /// Handle an incoming public Nostr message with its validated NIP-13
     /// difficulty; sufficient PoW relaxes the per-sender rate limit.
     @MainActor
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int) {
-        publicConversationCoordinator.handlePublicMessage(message, powBits: powBits)
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int, allowHaptic: Bool = true) {
+        publicConversationCoordinator.handlePublicMessage(message, powBits: powBits, allowHaptic: allowHaptic)
     }
 
     /// Check for mentions and send notifications
