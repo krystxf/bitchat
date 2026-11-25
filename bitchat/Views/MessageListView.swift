@@ -92,6 +92,7 @@ struct MessageListView: View {
     @ObservedObject private var nearbyNotes = NearbyNotesCounter.shared
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.resolvedMessageBubbleColor) private var messageBubbleColor
 
     let privatePeer: PeerID?
     @Binding var isAtBottom: Bool
@@ -110,6 +111,7 @@ struct MessageListView: View {
     @State private var createGroupPeerID: PeerID?
     @State private var createGroupPeerName = ""
     @State private var showClearConfirmation = false
+    @State private var hoveredReactionMessageID: String?
     @State private var lastScrollTime: Date = .distantPast
     @State private var scrollThrottleTimer: Timer?
     @State private var unseenCount = 0
@@ -247,12 +249,11 @@ struct MessageListView: View {
                             .contextMenu {
                                 if message.sender != "system" {
                                     Section {
-                                        ForEach(MessageReaction.emojis, id: \.self) { emoji in
-                                            Button(emoji) {
-                                                let ownEvents = MessageReaction.resolvedEvents(in: conversationMessages(for: privatePeer))
-                                                    .filter { $0.event.targetID == message.id && conversationUIModel.isSentByCurrentUser($0.message) }
-                                                let active = ownEvents.last(where: { $0.event.emoji == emoji })?.event.removes == false
-                                                conversationUIModel.sendMessage(MessageReaction.format(emoji: emoji, target: message, removes: active))
+                                        ControlGroup {
+                                            ForEach(MessageReaction.emojis, id: \.self) { emoji in
+                                                Button(emoji) {
+                                                    toggleReaction(emoji, on: message)
+                                                }
                                             }
                                         }
                                     }
@@ -304,6 +305,11 @@ struct MessageListView: View {
                                     }
                                 }
                             }
+#if os(macOS)
+                            .onHover { hovering in
+                                hoveredReactionMessageID = hovering ? message.id : nil
+                            }
+#endif
                             .frame(maxWidth: .infinity, alignment: rowAlignment(for: message, isSelf: isSelf))
                             .padding(.horizontal, 12)
                             // A run of bubbles from one sender reads as a
@@ -784,6 +790,17 @@ private extension MessageListView {
         // their own (MessageRunPolicy), so the sender's name shows again
         // where the live conversation picks up.
         .opacity(message.isArchivedEcho ? 0.55 : 1)
+#if os(macOS)
+        .overlay(alignment: isSelf ? .topTrailing : .topLeading) {
+            if hoveredReactionMessageID == message.id && message.sender != "system" {
+                ReactionQuickBar { emoji in toggleReaction(emoji, on: message) }
+                    .offset(y: -20)
+                    .transition(.scale(scale: 0.92).combined(with: .opacity))
+                    .zIndex(1)
+            }
+        }
+        .animation(.spring(response: 0.24, dampingFraction: 0.82), value: hoveredReactionMessageID)
+#endif
     }
 
     @ViewBuilder
@@ -818,18 +835,31 @@ private extension MessageListView {
             )
         }
         if !reactionCounts.isEmpty {
-            HStack(spacing: 4) {
+            ReactionFlowLayout(spacing: 4) {
                 ForEach(reactionCounts.keys.sorted(), id: \.self) { emoji in
                     ReactionBadgeView(
                         emoji: emoji,
                         count: reactionCounts[emoji] ?? 0,
                         names: reactionNames[emoji] ?? [],
-                        isMine: ownReactionEmojis.contains(emoji)
+                        isMine: ownReactionEmojis.contains(emoji),
+                        accent: messageBubbleColor.color,
+                        action: { toggleReaction(emoji, on: message) }
                     )
+                    .transition(.scale.combined(with: .opacity))
                 }
+                ReactionMoreButton { emoji in toggleReaction(emoji, on: message) }
+                    .transition(.scale.combined(with: .opacity))
             }
-            .frame(maxWidth: .infinity, alignment: isSelf ? .trailing : .leading)
+            .frame(maxWidth: maxBubbleWidth, alignment: isSelf ? .trailing : .leading)
+            .animation(.spring(response: 0.28, dampingFraction: 0.78), value: reactionCounts)
         }
+    }
+
+    func toggleReaction(_ emoji: String, on message: BitchatMessage) {
+        let ownEvents = MessageReaction.resolvedEvents(in: conversationMessages(for: privatePeer))
+            .filter { $0.event.targetID == message.id && conversationUIModel.isSentByCurrentUser($0.message) }
+        let active = ownEvents.last(where: { $0.event.emoji == emoji })?.event.removes == false
+        conversationUIModel.sendMessage(MessageReaction.format(emoji: emoji, target: message, removes: active))
     }
 
     /// The avatar column of a row. A tap on the avatar opens the sender's
@@ -1084,11 +1114,52 @@ private extension MessageListView {
     }
 }
 
+private struct ReactionFlowLayout: Layout {
+    var spacing: CGFloat = 4
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let limit = proposal.width ?? .infinity
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > 0 && x + size.width > limit {
+                y += rowHeight + spacing
+                x = 0
+                rowHeight = 0
+            }
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        return CGSize(width: proposal.width ?? max(0, x - spacing), height: y + rowHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > bounds.minX && x + size.width > bounds.maxX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+    }
+}
+
 private struct ReactionBadgeView: View {
     let emoji: String
     let count: Int
     let names: [String]
     let isMine: Bool
+    let accent: Color
+    let action: () -> Void
     @State private var showsReactors = false
 
     private var accessibilityLabel: String {
@@ -1097,22 +1168,117 @@ private struct ReactionBadgeView: View {
     }
 
     var body: some View {
-        Button { showsReactors.toggle() } label: {
-            Text("\(emoji) \(count)")
-                .font(.caption2)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .background(isMine ? Color.accentColor.opacity(0.25) : Color.primary.opacity(0.08), in: Capsule())
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Text(emoji)
+                Text("\(count)")
+                    .foregroundStyle(isMine ? accent : Color.primary.opacity(0.72))
+                    .contentTransition(.numericText())
+            }
+            .font(.system(size: 12, weight: .medium))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(isMine ? accent.opacity(0.16) : Color.primary.opacity(0.07)))
+            .overlay(Capsule().strokeBorder(isMine ? accent.opacity(0.72) : Color.clear, lineWidth: 1))
         }
         .buttonStyle(.plain)
+        .animation(.spring(response: 0.26, dampingFraction: 0.74), value: count)
         .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint(reactorDescription)
+        .simultaneousGesture(LongPressGesture().onEnded { _ in showsReactors = true })
         .popover(isPresented: $showsReactors) {
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(names, id: \.self) { name in Text(name) }
-            }
+            Text(reactorDescription)
             .padding()
             .fixedSize()
         }
+#if os(macOS)
+        .help(reactorDescription)
+#endif
+    }
+
+    private var reactorDescription: String {
+        let format = String(localized: "content.accessibility.reaction_names", comment: "Tooltip naming the people who reacted with an emoji")
+        let namesList = names.formatted(.list(type: .and))
+        return String(format: format, locale: .current, namesList, emoji)
+    }
+}
+
+private struct ReactionMoreButton: View {
+    let onSelect: (String) -> Void
+    @State private var showsPicker = false
+
+    var body: some View {
+        Button { showsPicker = true } label: {
+            Image(systemName: "face.smiling")
+                .font(.system(size: 12, weight: .medium))
+                .overlay(alignment: .bottomTrailing) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 7, weight: .bold))
+                        .offset(x: 3, y: 2)
+                }
+                .frame(width: 30, height: 25)
+                .background(Capsule().fill(Color.primary.opacity(0.07)))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "content.accessibility.add_reaction", comment: "Accessibility label for opening the emoji reaction picker"))
+        .popover(isPresented: $showsPicker) {
+            ReactionPickerView { emoji in
+                showsPicker = false
+                onSelect(emoji)
+            }
+            .padding(10)
+            .frame(width: 230)
+        }
+    }
+}
+
+private struct ReactionPickerView: View {
+    let onSelect: (String) -> Void
+
+    var body: some View {
+        ReactionFlowLayout(spacing: 8) {
+            ForEach(MessageReaction.emojis, id: \.self) { emoji in
+                Button(emoji) { onSelect(emoji) }
+                    .font(.system(size: 22))
+                    .buttonStyle(.plain)
+                    .frame(width: 32, height: 32)
+            }
+        }
+    }
+}
+
+private struct ReactionQuickBar: View {
+    let onSelect: (String) -> Void
+    @State private var showsPicker = false
+
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(Array(MessageReaction.emojis.prefix(5)), id: \.self) { emoji in
+                Button(emoji) { onSelect(emoji) }
+                    .font(.system(size: 19))
+                    .buttonStyle(.plain)
+            }
+            Button { showsPicker = true } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(width: 24, height: 24)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(String(localized: "content.accessibility.more_reactions", comment: "Accessibility label for opening more emoji reactions"))
+            .popover(isPresented: $showsPicker) {
+                ReactionPickerView { emoji in
+                    showsPicker = false
+                    onSelect(emoji)
+                }
+                .padding(10)
+                .frame(width: 230)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(.regularMaterial, in: Capsule())
+        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 1))
+        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
     }
 }
 
