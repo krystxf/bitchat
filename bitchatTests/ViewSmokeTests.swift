@@ -155,7 +155,6 @@ private struct ContentPeopleSheetHarness: View {
             isTextFieldFocused: $isTextFieldFocused,
             voiceRecordingVM: voiceRecordingVM,
             autocompleteDebounceTimer: $autocompleteDebounceTimer,
-            headerHeight: 44,
             onSendMessage: {},
             showImagePicker: $showImagePicker,
             imagePickerSourceType: $imagePickerSourceType
@@ -173,7 +172,6 @@ private struct ContentPeopleSheetHarness: View {
             isTextFieldFocused: $isTextFieldFocused,
             voiceRecordingVM: voiceRecordingVM,
             autocompleteDebounceTimer: $autocompleteDebounceTimer,
-            headerHeight: 44,
             onSendMessage: {}
         )
         #endif
