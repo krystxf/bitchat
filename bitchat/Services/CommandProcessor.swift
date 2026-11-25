@@ -74,18 +74,17 @@ protocol CommandContextProvider: AnyObject {
     func addCommandOutput(_ content: String, to destination: CommandOutputDestination)
 
     // MARK: - Favorites
-    /// Toggles the favorite via the unified peer flow, which persists by the
-    /// real noise key and notifies the peer over mesh or Nostr.
+    /// UI-backed favorite action retained for the remaining command context.
     func toggleFavorite(peerID: PeerID)
 
     // MARK: - Groups
-    // Group logic lives in `ChatGroupCoordinator`; these forward the parsed
-    // /group subcommands.
+    // These adapters remain until the /group command is removed in its own change.
     func groupCreate(named name: String) -> CommandResult
     func groupInvite(nickname: String) -> CommandResult
     func groupRemove(nickname: String) -> CommandResult
     func groupLeave() -> CommandResult
     func groupList() -> CommandResult
+
 }
 
 /// Processes chat commands in a focused, efficient way
@@ -138,12 +137,6 @@ final class CommandProcessor {
         case "/group":
             if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.groups_mesh_only", defaultValue: "groups are only for mesh peers in #mesh", comment: "Error when a group command is used outside the mesh channel")) }
             return handleGroup(args)
-        case "/fav":
-            if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.favorites_mesh_only", defaultValue: "favorites are only for mesh peers in #mesh", comment: "Error when a favorites command is used outside the mesh channel")) }
-            return handleFavorite(args, add: true)
-        case "/unfav":
-            if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.favorites_mesh_only", defaultValue: "favorites are only for mesh peers in #mesh", comment: "Error when a favorites command is used outside the mesh channel")) }
-            return handleFavorite(args, add: false)
         case "/ping":
             if inGeoPublic || inGeoDM { return .error(message: String(localized: "command.error.ping_mesh_only", defaultValue: "ping only works for mesh peers in #mesh", comment: "Error when /ping is used outside the mesh channel")) }
             return handlePing(args)
@@ -165,7 +158,7 @@ final class CommandProcessor {
     /// suggestion panel hides once arguments are typed, and typos used to
     /// dead-end in a bare "unknown command" — this is the way out.
     static var helpText: String {
-        String(localized: "command.help.text", defaultValue: "commands:\n/msg @name [message] — start a private chat\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/fav @name · /unfav @name — favorites (mesh only)\n/group create <name> — start an encrypted group\n/group invite @name · /group remove @name — manage members (creator)\n/group leave · /group list — leave or list your groups\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list", comment: "The /help reference list; command syntax stays verbatim, only the descriptions after each dash are translated")
+        String(localized: "command.help.text", defaultValue: "commands:\n/msg @name [message] — start a private chat\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/group create <name> — start an encrypted group\n/group invite @name · /group remove @name — manage members (creator)\n/group leave · /group list — leave or list your groups\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list", comment: "The /help reference list; command syntax stays verbatim, only the descriptions after each dash are translated")
     }
 
     /// /drop <text> — a dead drop: pins a note to the current building-level
@@ -542,40 +535,6 @@ final class CommandProcessor {
         return .success(message: String(format: String(localized: "command.pay.sent_public", defaultValue: "sent %@ to the public channel — anyone here can redeem it", comment: "Confirmation after sending a cashu token to a public channel; placeholder is the amount summary"), locale: .current, summary))
     }
 
-    private func handleFavorite(_ args: String, add: Bool) -> CommandResult {
-        let targetName = args.trimmed
-        guard !targetName.isEmpty else {
-            return .error(message: String(format: String(localized: "command.action.usage", defaultValue: "usage: /%@ <nickname>", comment: "Usage hint for a command that takes a nickname; placeholder is the command name"), locale: .current, (add ? "fav" : "unfav")))
-        }
 
-        let nickname = targetName.hasPrefix("@") ? String(targetName.dropFirst()) : targetName
-
-        guard let peerID = contextProvider?.getPeerIDForNickname(nickname) else {
-            return .error(message: String(format: String(localized: "command.fav.not_found", defaultValue: "can't find peer: %@", comment: "Error when /fav or /unfav can't resolve the nickname"), locale: .current, nickname))
-        }
-
-        // Resolve current state by the peer's real noise key. The resolved
-        // peerID is either the short 16-hex mesh ID or the full 64-hex
-        // noise-key ID (offline favorite row) — never the noise key itself.
-        let isCurrentlyFavorite: Bool
-        if let noiseKey = peerID.noiseKey {
-            isCurrentlyFavorite = FavoritesPersistenceService.shared.isFavorite(noiseKey)
-        } else {
-            isCurrentlyFavorite = FavoritesPersistenceService.shared.getFavoriteStatus(forPeerID: peerID)?.isFavorite ?? false
-        }
-
-        guard add != isCurrentlyFavorite else {
-            return .success(message: add
-                ? String(format: String(localized: "command.fav.already", defaultValue: "%@ is already a favorite", comment: "Reply when /fav targets an existing favorite"), locale: .current, nickname)
-                : String(format: String(localized: "command.fav.not_favorite", defaultValue: "%@ is not a favorite", comment: "Reply when /unfav targets someone who isn't a favorite"), locale: .current, nickname))
-        }
-
-        // toggleFavorite persists by the real noise key and notifies the peer.
-        contextProvider?.toggleFavorite(peerID: peerID)
-
-        return .success(message: add
-            ? String(format: String(localized: "command.fav.added", defaultValue: "added %@ to favorites", comment: "Confirmation after /fav"), locale: .current, nickname)
-            : String(format: String(localized: "command.fav.removed", defaultValue: "removed %@ from favorites", comment: "Confirmation after /unfav"), locale: .current, nickname))
-    }
     
 }

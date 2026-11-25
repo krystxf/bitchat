@@ -52,13 +52,7 @@ struct ProtocolContractTests {
         #expect(CommandInfo.message.alias == "/msg")
         #expect(CommandInfo.message.placeholder != nil)
         #expect(CommandInfo.clear.placeholder == nil)
-        #expect(CommandInfo.favorite.description.isEmpty == false)
         #expect(CommandInfo.all(isGeoPublic: false, isGeoDM: false).contains(.help))
-        // Favorites are rejected by the processor in geohash contexts, so
-        // they are suggested only in mesh.
-        #expect(CommandInfo.all(isGeoPublic: false, isGeoDM: false).contains(.favorite))
-        #expect(CommandInfo.all(isGeoPublic: true, isGeoDM: false).contains(.favorite) == false)
-        #expect(CommandInfo.all(isGeoPublic: false, isGeoDM: true).contains(.unfavorite) == false)
     }
 
     @Test
