@@ -276,12 +276,13 @@ def write_icon_document(name, palette):
         f.write("\n")
 
 
-def rsvg(svg_text, out_path, size, fmt="png"):
+def rsvg(svg_text, out_path, width, height=None):
+    """Renders SVG text to a PNG."""
     with tempfile.NamedTemporaryFile("w", suffix=".svg", delete=False) as f:
         f.write(svg_text)
         src = f.name
     try:
-        args = ["rsvg-convert", "-w", str(size), "-h", str(size), "-f", fmt, src, "-o", out_path]
+        args = ["rsvg-convert", "-w", str(width), "-h", str(height or width), src, "-o", out_path]
         subprocess.run(args, check=True)
     finally:
         os.unlink(src)
@@ -337,17 +338,18 @@ def write_launch_assets():
     if os.path.isdir(mark):
         shutil.rmtree(mark)
     os.makedirs(mark)
-    rsvg(mark_svg(MARK_LIGHT), os.path.join(mark, "LaunchMark.pdf"), MARK_POINTS, fmt="pdf")
-    rsvg(mark_svg(MARK_DARK), os.path.join(mark, "LaunchMark-dark.pdf"), MARK_POINTS, fmt="pdf")
-    contents = {
-        "images": [
-            {"filename": "LaunchMark.pdf", "idiom": "universal"},
-            {"appearances": [{"appearance": "luminosity", "value": "dark"}],
-             "filename": "LaunchMark-dark.pdf", "idiom": "universal"},
-        ],
-        "info": {"author": "xcode", "version": 1},
-        "properties": {"preserves-vector-representation": True, "template-rendering-intent": "original"},
-    }
+    # PNGs, not a PDF: Core Graphics drops the alpha of the glow's gradient
+    # in rsvg's PDF output and draws it as an opaque disc.
+    images = []
+    for colors, suffix, appearance in ((MARK_LIGHT, "", None), (MARK_DARK, "-dark", "dark")):
+        for scale in (1, 2, 3):
+            filename = f"LaunchMark{suffix}@{scale}x.png"
+            rsvg(mark_svg(colors), os.path.join(mark, filename), MARK_POINTS * scale)
+            image = {"filename": filename, "idiom": "universal", "scale": f"{scale}x"}
+            if appearance:
+                image = {"appearances": [{"appearance": "luminosity", "value": appearance}], **image}
+            images.append(image)
+    contents = {"images": images, "info": {"author": "xcode", "version": 1}}
     with open(os.path.join(mark, "Contents.json"), "w") as f:
         json.dump(contents, f, indent=2)
         f.write("\n")
@@ -400,7 +402,7 @@ def write_previews(out):
     shutil.copy(os.path.join(debug_set, "icon_512x512.png"), os.path.join(out, "debug-mac-icon-512.png"))
     for dark in (False, True):
         name = "launch-dark.png" if dark else "launch-light.png"
-        rsvg_size(launch_mock_svg(dark), os.path.join(out, name), 393 * 2, 852 * 2)
+        rsvg(launch_mock_svg(dark), os.path.join(out, name), 393 * 2, 852 * 2)
 
 
 def launch_mock_svg(dark):
@@ -415,16 +417,6 @@ def launch_mock_svg(dark):
             f'<rect width="{width}" height="{height}" rx="55" fill="{background}"/>'
             f'<rect x="{(width - 126) / 2}" y="11" width="126" height="37" rx="18.5" fill="#000"/>'
             f'{mark}</svg>')
-
-
-def rsvg_size(svg_text, out_path, width, height):
-    with tempfile.NamedTemporaryFile("w", suffix=".svg", delete=False) as f:
-        f.write(svg_text)
-        src = f.name
-    try:
-        subprocess.run(["rsvg-convert", "-w", str(width), "-h", str(height), src, "-o", out_path], check=True)
-    finally:
-        os.unlink(src)
 
 
 def main():

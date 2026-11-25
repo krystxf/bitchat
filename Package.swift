@@ -39,7 +39,6 @@ let package = Package(
                 "_PreviewHelpers/PreviewAssets.xcassets",
                 "bitchat.entitlements",
                 "bitchat-macOS.entitlements",
-                "LaunchScreen.storyboard",
                 "ViewModels/Extensions/README.md",
                 // Globe picker geometry, bundled by the Xcode app targets and read
                 // from Bundle.main; the SwiftPM build only runs tests.
