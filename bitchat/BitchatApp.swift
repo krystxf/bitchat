@@ -43,6 +43,7 @@ struct BitchatApp: App {
                 .environmentObject(runtime.appChromeModel)
                 .environmentObject(runtime.boardAlertsModel)
                 .environmentObject(runtime.sharedContentImportModel)
+                .overlay { LaunchHandoffOverlay() }
                 .onAppear {
                     appDelegate.runtime = runtime
                     runtime.start()
