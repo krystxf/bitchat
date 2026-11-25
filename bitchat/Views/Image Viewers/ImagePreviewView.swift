@@ -24,7 +24,6 @@ struct ImagePreviewView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
             VStack {
                 Spacer()
                 if let image = platformImage {
@@ -42,17 +41,16 @@ struct ImagePreviewView: View {
                 } else {
                     ProgressView()
                         .progressViewStyle(.circular)
-                        .tint(.white)
                 }
                 Spacer()
                 HStack {
                     Button(action: { dismiss() }) {
                         Text("close", comment: "Button to dismiss fullscreen media viewer")
                             .font(.bitchatSystem(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.5), lineWidth: 1))
+                            .background(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.5), lineWidth: 1))
                     }
                     Spacer()
                     Button(action: saveCopy) {
@@ -61,7 +59,7 @@ struct ImagePreviewView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue.opacity(0.6)))
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue))
                     }
                 }
                 .padding([.horizontal, .bottom], 24)
