@@ -302,6 +302,10 @@ private extension ContentComposerView {
         voiceRecordingVM.isLiveStreaming ? .red : composerAccentColor
     }
 
+    var lockProgress: CGFloat {
+        voiceRecordingVM.gestureThresholds.lockProgress(for: dragTranslation)
+    }
+
     var cancelProgress: CGFloat {
         voiceRecordingVM.gestureThresholds.cancelProgress(for: dragTranslation)
     }
@@ -318,14 +322,17 @@ private extension ContentComposerView {
             return String(localized: "voice.recorder.hint.hold_to_record", defaultValue: "hold to record, release to send", comment: "Hint shown after a quick tap on the mic button, explaining how to record a voice message")
         }
         switch recorderPhase {
+        case .lockArmed:
+            return String(localized: "voice.recorder.hint.release_to_lock", defaultValue: "release to go hands free", comment: "Hint above the voice recording bar when releasing would keep recording without holding the mic")
         case .cancelArmed:
             return String(localized: "voice.recorder.hint.release_to_cancel", defaultValue: "release to cancel", comment: "Hint above the voice recording bar when releasing would discard the recording")
-        case .idle, .holding, .lockArmed, .locked:
+        case .idle, .holding, .locked:
             return String(localized: "voice.recorder.hint.swipe_to_cancel", defaultValue: "swipe left to cancel or release to send", comment: "Hint above the voice recording bar while holding the mic button")
         }
     }
 
-    /// The hint above the bar while holding, or after a quick tap.
+    /// The hint above the bar while holding, with the lock target over the
+    /// mic; or the hint after a quick tap.
     var recorderHintRow: some View {
         let isCancelArmed = showsRecorder && recorderPhase == .cancelArmed
         return ZStack(alignment: .trailing) {
@@ -339,6 +346,18 @@ private extension ContentComposerView {
                 .frame(maxWidth: .infinity)
                 .id(recorderHintText)
                 .transition(.opacity)
+
+            if showsRecorder && recorderPhase.isHolding {
+                VoiceRecorderLockPill(
+                    isArmed: recorderPhase == .lockArmed,
+                    progress: lockProgress,
+                    tint: recorderTint
+                )
+                // Centers the pill over the mic at the capsule's trailing edge.
+                .padding(.trailing, 2)
+                .opacity(recorderPhase == .cancelArmed ? 0.4 : 1)
+                .transition(.scale(scale: 0.6, anchor: .bottom).combined(with: .opacity))
+            }
         }
         .frame(maxWidth: .infinity)
     }
@@ -611,9 +630,9 @@ private extension ContentComposerView {
         }
     }
 
-    /// Press and hold records; release sends, drag towards the trash
-    /// cancels. Global coordinates, so the hint row appearing above the
-    /// composer does not shift the measured translation.
+    /// Press and hold records; release sends, drag up locks hands free,
+    /// drag towards the trash cancels. Global coordinates, so the hint row
+    /// appearing above the composer does not shift the measured translation.
     var micGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .global)
             .updating($micPressed) { _, pressed, _ in
@@ -621,10 +640,10 @@ private extension ContentComposerView {
             }
             .onChanged { value in
                 // The trash can sits on the leading side: in a right-to-left
-                // layout, cancelling is a drag to the right. Vertical drags
-                // arm the hands-free lock once it lands.
-                let width = layoutDirection == .rightToLeft ? -value.translation.width : value.translation.width
-                let translation = CGSize(width: width, height: 0)
+                // layout, cancelling is a drag to the right.
+                let translation = layoutDirection == .rightToLeft
+                    ? CGSize(width: -value.translation.width, height: value.translation.height)
+                    : value.translation
                 let wasHolding = voiceRecordingVM.gesturePhase.isHolding
                 let crossed = voiceRecordingVM.pressChanged(
                     translation: translation,

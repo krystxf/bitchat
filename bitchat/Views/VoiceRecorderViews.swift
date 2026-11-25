@@ -53,6 +53,47 @@ struct VoiceRecordingWaveform: View {
     }
 }
 
+/// The lock target above the mic while holding: an outlined pill with an
+/// upward chevron that rises with the drag, and a filled accent circle
+/// once releasing would lock the recording hands free.
+struct VoiceRecorderLockPill: View {
+    let isArmed: Bool
+    /// 0...1 drag progress towards the lock threshold.
+    let progress: CGFloat
+    let tint: Color
+
+    @ThemedPalette private var palette
+
+    var body: some View {
+        ZStack {
+            if isArmed {
+                Circle()
+                    .fill(tint)
+                    .frame(width: 36, height: 36)
+                    .transition(.scale.combined(with: .opacity))
+                Image(systemName: "lock.fill")
+                    .font(.bitchatSystem(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+            } else {
+                VStack(spacing: 3) {
+                    Image(systemName: "lock")
+                        .font(.bitchatSystem(size: 14, weight: .medium))
+                    Image(systemName: "chevron.up")
+                        .font(.bitchatSystem(size: 9, weight: .bold))
+                        .opacity(0.6 + 0.4 * progress)
+                }
+                .foregroundColor(palette.secondary)
+                .frame(width: 32, height: 48)
+                .glassSurface(in: Capsule())
+                .transition(.opacity)
+            }
+        }
+        .frame(width: 36, height: 48)
+        .offset(y: isArmed ? -6 : -10 * progress)
+        .accessibilityHidden(true)
+    }
+}
+
 /// Tactile cues for the hold-to-record gesture. On a Mac only a Force
 /// Touch trackpad plays them; other input ignores the call.
 enum VoiceRecorderHaptics {
