@@ -21,6 +21,7 @@ struct PrivateChatDetailView: View {
     @EnvironmentObject private var appChromeModel: AppChromeModel
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
+    @EnvironmentObject private var peerListModel: PeerListModel
 
     @Binding var messageText: String
     @Binding var selectedMessageSender: String?
@@ -33,6 +34,7 @@ struct PrivateChatDetailView: View {
     @ObservedObject var voiceRecordingVM: VoiceRecordingViewModel
     @Binding var autocompleteDebounceTimer: Timer?
     @State private var chatBackgroundOption: ChatBackgroundOption = .default
+    @State private var showGroupInfo = false
     @ThemedPalette private var palette
 
     let onSendMessage: () -> Void
@@ -78,6 +80,11 @@ struct PrivateChatDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar { toolbarContent }
+        .sheet(isPresented: $showGroupInfo) {
+            if let group = conversationUIModel.selectedGroup() {
+                GroupInfoSheet(group: group, peers: peerListModel, model: conversationUIModel)
+            }
+        }
         .onAppear { loadChatBackground() }
         .onChange(of: privateConversationModel.selectedPeerID) { _ in loadChatBackground() }
     }
@@ -141,6 +148,13 @@ struct PrivateChatDetailView: View {
                 // A group has no single fingerprint to show.
                 if !headerState.isGroupConversation {
                     fingerprintButton(headerState)
+                } else {
+                    Button {
+                        showGroupInfo = true
+                    } label: {
+                        Label("group.info.title", systemImage: "person.2")
+                    }
+                    .accessibilityLabel(Text("group.info.title"))
                 }
                 if headerState.supportsFavoriteToggle {
                     favoriteButton(headerState)
@@ -271,6 +285,104 @@ struct PrivateChatDetailView: View {
             return String(localized: "content.private.caption_encrypted", comment: "Caption above the private chat composer once the session is end-to-end encrypted")
         }
         return String(localized: "content.private.caption", comment: "Caption above the private chat composer before encryption is established")
+    }
+}
+
+private struct GroupInfoSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var pendingRemoval: GroupMember?
+    @State private var showLeaveConfirmation = false
+    let initialGroup: BitchatGroup
+    @ObservedObject var peers: PeerListModel
+    let model: ConversationUIModel
+
+    init(group: BitchatGroup, peers: PeerListModel, model: ConversationUIModel) {
+        self.initialGroup = group
+        _peers = ObservedObject(wrappedValue: peers)
+        self.model = model
+    }
+
+    private var group: BitchatGroup { model.selectedGroup() ?? initialGroup }
+
+    private var isCreator: Bool { group.creatorFingerprint == model.currentNoiseFingerprint }
+    private var candidates: [MeshPeerRow] {
+        peers.meshRows.filter { peer in
+            GroupManagementPolicy.canInvite(
+                isMe: peer.isMe, isBlocked: peer.isBlocked,
+                isMember: model.isGroupMember(peer.peerID, group: group),
+                isReachable: peer.isConnected, hasVerifiedIdentity: model.canCreateGroup(with: peer.peerID),
+                isCreator: isCreator, memberCount: group.members.count
+            )
+        }
+    }
+
+    var body: some View {
+        List {
+            Section("group.members.title") {
+                ForEach(group.members, id: \.fingerprint, content: memberRow)
+            }
+            if isCreator {
+                Section("group.invite.title") {
+                    if candidates.isEmpty {
+                        Text("group.invite.empty").foregroundStyle(.secondary)
+                    }
+                    ForEach(candidates) { peer in
+                        Button {
+                            _ = model.groupInvite(nickname: peer.displayName)
+                        } label: {
+                            Label(peer.displayName, systemImage: "person.badge.plus")
+                        }
+                        .accessibilityLabel(Text(verbatim: "\(String(localized: "group.invite.person")) \(peer.displayName)"))
+                    }
+                }
+            }
+            Section {
+                Button("group.leave.action", role: .destructive) { showLeaveConfirmation = true }
+                    .accessibilityLabel(Text("group.leave.action"))
+            }
+        }
+        #if os(iOS)
+        .listStyle(.insetGrouped)
+        #else
+        .listStyle(.inset)
+        #endif
+        .sheetChrome(title: Text("group.info.title"), onClose: { dismiss() })
+        .confirmationDialog("group.member.remove_confirm", isPresented: Binding(
+            get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }
+        ), titleVisibility: .visible) {
+            if let member = pendingRemoval {
+                Button("group.member.remove", role: .destructive) {
+                    _ = model.groupRemove(nickname: member.nickname)
+                    pendingRemoval = nil
+                }
+            }
+            Button("common.cancel", role: .cancel) { pendingRemoval = nil }
+        }
+        .confirmationDialog("group.leave.confirm", isPresented: $showLeaveConfirmation, titleVisibility: .visible) {
+            Button("group.leave.action", role: .destructive) {
+                _ = model.groupLeave()
+                dismiss()
+            }
+            Button("common.cancel", role: .cancel) {}
+        }
+    }
+
+    private func memberRow(_ member: GroupMember) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(verbatim: member.nickname)
+                if member.fingerprint == group.creatorFingerprint {
+                    Text("group.members.creator").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            if isCreator && member.fingerprint != group.creatorFingerprint {
+                Button(role: .destructive) { pendingRemoval = member } label: {
+                    Image(systemName: "person.crop.circle.badge.minus")
+                }
+                .accessibilityLabel(Text(verbatim: "\(String(localized: "group.member.remove")) \(member.nickname)"))
+            }
+        }
     }
 }
 
