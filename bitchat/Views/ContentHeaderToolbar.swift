@@ -21,14 +21,6 @@ struct ContentHeaderToolbar: ViewModifier {
     /// Courier envelopes this device is carrying for offline third parties.
     @State private var carriedMailCount = 0
 
-    /// Board posts mirrored from the store so the pin icon can show when the
-    /// current scope has notices.
-    @State private var boardPosts: [BoardPostPacket] = []
-
-    /// Nostr-only location notes at this place (live while the empty mesh
-    /// timeline is showing) — they should light the pin too.
-    @ObservedObject private var nearbyNotes = NearbyNotesCounter.shared
-
     @State private var pendingShareGeohash: String?
     @State private var showSharePrecisionWarning = false
     @State private var activeSharePayload: ChannelSharePayload?
@@ -44,9 +36,6 @@ struct ContentHeaderToolbar: ViewModifier {
             .toolbar { toolbarContent }
             .onReceive(CourierStore.shared.$carriedCount) { count in
                 carriedMailCount = count
-            }
-            .onReceive(BoardStore.shared.$postsSnapshot) { posts in
-                boardPosts = posts
             }
             .sheet(
                 isPresented: $appChromeModel.isNoticesSheetPresented,
@@ -102,7 +91,6 @@ struct ContentHeaderToolbar: ViewModifier {
                 unreadPrivateChatButton
             }
             channelButton
-            noticesButton
             peopleButton
         }
     }
@@ -136,6 +124,14 @@ struct ContentHeaderToolbar: ViewModifier {
                 Text(verbatim: String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button"))
             } icon: {
                 Image(systemName: "number")
+            }
+        }
+
+        Button(action: presentNotices) {
+            Label {
+                Text(verbatim: String(localized: "content.accessibility.notices", comment: "Menu action for notices").lowercased())
+            } icon: {
+                Image(systemName: "pin")
             }
         }
 
@@ -200,35 +196,11 @@ struct ContentHeaderToolbar: ViewModifier {
         )
     }
 
-    private var noticesButton: some View {
-        Button(action: {
-            var scopes: Set<String> = [""]
-            if let geoScope = noticesGeoScope {
-                scopes.insert(geoScope)
-            }
-            boardAlertsModel.markSeen(forScopes: scopes)
-            appChromeModel.presentNotices()
-        }) {
-            // Filled whenever the current scope has notices at all
-            // (matching the orange tint); hollow means nothing here.
-            Image(systemName: scopeHasNotices || unseenNoticesCount > 0 ? "pin.fill" : "pin")
-                .foregroundColor(scopeHasNotices || unseenNoticesCount > 0 ? .orange : palette.secondary)
-        }
-        .accessibilityLabel(
-            String(localized: "content.accessibility.notices", defaultValue: "Notices", comment: "Accessibility label for the notices button")
-        )
-        .accessibilityValue(
-            unseenNoticesCount > 0
-                ? String(
-                    format: String(localized: "content.accessibility.notices_new", defaultValue: "%lld new", comment: "Accessibility value for the notices button when unseen pins arrived"),
-                    locale: .current,
-                    unseenNoticesCount
-                )
-                : ""
-        )
-        .help(
-            String(localized: "content.header.notices", defaultValue: "Notices: pinned posts for this area and the mesh", comment: "Tooltip for the notices button")
-        )
+    private func presentNotices() {
+        var scopes: Set<String> = [""]
+        if let geoScope = noticesGeoScope { scopes.insert(geoScope) }
+        boardAlertsModel.markSeen(forScopes: scopes)
+        appChromeModel.presentNotices()
     }
 
     private var peopleButton: some View {
@@ -343,21 +315,6 @@ private extension ContentHeaderToolbar {
             return channel.geohash
         }
         return locationChannelsModel.currentBuildingGeohash
-    }
-
-    /// Whether either tab of the notices sheet currently has content: board
-    /// posts in scope, plus Nostr-only location notes when the nearby-notes
-    /// counter happens to be live (it runs with the empty mesh timeline).
-    var scopeHasNotices: Bool {
-        boardPosts.contains { $0.geohash.isEmpty || $0.geohash == noticesGeoScope }
-            || nearbyNotes.noteCount > 0
-    }
-
-    /// New pins in either visible scope since the sheet was last opened.
-    var unseenNoticesCount: Int {
-        let meshCount = boardAlertsModel.unseenCount(forGeohash: "")
-        let geoCount = noticesGeoScope.map { boardAlertsModel.unseenCount(forGeohash: $0) } ?? 0
-        return meshCount + geoCount
     }
 
     /// Whether anyone is actually reachable on the current channel — the

@@ -93,6 +93,7 @@ struct ContentView: View {
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @EnvironmentObject private var sharedContentImportModel: SharedContentImportModel
     @EnvironmentObject private var peerListModel: PeerListModel
+    @EnvironmentObject private var boardAlertsModel: BoardAlertsModel
     @EnvironmentObject private var publicChatModel: PublicChatModel
     @EnvironmentObject private var privateInboxModel: PrivateInboxModel
 
@@ -131,6 +132,8 @@ struct ContentView: View {
     #endif
     @State private var windowCountPublic: Int = 300
     @State private var windowCountPrivate: [PeerID: Int] = [:]
+    @State private var boardPosts: [BoardPostPacket] = []
+    @ObservedObject private var nearbyNotes = NearbyNotesCounter.shared
 
     @ThemedPalette private var palette
 
@@ -228,6 +231,7 @@ struct ContentView: View {
 
     var body: some View {
         splitView
+            .onReceive(BoardStore.shared.$postsSnapshot) { boardPosts = $0 }
             .onAppear { [conversationUIModel, voiceRecordingVM] in
                 conversationUIModel.setCurrentColorScheme(colorScheme)
                 voiceRecordingVM.sessionProvider = { [weak conversationUIModel] in
@@ -632,7 +636,15 @@ struct ContentView: View {
     private var publicChat: some View {
         publicMessageList
             .floatingBar(edge: .top) {
-                ContentStatusBanners()
+                VStack(spacing: 0) {
+                    ContentStatusBanners()
+                    PinnedNoticesBar(posts: boardPosts, geoScope: activeNoticesGeoScope, nearbyNoteCount: nearbyNotes.noteCount) {
+                        var scopes: Set<String> = [""]
+                        if let scope = activeNoticesGeoScope { scopes.insert(scope) }
+                        boardAlertsModel.markSeen(forScopes: scopes)
+                        appChromeModel.presentNotices()
+                    }
+                }
             }
             .floatingBar(edge: .bottom) {
                 composerView
@@ -649,6 +661,11 @@ struct ContentView: View {
                 onShowPeople: togglePeople,
                 backgroundOption: $chatBackgroundOption
             ))
+    }
+
+    private var activeNoticesGeoScope: String? {
+        if case .location(let channel) = locationChannelsModel.selectedChannel { return channel.geohash }
+        return locationChannelsModel.currentBuildingGeohash
     }
 
     private var publicMessageList: some View {
