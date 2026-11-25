@@ -315,6 +315,7 @@ struct AppInfoView: View {
             torSection
             relaySection
             locationSection
+            bubbleAppearanceSection
             privacySection
             if onPanicWipe != nil {
                 dangerSection
@@ -622,6 +623,21 @@ struct AppInfoView: View {
             }
         } header: {
             sectionHeader(Strings.Settings.privacyTitle)
+        }
+    }
+
+    private var bubbleAppearanceSection: some View {
+        Section {
+            MessageBubbleColorPicker(selection: Binding(
+                get: { MessageBubbleColorSettings.selected.rawValue },
+                set: { rawValue in
+                    if let color = MessageBubbleColor(rawValue: rawValue) {
+                        MessageBubbleColorSettings.selected = color
+                    }
+                }
+            ))
+        } header: {
+            sectionHeader(String(localized: "app_info.settings.appearance.title", defaultValue: "appearance", comment: "Settings section for the user's outgoing message bubble color"))
         }
     }
 

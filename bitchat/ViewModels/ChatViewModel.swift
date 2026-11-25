@@ -1683,6 +1683,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         MeshEchoSettings.reset()
         NotificationPrivacySettings.reset()
         MediaRevealSettings.reset()
+        MessageBubbleColorSettings.reset()
         ExtremeSecuritySettings.reset()
         LocationProofOfWorkSettings.reset()
         ChatBackgroundStore.shared.reset()

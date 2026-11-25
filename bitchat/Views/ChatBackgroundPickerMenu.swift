@@ -88,6 +88,7 @@ private extension ChatBackgroundOption {
         case .ocean: String(localized: "chat.background.ocean", comment: "The ocean chat background option")
         case .forest: String(localized: "chat.background.forest", comment: "The forest chat background option")
         case .oled: String(localized: "chat.background.oled", comment: "The OLED black chat background option")
+        case .image: String(localized: "chat.background.image", defaultValue: "custom image", comment: "The user's custom image chat background option")
         }
     }
 
@@ -98,6 +99,7 @@ private extension ChatBackgroundOption {
         case .ocean: Color(red: 0.12, green: 0.34, blue: 0.48)
         case .forest: Color(red: 0.17, green: 0.36, blue: 0.28)
         case .oled: .black
+        case .image: Color.purple
         }
     }
 }
