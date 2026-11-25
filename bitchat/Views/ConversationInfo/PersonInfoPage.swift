@@ -218,22 +218,22 @@ private struct PersonFacts {
 }
 
 private enum Strings {
-    static let setNickname = String(localized: "conversation_info.action.set_nickname", defaultValue: "set nickname", comment: "Link under a person's name on their details page; opens a prompt for a nickname that only this device uses")
+    static let setNickname = String(localized: "conversation_info.action.set_nickname", defaultValue: "Set Nickname", comment: "Link under a person's name on their details page; opens a prompt for a nickname that only this device uses")
     static let nicknamePlaceholder = String(localized: "fingerprint.local_alias.placeholder", comment: "Placeholder for the local alias (petname) field")
     static let nicknameHint = String(localized: "fingerprint.local_alias.hint", comment: "Hint under the local alias field")
     static let favorite = String(localized: "mesh_peers.state.favorite", comment: "State label for a favorited peer")
     static let addFavorite = String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
     static let removeFavorite = String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")
-    static let verify = String(localized: "conversation_info.action.verify", defaultValue: "verify", comment: "Short label of the button on a person's details page that shows the encryption fingerprints to verify")
+    static let verify = String(localized: "conversation_info.action.verify", defaultValue: "Verify", comment: "Short label of the button on a person's details page that shows the encryption fingerprints to verify")
     static let verifyEncryption = String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
     static let viewFingerprintHint = String(localized: "content.accessibility.view_fingerprint_hint", comment: "Accessibility hint for viewing encryption fingerprint")
     static let block = String(localized: "content.actions.block", comment: "Action that blocks the person")
     static let unblock = String(localized: "geohash_people.action.unblock", comment: "Context menu action to unblock a person")
-    static let blockConfirmMessage = String(localized: "conversation_info.block.message", defaultValue: "you will no longer see their messages. you can unblock them in settings.", comment: "Message of the confirmation before blocking a person from their details page")
+    static let blockConfirmMessage = String(localized: "conversation_info.block.message", defaultValue: "You will no longer see their messages. You can unblock them in Settings.", comment: "Message of the confirmation before blocking a person from their details page")
 
     static func blockConfirmTitle(_ name: String) -> String {
         String(
-            format: String(localized: "conversation_info.block.confirm", defaultValue: "block %@?", comment: "Title of the confirmation before blocking a person from their details page; placeholder is their name"),
+            format: String(localized: "conversation_info.block.confirm", defaultValue: "Block %@?", comment: "Title of the confirmation before blocking a person from their details page; placeholder is their name"),
             locale: .current,
             name
         )

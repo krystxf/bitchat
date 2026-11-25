@@ -377,14 +377,14 @@ enum ChannelTitle {
 }
 
 private enum Strings {
-    static let notices = String(localized: "content.accessibility.notices", comment: "Menu action for notices").lowercased()
-    static let bookmark = String(localized: "conversation_info.action.bookmark", defaultValue: "bookmark", comment: "Short label of the button on a location channel's details page that bookmarks the channel or removes the bookmark")
+    static let notices = String(localized: "content.accessibility.notices", comment: "Menu action for notices")
+    static let bookmark = String(localized: "conversation_info.action.bookmark", defaultValue: "Bookmark", comment: "Short label of the button on a location channel's details page that bookmarks the channel or removes the bookmark")
     static let addBookmark = String(localized: "location_channels.accessibility.add_bookmark", comment: "Accessibility action name for bookmarking a channel")
     static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
-    static let share = String(localized: "conversation_info.action.share", defaultValue: "share", comment: "Short label of the button on a location channel's details page that shares an invite to the channel")
+    static let share = String(localized: "conversation_info.action.share", defaultValue: "Share", comment: "Short label of the button on a location channel's details page that shares an invite to the channel")
     static let shareChannel = String(localized: "channel.share.action", defaultValue: "share channel", comment: "Accessibility label for sharing the active location channel")
     static let channels = String(localized: "sidebar.section.channels", defaultValue: "channels", comment: "Sidebar section header above the public channels and private groups")
     static let locationChannels = String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button")
-    static let people = String(localized: "conversation_info.row.people", defaultValue: "people", comment: "Row on a channel's details page, and the title of the page it opens, listing the people in the channel")
+    static let people = String(localized: "conversation_info.row.people", defaultValue: "People", comment: "Row on a channel's details page, and the title of the page it opens, listing the people in the channel")
     static let openDMHint = String(localized: "mesh_peers.accessibility.open_dm_hint", comment: "Accessibility hint on a peer row explaining activation opens a private chat")
 }

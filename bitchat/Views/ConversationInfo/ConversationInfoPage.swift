@@ -338,7 +338,7 @@ private struct ConversationInfoPresentation<Page: View>: ViewModifier {
 }
 
 enum ConversationInfoStrings {
-    static let openHint = String(localized: "conversation_info.accessibility.open_hint", defaultValue: "shows details", comment: "Accessibility hint and tooltip on the conversation title in the title bar, which opens the conversation's details page")
+    static let openHint = String(localized: "conversation_info.accessibility.open_hint", defaultValue: "Shows details", comment: "Accessibility hint and tooltip on the conversation title in the title bar, which opens the conversation's details page")
 
     static func peopleCount(_ count: Int) -> String {
         String(
@@ -350,5 +350,5 @@ enum ConversationInfoStrings {
 }
 
 private enum Strings {
-    static let title = String(localized: "conversation_info.title", defaultValue: "details", comment: "Title of the page with a conversation's details: its people, background and actions")
+    static let title = String(localized: "conversation_info.title", defaultValue: "Details", comment: "Title of the page with a conversation's details: its people, background and actions")
 }

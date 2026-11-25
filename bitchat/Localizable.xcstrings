@@ -98464,19 +98464,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "details"
+            "value" : "Details"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "details"
+            "value" : "Details"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "detalles"
+            "value" : "Detalles"
           }
         },
         "fa" : {
@@ -98488,13 +98488,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mga detalye"
+            "value" : "Mga detalye"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "détails"
+            "value" : "Détails"
           }
         },
         "he" : {
@@ -98512,13 +98512,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "detail"
+            "value" : "Detail"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "dettagli"
+            "value" : "Dettagli"
           }
         },
         "ja" : {
@@ -98536,7 +98536,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "butiran"
+            "value" : "Butiran"
           }
         },
         "ne" : {
@@ -98548,37 +98548,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "details"
+            "value" : "Details"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "szczegóły"
+            "value" : "Szczegóły"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "detalhes"
+            "value" : "Detalhes"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "detalhes"
+            "value" : "Detalhes"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "подробности"
+            "value" : "Подробности"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "detaljer"
+            "value" : "Detaljer"
           }
         },
         "ta" : {
@@ -98596,13 +98596,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ayrıntılar"
+            "value" : "Ayrıntılar"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "подробиці"
+            "value" : "Подробиці"
           }
         },
         "ur" : {
@@ -98614,7 +98614,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "chi tiết"
+            "value" : "Chi tiết"
           }
         },
         "zh-Hans" : {
@@ -98650,19 +98650,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "zeigt details"
+            "value" : "Zeigt Details"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "shows details"
+            "value" : "Shows details"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "muestra los detalles"
+            "value" : "Muestra los detalles"
           }
         },
         "fa" : {
@@ -98674,13 +98674,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ipinapakita ang mga detalye"
+            "value" : "Ipinapakita ang mga detalye"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "affiche les détails"
+            "value" : "Affiche les détails"
           }
         },
         "he" : {
@@ -98698,13 +98698,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "menampilkan detail"
+            "value" : "Menampilkan detail"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mostra i dettagli"
+            "value" : "Mostra i dettagli"
           }
         },
         "ja" : {
@@ -98722,7 +98722,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "menunjukkan butiran"
+            "value" : "Menunjukkan butiran"
           }
         },
         "ne" : {
@@ -98734,37 +98734,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "toont details"
+            "value" : "Toont details"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "pokazuje szczegóły"
+            "value" : "Pokazuje szczegóły"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mostra os detalhes"
+            "value" : "Mostra os detalhes"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mostra os detalhes"
+            "value" : "Mostra os detalhes"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "показывает подробности"
+            "value" : "Показывает подробности"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "visar detaljer"
+            "value" : "Visar detaljer"
           }
         },
         "ta" : {
@@ -98782,13 +98782,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ayrıntıları gösterir"
+            "value" : "Ayrıntıları gösterir"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "показує подробиці"
+            "value" : "Показує подробиці"
           }
         },
         "ur" : {
@@ -98800,7 +98800,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "hiển thị chi tiết"
+            "value" : "Hiển thị chi tiết"
           }
         },
         "zh-Hans" : {
@@ -98836,19 +98836,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nickname festlegen"
+            "value" : "Nickname festlegen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "set nickname"
+            "value" : "Set Nickname"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "poner apodo"
+            "value" : "Poner apodo"
           }
         },
         "fa" : {
@@ -98860,13 +98860,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "magtakda ng palayaw"
+            "value" : "Magtakda ng palayaw"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "définir un pseudo"
+            "value" : "Définir un pseudo"
           }
         },
         "he" : {
@@ -98884,13 +98884,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "atur nama panggilan"
+            "value" : "Atur nama panggilan"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "imposta soprannome"
+            "value" : "Imposta soprannome"
           }
         },
         "ja" : {
@@ -98908,7 +98908,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tetapkan nama panggilan"
+            "value" : "Tetapkan nama panggilan"
           }
         },
         "ne" : {
@@ -98920,37 +98920,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bijnaam instellen"
+            "value" : "Bijnaam instellen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ustaw pseudonim"
+            "value" : "Ustaw pseudonim"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "definir apelido"
+            "value" : "Definir apelido"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "definir apelido"
+            "value" : "Definir apelido"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "задать ник"
+            "value" : "Задать ник"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ange smeknamn"
+            "value" : "Ange smeknamn"
           }
         },
         "ta" : {
@@ -98968,13 +98968,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "takma ad belirle"
+            "value" : "Takma ad belirle"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "задати псевдонім"
+            "value" : "Задати псевдонім"
           }
         },
         "ur" : {
@@ -98986,7 +98986,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "đặt biệt danh"
+            "value" : "Đặt biệt danh"
           }
         },
         "zh-Hans" : {
@@ -99022,19 +99022,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verifizieren"
+            "value" : "Verifizieren"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verify"
+            "value" : "Verify"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verificar"
+            "value" : "Verificar"
           }
         },
         "fa" : {
@@ -99046,13 +99046,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "i-verify"
+            "value" : "I-verify"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "vérifier"
+            "value" : "Vérifier"
           }
         },
         "he" : {
@@ -99070,13 +99070,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verifikasi"
+            "value" : "Verifikasi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verifica"
+            "value" : "Verifica"
           }
         },
         "ja" : {
@@ -99094,7 +99094,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "sahkan"
+            "value" : "Sahkan"
           }
         },
         "ne" : {
@@ -99106,37 +99106,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verifiëren"
+            "value" : "Verifiëren"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "zweryfikuj"
+            "value" : "Zweryfikuj"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verificar"
+            "value" : "Verificar"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verificar"
+            "value" : "Verificar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "проверить"
+            "value" : "Проверить"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "verifiera"
+            "value" : "Verifiera"
           }
         },
         "ta" : {
@@ -99154,13 +99154,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "doğrula"
+            "value" : "Doğrula"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "перевірити"
+            "value" : "Перевірити"
           }
         },
         "ur" : {
@@ -99172,7 +99172,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "xác minh"
+            "value" : "Xác minh"
           }
         },
         "zh-Hans" : {
@@ -99214,13 +99214,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "block %@?"
+            "value" : "Block %@?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿bloquear a %@?"
+            "value" : "¿Bloquear a %@?"
           }
         },
         "fa" : {
@@ -99232,13 +99232,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "i-block si %@?"
+            "value" : "I-block si %@?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bloquer %@ ?"
+            "value" : "Bloquer %@ ?"
           }
         },
         "he" : {
@@ -99256,13 +99256,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "blokir %@?"
+            "value" : "Blokir %@?"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bloccare %@?"
+            "value" : "Bloccare %@?"
           }
         },
         "ja" : {
@@ -99280,7 +99280,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "blokir %@?"
+            "value" : "Blokir %@?"
           }
         },
         "ne" : {
@@ -99298,31 +99298,31 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "zablokować %@?"
+            "value" : "Zablokować %@?"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bloquear %@?"
+            "value" : "Bloquear %@?"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bloquear %@?"
+            "value" : "Bloquear %@?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "заблокировать %@?"
+            "value" : "Заблокировать %@?"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "blockera %@?"
+            "value" : "Blockera %@?"
           }
         },
         "ta" : {
@@ -99346,7 +99346,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "заблокувати %@?"
+            "value" : "Заблокувати %@?"
           }
         },
         "ur" : {
@@ -99358,7 +99358,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "chặn %@?"
+            "value" : "Chặn %@?"
           }
         },
         "zh-Hans" : {
@@ -99394,19 +99394,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "du siehst die nachrichten dieser person nicht mehr. in den einstellungen kannst du sie wieder entsperren."
+            "value" : "Du siehst die Nachrichten dieser Person nicht mehr. In den Einstellungen kannst du sie wieder entsperren."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "you will no longer see their messages. you can unblock them in settings."
+            "value" : "You will no longer see their messages. You can unblock them in Settings."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ya no verás sus mensajes. puedes desbloquear a esta persona en ajustes."
+            "value" : "Ya no verás sus mensajes. Puedes desbloquear a esta persona en Ajustes."
           }
         },
         "fa" : {
@@ -99418,13 +99418,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "hindi mo na makikita ang kanilang mga mensahe. maaari mo silang i-unblock sa settings."
+            "value" : "Hindi mo na makikita ang kanilang mga mensahe. Maaari mo silang i-unblock sa Settings."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tu ne verras plus ses messages. tu peux le débloquer dans les réglages."
+            "value" : "Tu ne verras plus ses messages. Tu peux le débloquer dans les Réglages."
           }
         },
         "he" : {
@@ -99442,13 +99442,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "kamu tidak akan melihat pesan mereka lagi. kamu bisa membuka blokir di pengaturan."
+            "value" : "Kamu tidak akan melihat pesan mereka lagi. Kamu bisa membuka blokir di Pengaturan."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "non vedrai più i suoi messaggi. puoi sbloccare questa persona nelle impostazioni."
+            "value" : "Non vedrai più i suoi messaggi. Puoi sbloccare questa persona nelle Impostazioni."
           }
         },
         "ja" : {
@@ -99466,7 +99466,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "anda tidak akan melihat mesej mereka lagi. anda boleh buka blokir dalam tetapan."
+            "value" : "Anda tidak akan melihat mesej mereka lagi. Anda boleh buka blokir dalam Tetapan."
           }
         },
         "ne" : {
@@ -99478,37 +99478,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "je ziet hun berichten niet meer. in instellingen kun je ze weer deblokkeren."
+            "value" : "Je ziet hun berichten niet meer. In Instellingen kun je ze weer deblokkeren."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nie zobaczysz już wiadomości tej osoby. możesz ją odblokować w ustawieniach."
+            "value" : "Nie zobaczysz już wiadomości tej osoby. Możesz ją odblokować w Ustawieniach."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "deixas de ver as mensagens dessa pessoa. podes desbloqueá-la nas definições."
+            "value" : "Deixas de ver as mensagens dessa pessoa. Podes desbloqueá-la nas Definições."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "você não vai mais ver as mensagens dessa pessoa. dá para desbloquear nos ajustes."
+            "value" : "Você não vai mais ver as mensagens dessa pessoa. Dá para desbloquear nos Ajustes."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "сообщения этого человека больше не будут показываться. разблокировать можно в настройках."
+            "value" : "Сообщения этого человека больше не будут показываться. Разблокировать можно в настройках."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "du ser inte längre personens meddelanden. du kan avblockera i inställningarna."
+            "value" : "Du ser inte längre personens meddelanden. Du kan avblockera i Inställningar."
           }
         },
         "ta" : {
@@ -99526,13 +99526,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "artık mesajlarını görmeyeceksin. engeli ayarlardan kaldırabilirsin."
+            "value" : "Artık mesajlarını görmeyeceksin. Engeli Ayarlar'dan kaldırabilirsin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "повідомлення цієї людини більше не показуватимуться. розблокувати можна в налаштуваннях."
+            "value" : "Повідомлення цієї людини більше не показуватимуться. Розблокувати можна в налаштуваннях."
           }
         },
         "ur" : {
@@ -99544,7 +99544,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bạn sẽ không còn thấy tin nhắn của người này. bạn có thể bỏ chặn trong cài đặt."
+            "value" : "Bạn sẽ không còn thấy tin nhắn của người này. Bạn có thể bỏ chặn trong Cài đặt."
           }
         },
         "zh-Hans" : {
@@ -99580,19 +99580,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "lesezeichen"
+            "value" : "Lesezeichen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bookmark"
+            "value" : "Bookmark"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "marcar"
+            "value" : "Marcar"
           }
         },
         "fa" : {
@@ -99604,13 +99604,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "i-bookmark"
+            "value" : "I-bookmark"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "signet"
+            "value" : "Signet"
           }
         },
         "he" : {
@@ -99628,13 +99628,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tandai"
+            "value" : "Tandai"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "segnalibro"
+            "value" : "Segnalibro"
           }
         },
         "ja" : {
@@ -99652,7 +99652,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tanda buku"
+            "value" : "Tanda buku"
           }
         },
         "ne" : {
@@ -99664,37 +99664,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bladwijzer"
+            "value" : "Bladwijzer"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "zakładka"
+            "value" : "Zakładka"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "marcar"
+            "value" : "Marcar"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "marcar"
+            "value" : "Marcar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "закладка"
+            "value" : "Закладка"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bokmärk"
+            "value" : "Bokmärk"
           }
         },
         "ta" : {
@@ -99712,13 +99712,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "yer imi"
+            "value" : "Yer imi"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "закладка"
+            "value" : "Закладка"
           }
         },
         "ur" : {
@@ -99730,7 +99730,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "đánh dấu"
+            "value" : "Đánh dấu"
           }
         },
         "zh-Hans" : {
@@ -99766,19 +99766,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "teilen"
+            "value" : "Teilen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "share"
+            "value" : "Share"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "compartir"
+            "value" : "Compartir"
           }
         },
         "fa" : {
@@ -99790,13 +99790,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "i-share"
+            "value" : "I-share"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "partager"
+            "value" : "Partager"
           }
         },
         "he" : {
@@ -99814,13 +99814,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bagikan"
+            "value" : "Bagikan"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "condividi"
+            "value" : "Condividi"
           }
         },
         "ja" : {
@@ -99838,7 +99838,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "kongsi"
+            "value" : "Kongsi"
           }
         },
         "ne" : {
@@ -99850,37 +99850,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "delen"
+            "value" : "Delen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "udostępnij"
+            "value" : "Udostępnij"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "partilhar"
+            "value" : "Partilhar"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "compartilhar"
+            "value" : "Compartilhar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "поделиться"
+            "value" : "Поделиться"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "dela"
+            "value" : "Dela"
           }
         },
         "ta" : {
@@ -99898,13 +99898,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "paylaş"
+            "value" : "Paylaş"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "поділитися"
+            "value" : "Поділитися"
           }
         },
         "ur" : {
@@ -99916,7 +99916,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "chia sẻ"
+            "value" : "Chia sẻ"
           }
         },
         "zh-Hans" : {
@@ -99952,19 +99952,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "personen"
+            "value" : "Personen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "people"
+            "value" : "People"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "personas"
+            "value" : "Personas"
           }
         },
         "fa" : {
@@ -99976,13 +99976,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mga tao"
+            "value" : "Mga tao"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "personnes"
+            "value" : "Personnes"
           }
         },
         "he" : {
@@ -100000,13 +100000,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "orang"
+            "value" : "Orang"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "persone"
+            "value" : "Persone"
           }
         },
         "ja" : {
@@ -100024,7 +100024,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "orang"
+            "value" : "Orang"
           }
         },
         "ne" : {
@@ -100036,37 +100036,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "personen"
+            "value" : "Personen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "osoby"
+            "value" : "Osoby"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "pessoas"
+            "value" : "Pessoas"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "pessoas"
+            "value" : "Pessoas"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "люди"
+            "value" : "Люди"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "personer"
+            "value" : "Personer"
           }
         },
         "ta" : {
@@ -100084,13 +100084,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "kişiler"
+            "value" : "Kişiler"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "люди"
+            "value" : "Люди"
           }
         },
         "ur" : {
@@ -100102,7 +100102,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mọi người"
+            "value" : "Mọi người"
           }
         },
         "zh-Hans" : {
