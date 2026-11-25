@@ -124,10 +124,11 @@ enum MessageListScrollPolicy {
     }
 
     /// Messages the unseen counters may book as "new": rows that render as
-    /// human messages. System lines render as narration and whitespace-only
-    /// content never renders at all, so neither belongs in the pill count.
+    /// human messages. System lines render as narration, and whitespace-only
+    /// content and reaction lines never render as rows at all, so none of
+    /// them belongs in the pill count.
     static func isUnseenEligible(_ message: BitchatMessage) -> Bool {
-        message.sender != "system" && !message.content.trimmed.isEmpty
+        message.sender != "system" && !message.content.trimmed.isEmpty && !message.isReactionLine
     }
 
     /// Messages after `mark`'s newest one. Located by ID, not by count: at

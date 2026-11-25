@@ -52,7 +52,6 @@ private struct TimelineSignature: Equatable {
 }
 
 private struct MessageReactionProjection {
-    let hiddenIDs: Set<String>
     let countsByTarget: [String: [String: Int]]
     let namesByTarget: [String: [String: [String]]]
     let ownEmojisByTarget: [String: Set<String>]
@@ -63,7 +62,6 @@ private struct MessageReactionProjection {
         displayName: (BitchatMessage) -> String
     ) {
         let events = MessageReaction.resolvedEvents(in: messages)
-        hiddenIDs = Set(events.map { $0.message.id })
         var owners: [String: [String: [String: (name: String, isMine: Bool)]]] = [:]
         for item in events {
             let owner = item.message.senderPeerID?.id ?? item.message.sender
@@ -163,7 +161,7 @@ struct MessageListView: View {
             )
         let windowedMessages = Array(messages.suffix(renderedWindowCount))
 
-        let messageItems = displayItems(for: windowedMessages, of: messages, hiddenReactionIDs: reactionProjection.hiddenIDs, contextKey: contextKey)
+        let messageItems = displayItems(for: windowedMessages, of: messages, contextKey: contextKey)
         // Top edge of the rendered window (whitespace-only messages get no
         // row, so they could never report reaching it).
         let firstRowID = messageItems.first?.id
@@ -720,15 +718,16 @@ private extension MessageListView {
     func displayItems(
         for windowedMessages: [BitchatMessage],
         of messages: [BitchatMessage],
-        hiddenReactionIDs: Set<String> = [],
         contextKey: String
     ) -> [MessageDisplayItem] {
         let firstIndex = messages.count - windowedMessages.count
         var previous = firstIndex > 0 ? messages[firstIndex - 1] : nil
         var items: [MessageDisplayItem] = []
         items.reserveCapacity(windowedMessages.count)
-        // Whitespace-only messages get no row.
-        for message in windowedMessages where !message.content.trimmed.isEmpty && !hiddenReactionIDs.contains(message.id) {
+        // Whitespace-only messages get no row, and neither do reaction
+        // lines: they show as pills under their target, or not at all
+        // while the target is missing.
+        for message in windowedMessages where Self.rendersRow(message) {
             let startsRun = MessageRunPolicy.startsRun(message, after: previous)
             if !items.isEmpty {
                 items[items.count - 1].endsRun = startsRun
@@ -742,6 +741,12 @@ private extension MessageListView {
             previous = message
         }
         return items
+    }
+
+    /// Whether a message gets a row: not whitespace-only, not a reaction
+    /// line.
+    static func rendersRow(_ message: BitchatMessage) -> Bool {
+        !message.content.trimmed.isEmpty && !message.isReactionLine
     }
 
     /// What sits left of a row's bubble.
@@ -986,9 +991,9 @@ private extension MessageListView {
     }
 
     /// Row ID of the newest message that has a row (whitespace-only
-    /// messages render none).
+    /// messages and reaction lines render none).
     func newestRowID(for privatePeer: PeerID?) -> String? {
-        guard let newest = conversationMessages(for: privatePeer).last(where: { !$0.content.trimmed.isEmpty }) else {
+        guard let newest = conversationMessages(for: privatePeer).last(where: Self.rendersRow) else {
             return nil
         }
         return "\(timelineContextKey(for: privatePeer))|\(newest.id)"
@@ -1013,7 +1018,9 @@ private extension MessageListView {
         let reaction = MessageListScrollPolicy.reaction(
             mark: mark,
             messages: messages,
-            newestIsOwn: messages.last.map { conversationUIModel.isSentByCurrentUser($0) } ?? false,
+            // My reaction to an older message is no new message of mine:
+            // it must not pull a scrolled-up reader to the bottom.
+            newestIsOwn: messages.last.map { !$0.isReactionLine && conversationUIModel.isSentByCurrentUser($0) } ?? false,
             appendedCount: appended.total,
             windowCount: currentWindowCount,
             isAtBottom: isAtBottom
