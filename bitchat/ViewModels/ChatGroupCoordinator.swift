@@ -138,6 +138,10 @@ extension ChatViewModel: ChatGroupContext {
         groupCoordinator.leaveGroup()
     }
 
+    func groupRename(named name: String) -> CommandResult {
+        groupCoordinator.renameGroup(named: name)
+    }
+
     func groupList() -> CommandResult {
         groupCoordinator.listGroups()
     }
@@ -315,6 +319,33 @@ final class ChatGroupCoordinator {
             format: String(localized: "system.group.left", comment: "System message after leaving a group; placeholder is the group name"),
             locale: .current,
             group.name
+        ))
+    }
+
+    func renameGroup(named rawName: String) -> CommandResult {
+        guard let group = selectedGroup() else {
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+        }
+        guard group.creatorFingerprint == context.myNoiseFingerprint() else {
+            return .error(message: String(localized: "system.group.creator_only", comment: "Error when a non-creator attempts a creator-only group action"))
+        }
+        let trimmed = rawName.trimmed
+        guard !trimmed.isEmpty else {
+            return .error(message: String(localized: "system.group.usage_create", comment: "Usage hint for /group create"))
+        }
+        guard let name = GroupManagementPolicy.validatedName(rawName) else {
+            return .error(message: String(localized: "system.group.name_too_long", comment: "Error when a group name exceeds the length cap"))
+        }
+        guard name != group.name else { return .success(message: nil) }
+        guard let (updated, key) = context.groupStore.rotateKey(groupID: group.groupID, members: group.members, name: name),
+              let payload = signedStatePayload(for: updated, key: key) else {
+            return .error(message: String(localized: "system.group.rotate_failed", comment: "Error when rotating the group key fails"))
+        }
+        distributeState(payload, group: updated, excluding: [], type: .keyUpdate)
+        return .success(message: String(
+            format: String(localized: "system.group.renamed", comment: "System message after the group creator renames a group; placeholder is the new group name"),
+            locale: .current,
+            name
         ))
     }
 

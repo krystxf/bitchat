@@ -125,11 +125,12 @@ struct ChatGroupCoordinatorContextTests {
         members: [GroupMember],
         creatorFingerprint: String,
         key: Data,
-        signedBy signer: TestIdentity
+        signedBy signer: TestIdentity,
+        name: String = "trail crew"
     ) throws -> Data {
         let group = BitchatGroup(
             groupID: groupID,
-            name: "trail crew",
+            name: name,
             epoch: epoch,
             members: members,
             creatorFingerprint: creatorFingerprint
@@ -255,6 +256,44 @@ struct ChatGroupCoordinatorContextTests {
         #expect(context.groupStore.key(forGroupID: groupID) == rotatedKey)
         #expect(context.removedPrivateChats.isEmpty)
         #expect(context.systemMessages.isEmpty) // not a new membership
+    }
+
+    @Test
+    func renameStateFromPinnedCreatorUpdatesStoredName() throws {
+        let (context, coordinator, joined) = try makeJoinedGroup()
+        let renamedKey = Data(repeating: 0x6B, count: 32)
+        let rename = try statePayload(
+            epoch: joinedEpoch + 1,
+            members: joined.members,
+            creatorFingerprint: creator.fingerprint,
+            key: renamedKey,
+            signedBy: creator,
+            name: "weekend crew"
+        )
+
+        coordinator.handleGroupKeyUpdatePayload(from: creator.peerID, payload: rename)
+
+        let updated = try #require(context.groupStore.group(withID: groupID))
+        #expect(updated.name == "weekend crew")
+        #expect(updated.epoch == joinedEpoch + 1)
+        #expect(context.groupStore.key(forGroupID: groupID) == renamedKey)
+    }
+
+    @Test
+    func renameStateFromNonCreatorCannotChangeStoredName() throws {
+        let (context, coordinator, joined) = try makeJoinedGroup()
+        let forgedRename = try statePayload(
+            epoch: .max,
+            members: [attacker.member, creator.impersonated(by: attacker), member.impersonated(by: attacker), me.impersonated(by: attacker)],
+            creatorFingerprint: attacker.fingerprint,
+            key: Data(repeating: 0xEE, count: 32),
+            signedBy: attacker,
+            name: "hijacked name"
+        )
+
+        coordinator.handleGroupKeyUpdatePayload(from: attacker.peerID, payload: forgedRename)
+
+        expectUnchanged(context, joined: joined)
     }
 
     @Test

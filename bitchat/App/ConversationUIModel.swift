@@ -104,6 +104,7 @@ final class ConversationUIModel: ObservableObject {
     func groupInvite(nickname: String) -> CommandResult { chatViewModel.groupCoordinator.inviteMember(nickname: nickname) }
     func groupRemove(nickname: String) -> CommandResult { chatViewModel.groupCoordinator.removeMember(nickname: nickname) }
     func groupLeave() -> CommandResult { chatViewModel.groupCoordinator.leaveGroup() }
+    func groupRename(named name: String) -> CommandResult { chatViewModel.groupCoordinator.renameGroup(named: name) }
 
     func canCreateGroup(with peerID: PeerID) -> Bool {
         guard !peerID.isGroup, peerID != chatViewModel.myPeerID,

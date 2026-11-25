@@ -7,6 +7,13 @@ final class GroupManagementPolicyTests: XCTestCase {
         XCTAssertEqual(GroupManagementPolicy.defaultName(with: "  "), "group")
     }
 
+    func testGroupNameValidationTrimsAndEnforcesLength() {
+        XCTAssertEqual(GroupManagementPolicy.validatedName("  study group  "), "study group")
+        XCTAssertNil(GroupManagementPolicy.validatedName(" \n "))
+        XCTAssertEqual(GroupManagementPolicy.validatedName(String(repeating: "a", count: 40))?.count, 40)
+        XCTAssertNil(GroupManagementPolicy.validatedName(String(repeating: "a", count: 41)))
+    }
+
     func testInviteRequiresCreatorAndVerifiedReachableNonmember() {
         let eligible = GroupManagementPolicy.canInvite(isMe: false, isBlocked: false, isMember: false,
             isReachable: true, hasVerifiedIdentity: true, isCreator: true, memberCount: 2)
