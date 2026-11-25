@@ -341,7 +341,9 @@ struct ContentView: View {
                     get: { appChromeModel.nickname },
                     set: { appChromeModel.setNickname($0) }
                 ),
-                onNicknameCommit: { appChromeModel.validateAndSaveNickname() }
+                onNicknameCommit: { appChromeModel.validateAndSaveNickname() },
+                blockedAccountsProvider: { appChromeModel.blockedAccounts() },
+                onUnblock: { appChromeModel.unblock($0) }
             )
             .environmentObject(locationChannelsModel)
         }

@@ -113,6 +113,8 @@ protocol SecureIdentityStateManagerProtocol {
     // MARK: Blocked Users Management
     func isBlocked(fingerprint: String) -> Bool
     func setBlocked(_ fingerprint: String, isBlocked: Bool)
+    /// Every mesh identity the user blocked, for the blocked accounts list.
+    func getBlockedSocialIdentities() -> [SocialIdentity]
     
     // MARK: Geohash (Nostr) Blocking
     func isNostrBlocked(pubkeyHexLowercased: String) -> Bool
@@ -599,6 +601,12 @@ final class SecureIdentityStateManager: SecureIdentityStateManagerProtocol {
                 self.cache.socialIdentities[fingerprint] = newIdentity
             }
             self.saveIdentityCache()
+        }
+    }
+
+    func getBlockedSocialIdentities() -> [SocialIdentity] {
+        queue.sync {
+            cache.socialIdentities.values.filter(\.isBlocked)
         }
     }
 

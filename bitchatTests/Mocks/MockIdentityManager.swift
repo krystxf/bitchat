@@ -86,6 +86,10 @@ final class MockIdentityManager: SecureIdentityStateManagerProtocol {
     func getBlockedNostrPubkeys() -> Set<String> {
         blockedNostrPubkeys
     }
+
+    func getBlockedSocialIdentities() -> [SocialIdentity] {
+        socialIdentities.values.filter(\.isBlocked)
+    }
     
     func registerEphemeralSession(peerID: PeerID, handshakeState: HandshakeState) {}
 

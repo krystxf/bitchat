@@ -855,6 +855,36 @@ struct ChatViewModelFormattingTests {
     }
 
     @Test @MainActor
+    func blockedAccounts_listMeshAndLocationBlocksAndUnblockClearsThem() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let fingerprint = "fingerprint-blocked-list"
+        let pubkey = String(repeating: "ab", count: 32)
+        viewModel.identityManager.updateSocialIdentity(
+            SocialIdentity(
+                fingerprint: fingerprint,
+                localPetname: nil,
+                claimedNickname: "mallory",
+                trustLevel: .unknown,
+                isFavorite: false,
+                isBlocked: true,
+                notes: nil
+            )
+        )
+        viewModel.identityManager.setNostrBlocked(pubkey, isBlocked: true)
+
+        let accounts = viewModel.blockedAccounts()
+        #expect(accounts.contains { $0.kind == .mesh(fingerprint: fingerprint) && $0.name == "mallory" })
+        #expect(accounts.contains { $0.kind == .nostr(pubkeyHex: pubkey) })
+
+        for account in accounts {
+            viewModel.unblock(account)
+        }
+        #expect(!viewModel.identityManager.isBlocked(fingerprint: fingerprint))
+        #expect(!viewModel.identityManager.isNostrBlocked(pubkeyHexLowercased: pubkey))
+        #expect(viewModel.blockedAccounts().isEmpty)
+    }
+
+    @Test @MainActor
     func isSelfMessage_judgesBySenderIDNotNickname() async {
         let (viewModel, transport) = makeTestableViewModel()
         viewModel.nickname = "alice"

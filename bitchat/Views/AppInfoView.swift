@@ -21,8 +21,14 @@ struct AppInfoView: View {
     var nickname: Binding<String>?
     /// Validates and saves the nickname when editing ends.
     var onNicknameCommit: (@MainActor () -> Void)?
+    /// Lists everyone the user blocked. Nil (previews, missing wiring) hides
+    /// the blocked accounts row.
+    var blockedAccountsProvider: (@MainActor () -> [BlockedAccount])?
+    /// Undoes one block from the blocked accounts list.
+    var onUnblock: (@MainActor (BlockedAccount) -> Void)?
 
     @State private var showTopology = false
+    @State private var showBlockedAccounts = false
     @FocusState private var isNicknameFocused: Bool
     @State private var liveVoiceEnabled = PTTSettings.liveVoiceEnabled
     @State private var locationNotesEnabled = LocationNotesSettings.enabled
@@ -593,6 +599,26 @@ struct AppInfoView: View {
             )) {
                 Text(verbatim: Strings.Settings.autoRevealFavoritesTitle)
                 Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle)
+            }
+
+            if let blockedAccountsProvider, let onUnblock {
+                Button {
+                    showBlockedAccounts = true
+                } label: {
+                    HStack {
+                        Text(verbatim: BlockedAccountsSheet.Strings.title)
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .sheet(isPresented: $showBlockedAccounts) {
+                    BlockedAccountsSheet(load: blockedAccountsProvider, onUnblock: onUnblock)
+                }
             }
         } header: {
             sectionHeader(Strings.Settings.privacyTitle)

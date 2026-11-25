@@ -309,6 +309,13 @@ final class UnifiedPeerService: ObservableObject, TransportPeerEventsDelegate {
         return fingerprint
     }
 
+    /// Blocks or unblocks by fingerprint, for identities that may no longer
+    /// map to a current peer ID, such as rows in the blocked accounts list.
+    func setBlocked(fingerprint: String, blocked: Bool) {
+        identityManager.setBlocked(fingerprint, isBlocked: blocked)
+        updatePeers()
+    }
+
     /// Toggle favorite status
     func toggleFavorite(_ peerID: PeerID) {
         guard let peer = getPeer(by: peerID) else {

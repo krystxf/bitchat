@@ -68,6 +68,15 @@ final class AppChromeModel: ObservableObject {
         }
     }
 
+    /// Everyone the user blocked, for the blocked accounts list.
+    func blockedAccounts() -> [BlockedAccount] {
+        chatViewModel.blockedAccounts()
+    }
+
+    func unblock(_ account: BlockedAccount) {
+        chatViewModel.unblock(account)
+    }
+
     /// This device's current mesh peer ID, which seeds my avatar's color the
     /// same way it does for everyone who sees my messages.
     var myPeerID: PeerID {

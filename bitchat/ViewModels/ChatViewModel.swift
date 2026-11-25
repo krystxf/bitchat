@@ -1421,6 +1421,41 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         setMeshPeerBlocked(peerID, blocked: false, displayName: displayName)
     }
 
+    /// Everyone the user blocked, mesh and location channels together, for
+    /// the blocked accounts list in settings.
+    @MainActor
+    func blockedAccounts() -> [BlockedAccount] {
+        let mesh = identityManager.getBlockedSocialIdentities().map { identity -> BlockedAccount in
+            let petname = identity.localPetname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let claimed = identity.claimedNickname.trimmingCharacters(in: .whitespacesAndNewlines)
+            // A block placed before any announce leaves the "Unknown"
+            // placeholder; the short fingerprint tells those rows apart.
+            let name = !petname.isEmpty ? petname
+                : (!claimed.isEmpty && claimed != "Unknown" ? claimed : "anon\(identity.fingerprint.prefix(4))")
+            return BlockedAccount(kind: .mesh(fingerprint: identity.fingerprint), name: name)
+        }
+        let nostr = identityManager.getBlockedNostrPubkeys().map { pubkey in
+            BlockedAccount(
+                kind: .nostr(pubkeyHex: pubkey),
+                name: geohashDisplayName(for: PeerID(nostr: pubkey))
+            )
+        }
+        return BlockedAccount.sorted(mesh + nostr)
+    }
+
+    /// Undoes a block from the blocked accounts list, through the same
+    /// stores `/unblock` writes.
+    @MainActor
+    func unblock(_ account: BlockedAccount) {
+        switch account.kind {
+        case .mesh(let fingerprint):
+            unifiedPeerService.setBlocked(fingerprint: fingerprint, blocked: false)
+            objectWillChange.send()
+        case .nostr(let pubkeyHex):
+            unblockGeohashUser(pubkeyHexLowercased: pubkeyHex, displayName: account.name)
+        }
+    }
+
     @MainActor
     private func setMeshPeerBlocked(_ peerID: PeerID, blocked: Bool, displayName: String) {
         guard unifiedPeerService.setBlocked(peerID, blocked: blocked) != nil else {
