@@ -16,6 +16,7 @@ struct ContentComposerView: View {
     @ThemedPalette private var palette
     @Environment(\.layoutDirection) private var layoutDirection
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showsPhotosPicker = false
 
     @Binding var messageText: String
     var isTextFieldFocused: FocusState<Bool>.Binding
@@ -467,7 +468,12 @@ private extension ContentComposerView {
 
     var attachmentButton: some View {
         Menu {
-            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+            // A plain menu item that opens the picker through the modifier
+            // below: a PhotosPicker placed inside a menu does not open on
+            // macOS.
+            Button {
+                showsPhotosPicker = true
+            } label: {
                 Label(String(localized: "content.menu.photo_library", comment: "Menu option to choose an image from the photo library"), systemImage: "photo.on.rectangle")
             }
             #if os(iOS)
@@ -485,13 +491,30 @@ private extension ContentComposerView {
             }
             #endif
         } label: {
+            // The Mac has no camera option, so it shows a photo.
+            #if os(iOS)
             Image(systemName: "camera")
                 .font(.bitchatSystem(size: 17, weight: .medium))
                 .foregroundColor(composerAccentColor)
                 .frame(width: 40, height: 40)
                 .glassSurface(in: Circle())
                 .contentShape(Circle())
+            #else
+            Image(systemName: "photo")
+                .font(.bitchatSystem(size: 17, weight: .medium))
+                .foregroundColor(composerAccentColor)
+                .frame(width: 40, height: 40)
+                .glassSurface(in: Circle())
+                .contentShape(Circle())
+            #endif
         }
+        // Draw only the glass circle: macOS otherwise wraps a menu in a
+        // pop-up button bezel with a chevron.
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .photosPicker(isPresented: $showsPhotosPicker, selection: $selectedPhotoItem, matching: .images)
         .onChange(of: selectedPhotoItem) { item in
             guard let item else { return }
             Task {
