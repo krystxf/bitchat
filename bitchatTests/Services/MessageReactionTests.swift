@@ -36,4 +36,14 @@ struct MessageReactionTests {
         #expect(wire.hasPrefix("🙏 removed reaction to \"first message\""))
         #expect(MessageReaction.parse(wire) == .init(emoji: "🙏", targetID: target.id, removes: true))
     }
+
+    @Test func aggregationCountsDistinctPeopleAndTogglesRemoval() {
+        let target = BitchatMessage(id: "target", sender: "Ada", content: "hello", timestamp: .now, isRelay: false)
+        func event(_ sender: String, removes: Bool = false) -> (event: MessageReaction.Event, message: BitchatMessage) {
+            let wire = MessageReaction.format(emoji: "👍", target: target, removes: removes)
+            return (.init(emoji: "👍", targetID: target.id, removes: removes), BitchatMessage(sender: sender, content: wire, timestamp: .now, isRelay: false))
+        }
+        let active = MessageReaction.aggregate([event("Bo"), event("Cy"), event("Bo", removes: true)])
+        #expect(active[target.id]?["👍"] == Set(["Cy"]))
+    }
 }

@@ -56,4 +56,16 @@ enum MessageReaction {
             return (event, message)
         }
     }
+
+    /// Active actor IDs, aggregated once for an ordered conversation history.
+    static func aggregate(_ events: [(event: Event, message: BitchatMessage)]) -> [String: [String: Set<String>]] {
+        var owners: [String: [String: Set<String>]] = [:]
+        for item in events {
+            let owner = item.message.senderPeerID?.id ?? item.message.sender
+            var active = owners[item.event.targetID, default: [:]][item.event.emoji, default: []]
+            if item.event.removes { active.remove(owner) } else { active.insert(owner) }
+            owners[item.event.targetID, default: [:]][item.event.emoji] = active
+        }
+        return owners
+    }
 }

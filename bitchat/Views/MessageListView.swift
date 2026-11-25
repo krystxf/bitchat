@@ -54,18 +54,31 @@ private struct TimelineSignature: Equatable {
 private struct MessageReactionProjection {
     let hiddenIDs: Set<String>
     let countsByTarget: [String: [String: Int]]
+    let namesByTarget: [String: [String: [String]]]
+    let ownEmojisByTarget: [String: Set<String>]
 
-    init(messages: [BitchatMessage]) {
+    init(
+        messages: [BitchatMessage],
+        isMine: (BitchatMessage) -> Bool,
+        displayName: (BitchatMessage) -> String
+    ) {
         let events = MessageReaction.resolvedEvents(in: messages)
         hiddenIDs = Set(events.map { $0.message.id })
-        var owners: [String: [String: Set<String>]] = [:]
+        var owners: [String: [String: [String: (name: String, isMine: Bool)]]] = [:]
         for item in events {
             let owner = item.message.senderPeerID?.id ?? item.message.sender
-            var emojiOwners = owners[item.event.targetID, default: [:]][item.event.emoji, default: []]
-            if item.event.removes { emojiOwners.remove(owner) } else { emojiOwners.insert(owner) }
+            var emojiOwners = owners[item.event.targetID, default: [:]][item.event.emoji, default: [:]]
+            if item.event.removes { emojiOwners.removeValue(forKey: owner) }
+            else { emojiOwners[owner] = (displayName(item.message), isMine(item.message)) }
             owners[item.event.targetID, default: [:]][item.event.emoji] = emojiOwners
         }
         countsByTarget = owners.mapValues { $0.mapValues(\.count) }
+        namesByTarget = owners.mapValues { target in
+            target.mapValues { $0.values.map(\.name).sorted() }
+        }
+        ownEmojisByTarget = owners.mapValues { target in
+            Set(target.compactMap { emoji, actors in actors.values.contains(where: \.isMine) ? emoji : nil })
+        }
     }
 }
 
@@ -128,7 +141,11 @@ struct MessageListView: View {
         let currentWindowCount = windowCount(for: privatePeer)
 
         let messages = conversationMessages(for: privatePeer)
-        let reactionProjection = MessageReactionProjection(messages: messages)
+        let reactionProjection = MessageReactionProjection(
+            messages: messages,
+            isMine: conversationUIModel.isSentByCurrentUser,
+            displayName: conversationUIModel.displayName
+        )
         let contextKey = timelineContextKey(for: privatePeer)
         // While the reader is scrolled up, messages landing below the
         // window's first row widen the window in this same render instead of
@@ -177,7 +194,9 @@ struct MessageListView: View {
                             avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
                             maxBubbleWidth: maxBubbleWidth,
                             endsRun: item.endsRun,
-                            reactionCounts: reactionProjection.countsByTarget[message.id] ?? [:]
+                            reactionCounts: reactionProjection.countsByTarget[message.id] ?? [:],
+                            reactionNames: reactionProjection.namesByTarget[message.id] ?? [:],
+                            ownReactionEmojis: reactionProjection.ownEmojisByTarget[message.id] ?? []
                         )
                             .onAppear {
                                 // Callbacks lag a timeline switch: the new
@@ -744,17 +763,19 @@ private extension MessageListView {
         avatar: AvatarSlot,
         maxBubbleWidth: CGFloat,
         endsRun: Bool,
-        reactionCounts: [String: Int] = [:]
+        reactionCounts: [String: Int] = [:],
+        reactionNames: [String: [String]] = [:],
+        ownReactionEmojis: Set<String> = []
     ) -> some View {
         Group {
             if avatar == .absent {
-                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts)
+                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts, reactionNames: reactionNames, ownReactionEmojis: ownReactionEmojis)
             } else {
                 // The avatar lines up with the bottom of the bubble, as in
                 // Messages, not with anything below it (payment chips).
                 HStack(alignment: .messageBubbleBottom, spacing: MessageBubbleStyle.avatarSpacing) {
                     senderAvatar(for: message, isShown: avatar == .shown)
-                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts)
+                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts, reactionNames: reactionNames, ownReactionEmojis: ownReactionEmojis)
                 }
             }
         }
@@ -772,7 +793,9 @@ private extension MessageListView {
         showsSenderName: Bool,
         maxBubbleWidth: CGFloat,
         endsRun: Bool,
-        reactionCounts: [String: Int] = [:]
+        reactionCounts: [String: Int] = [:],
+        reactionNames: [String: [String]] = [:],
+        ownReactionEmojis: Set<String> = []
     ) -> some View {
         if message.sender == "system" {
             systemMessageRow(message)
@@ -797,12 +820,12 @@ private extension MessageListView {
         if !reactionCounts.isEmpty {
             HStack(spacing: 4) {
                 ForEach(reactionCounts.keys.sorted(), id: \.self) { emoji in
-                    Text("\(emoji) \(reactionCounts[emoji] ?? 0)")
-                        .font(.caption2)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(.thinMaterial, in: Capsule())
-                        .accessibilityLabel("\(reactionCounts[emoji] ?? 0) people reacted with \(emoji)")
+                    ReactionBadgeView(
+                        emoji: emoji,
+                        count: reactionCounts[emoji] ?? 0,
+                        names: reactionNames[emoji] ?? [],
+                        isMine: ownReactionEmojis.contains(emoji)
+                    )
                 }
             }
             .frame(maxWidth: .infinity, alignment: isSelf ? .trailing : .leading)
@@ -1058,6 +1081,33 @@ private extension MessageListView {
             return privateInboxModel.messages(for: privatePeer)
         }
         return publicChatModel.messages
+    }
+}
+
+private struct ReactionBadgeView: View {
+    let emoji: String
+    let count: Int
+    let names: [String]
+    let isMine: Bool
+    @State private var showsReactors = false
+
+    var body: some View {
+        Button { showsReactors.toggle() } label: {
+            Text("\(emoji) \(count)")
+                .font(.caption2)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(isMine ? Color.accentColor.opacity(0.25) : Color.primary.opacity(0.08), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(count) people reacted with \(emoji)")
+        .popover(isPresented: $showsReactors) {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(names, id: \.self) { name in Text(name) }
+            }
+            .padding()
+            .fixedSize()
+        }
     }
 }
 
