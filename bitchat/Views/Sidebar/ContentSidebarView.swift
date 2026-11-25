@@ -79,7 +79,7 @@ struct ContentSidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle(Text(verbatim: "bitchat"))
+        .navigationTitle(Text(verbatim: Strings.appName))
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -240,6 +240,7 @@ struct ContentSidebarView: View {
 
 private extension ContentSidebarView {
     enum Strings {
+        static let appName = String(localized: "app_info.app_name", comment: "The app's name")
         static let channels = String(localized: "sidebar.section.channels", defaultValue: "channels", comment: "Sidebar section header above the public channels and private groups")
         static let contacts = String(localized: "sidebar.section.contacts", defaultValue: "contacts", comment: "Sidebar section header above people the user knows: favorites, verified people and accepted conversations")
         static let unknown = String(localized: "sidebar.unknown.title", defaultValue: "unknown", comment: "Collapsed sidebar group holding people the user does not know yet and their message requests")
