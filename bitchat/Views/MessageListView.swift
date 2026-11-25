@@ -252,9 +252,9 @@ struct MessageListView: View {
                             // A run of bubbles from one sender reads as a
                             // group: tight within, a wider gap above it.
                             .padding(.top, item.startsRun ? 8 : 2)
-                            // Archived echoes read as one tinted block, not
-                            // just faded rows.
-                            .background(message.isArchivedEcho ? palette.secondary.opacity(0.08) : Color.clear)
+                            // No row background: bubbles sit straight on the
+                            // backdrop. Archived echoes are told apart by
+                            // their dimming (messageRow) alone.
                             .messageTimeHeader(item.startsTimeGroup ? message.timestamp : nil)
                     }
                 }
@@ -686,7 +686,9 @@ private extension MessageListView {
             }
         }
         // Archived echoes ("heard here earlier") render dimmed: real history,
-        // visually distinct from the live conversation.
+        // visually distinct from the live conversation. They start a run of
+        // their own (MessageRunPolicy), so the sender's name shows again
+        // where the live conversation picks up.
         .opacity(message.isArchivedEcho ? 0.55 : 1)
     }
 
