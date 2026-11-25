@@ -469,10 +469,10 @@ struct ContentView: View {
     /// losing it.
     private var mainContent: some View {
         publicMessageList
-            .safeAreaInset(edge: .top, spacing: 0) {
+            .floatingBar(edge: .top) {
                 headerView
             }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+            .floatingBar(edge: .bottom) {
                 if selectedPrivatePeerID == nil {
                     composerView
                 }
@@ -580,5 +580,23 @@ struct ContentView: View {
         ComposerDraftStore.save(messageText, for: activeDraftKey)
         activeDraftKey = newKey
         messageText = ComposerDraftStore.load(newKey)
+    }
+}
+
+private extension View {
+    /// Floating chrome over the message list. On OS 26+ a safe-area bar, so
+    /// the list gets the system's scroll edge effect under the floating glass
+    /// controls; a plain safe-area inset below.
+    @ViewBuilder
+    func floatingBar<Bar: View>(edge: VerticalEdge, @ViewBuilder content: () -> Bar) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            safeAreaBar(edge: edge, spacing: 0, content: content)
+        } else {
+            safeAreaInset(edge: edge, spacing: 0, content: content)
+        }
+        #else
+        safeAreaInset(edge: edge, spacing: 0, content: content)
+        #endif
     }
 }

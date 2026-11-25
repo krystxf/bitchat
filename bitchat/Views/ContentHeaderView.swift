@@ -41,73 +41,80 @@ struct ContentHeaderView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Text(verbatim: "bitchat/")
-                .bitchatFont(size: 18, weight: .medium)
-                .lineLimit(1)
-                .foregroundColor(palette.primary)
-                // When icons crowd the header, squeeze the nickname first
-                // (priority 0) and the logo only as a last resort; the icon
-                // cluster at priority 3 never gives up width.
-                .layoutPriority(2)
-                .onTapGesture(count: 3) {
-                    // Confirm before destroying: the same logo is the single-tap
-                    // App Info entry point and sits beside the nickname field, so
-                    // a fumbled tap must never be able to wipe the device. The
-                    // dialog matches the Settings-pane panic button; under duress
-                    // it costs one extra tap.
-                    appChromeModel.requestPanicWipe()
-                }
-                .onTapGesture(count: 1) {
-                    appChromeModel.presentAppInfo()
-                }
-                // The confirmation dialog itself is hosted on ContentView
-                // (next to the failed-wipe banner), not on this Text: a host
-                // that can be covered or removed could take the pending
-                // dialog down with it.
-                // This is the only entry point to App Info, but it reads as
-                // static text; surface the tap. (The triple-tap panic wipe
-                // stays undiscoverable on purpose — it's destructive.)
-                .accessibilityAddTraits(.isButton)
-                .accessibilityHint(
-                    String(localized: "content.accessibility.app_info_hint", comment: "Accessibility hint on the bitchat/ logo explaining a tap opens app info")
-                )
-                .accessibilityAction {
-                    appChromeModel.presentAppInfo()
-                }
-
+            // Title cluster: logo + nickname on one glass capsule, apart
+            // from the buttons on the right.
             HStack(spacing: 0) {
-                Text(verbatim: "@")
-                    .bitchatFont(size: 14)
-                    .foregroundColor(palette.secondary)
-                    // Keep the sigil whole while the field beside it shrinks.
-                    .fixedSize()
-
-                TextField(
-                    "content.input.nickname_placeholder",
-                    text: Binding(
-                        get: { appChromeModel.nickname },
-                        set: { appChromeModel.setNickname($0) }
+                Text(verbatim: "bitchat/")
+                    .bitchatFont(size: 18, weight: .medium)
+                    .lineLimit(1)
+                    .foregroundColor(palette.primary)
+                    // When icons crowd the header, squeeze the nickname first
+                    // (priority 0) and the logo only as a last resort; the icon
+                    // cluster at priority 3 never gives up width.
+                    .layoutPriority(2)
+                    .onTapGesture(count: 3) {
+                        // Confirm before destroying: the same logo is the single-tap
+                        // App Info entry point and sits beside the nickname field, so
+                        // a fumbled tap must never be able to wipe the device. The
+                        // dialog matches the Settings-pane panic button; under duress
+                        // it costs one extra tap.
+                        appChromeModel.requestPanicWipe()
+                    }
+                    .onTapGesture(count: 1) {
+                        appChromeModel.presentAppInfo()
+                    }
+                    // The confirmation dialog itself is hosted on ContentView
+                    // (next to the failed-wipe banner), not on this Text: a host
+                    // that can be covered or removed could take the pending
+                    // dialog down with it.
+                    // This is the only entry point to App Info, but it reads as
+                    // static text; surface the tap. (The triple-tap panic wipe
+                    // stays undiscoverable on purpose — it's destructive.)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityHint(
+                        String(localized: "content.accessibility.app_info_hint", comment: "Accessibility hint on the bitchat/ logo explaining a tap opens app info")
                     )
-                )
-                .textFieldStyle(.plain)
-                .bitchatFont(size: 14)
-                .frame(maxWidth: 80)
-                .foregroundColor(palette.primary)
-                .focused(isNicknameFieldFocused)
-                .autocorrectionDisabled(true)
-                #if os(iOS)
-                .textInputAutocapitalization(.never)
-                #endif
-                .modifier(FocusEffectDisabledModifier())
-                .onChange(of: isNicknameFieldFocused.wrappedValue) { isFocused in
-                    if !isFocused {
+                    .accessibilityAction {
+                        appChromeModel.presentAppInfo()
+                    }
+
+                HStack(spacing: 0) {
+                    Text(verbatim: "@")
+                        .bitchatFont(size: 14)
+                        .foregroundColor(palette.secondary)
+                        // Keep the sigil whole while the field beside it shrinks.
+                        .fixedSize()
+
+                    TextField(
+                        "content.input.nickname_placeholder",
+                        text: Binding(
+                            get: { appChromeModel.nickname },
+                            set: { appChromeModel.setNickname($0) }
+                        )
+                    )
+                    .textFieldStyle(.plain)
+                    .bitchatFont(size: 14)
+                    .frame(maxWidth: 80)
+                    .foregroundColor(palette.primary)
+                    .focused(isNicknameFieldFocused)
+                    .autocorrectionDisabled(true)
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    #endif
+                    .modifier(FocusEffectDisabledModifier())
+                    .onChange(of: isNicknameFieldFocused.wrappedValue) { isFocused in
+                        if !isFocused {
+                            appChromeModel.validateAndSaveNickname()
+                        }
+                    }
+                    .onSubmit {
                         appChromeModel.validateAndSaveNickname()
                     }
                 }
-                .onSubmit {
-                    appChromeModel.validateAndSaveNickname()
-                }
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .glassSurface(in: Capsule())
 
             Spacer()
 
@@ -123,17 +130,17 @@ struct ContentHeaderView: View {
                 return countAndColor.0 + bridgeService.bridgedPeerCount
             }()
 
-            HStack(spacing: 2) {
+            HStack(spacing: 8) {
                 if locationChannelsModel.gatewayEnabled {
                     // The gateway toggle lives in the App Info settings pane
                     // now, so the indicator deep-links there.
                     Button(action: { appChromeModel.presentAppInfo() }) {
                         Image(systemName: "globe")
-                            .font(.bitchatSystem(size: 12))
-                            .foregroundColor(palette.secondary.opacity(0.8))
-                            .headerTapTarget()
+                            .font(.bitchatSystem(size: 14))
+                            .foregroundColor(palette.secondary)
                     }
-                    .buttonStyle(.plain)
+                    .glassButtonStyle()
+                    .circularButtonShape()
                     .accessibilityLabel(
                         String(localized: "content.accessibility.gateway_active", defaultValue: "Internet gateway active, sharing your connection with the mesh", comment: "Accessibility label for the internet gateway indicator")
                     )
@@ -165,11 +172,11 @@ struct ContentHeaderView: View {
                 if appChromeModel.hasUnreadPrivateMessages {
                     Button(action: { appChromeModel.openMostRelevantPrivateChat() }) {
                         Image(systemName: "envelope.fill")
-                            .font(.bitchatSystem(size: 12))
+                            .font(.bitchatSystem(size: 14))
                             .foregroundColor(Color.orange)
-                            .headerTapTarget()
                     }
-                    .buttonStyle(.plain)
+                    .glassButtonStyle()
+                    .circularButtonShape()
                     .accessibilityLabel(
                         String(localized: "content.accessibility.open_unread_private_chat", comment: "Accessibility label for the unread private chat button")
                     )
@@ -186,15 +193,15 @@ struct ContentHeaderView: View {
                     // Filled whenever the current scope has notices at all
                     // (matching the orange tint); hollow means nothing here.
                     Image(systemName: scopeHasNotices || unseenNoticesCount > 0 ? "pin.fill" : "pin")
-                        .font(.bitchatSystem(size: 12))
+                        .font(.bitchatSystem(size: 14))
                         .foregroundColor(
                             scopeHasNotices || unseenNoticesCount > 0
-                                ? Color.orange.opacity(0.8)
-                                : palette.secondary.opacity(0.9)
+                                ? Color.orange
+                                : palette.secondary
                         )
-                        .headerTapTarget()
                 }
-                .buttonStyle(.plain)
+                .glassButtonStyle()
+                .circularButtonShape()
                 .accessibilityLabel(
                     String(localized: "content.accessibility.notices", defaultValue: "Notices", comment: "Accessibility label for the notices button")
                 )
@@ -214,10 +221,10 @@ struct ContentHeaderView: View {
                 if case .location(let channel) = locationChannelsModel.selectedChannel {
                     Button(action: { locationChannelsModel.toggleBookmark(channel.geohash) }) {
                         Image(systemName: locationChannelsModel.isBookmarked(channel.geohash) ? "bookmark.fill" : "bookmark")
-                            .font(.bitchatSystem(size: 12))
-                            .headerTapTarget()
+                            .font(.bitchatSystem(size: 14))
                     }
-                    .buttonStyle(.plain)
+                    .glassButtonStyle()
+                    .circularButtonShape()
                     .accessibilityLabel(
                         String(
                             format: String(localized: "content.accessibility.toggle_bookmark", comment: "Accessibility label for toggling a geohash bookmark"),
@@ -228,10 +235,10 @@ struct ContentHeaderView: View {
 
                     Button(action: { requestHeaderShare(forGeohash: channel.geohash) }) {
                         Image(systemName: "square.and.arrow.up")
-                            .font(.bitchatSystem(size: 12))
-                            .headerTapTarget()
+                            .font(.bitchatSystem(size: 14))
                     }
-                    .buttonStyle(.plain)
+                    .glassButtonStyle()
+                    .circularButtonShape()
                     .accessibilityLabel(
                         String(localized: "channel.share.action", defaultValue: "share channel", comment: "Accessibility label for sharing the active location channel")
                     )
@@ -259,14 +266,11 @@ struct ContentHeaderView: View {
                         .lineLimit(headerLineLimit)
                         .fixedSize(horizontal: true, vertical: false)
                         .layoutPriority(2)
-                        .padding(.horizontal, 6)
-                        .frame(maxHeight: .infinity)
-                        .contentShape(Rectangle())
                         .accessibilityLabel(
                             String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button")
                         )
                 }
-                .buttonStyle(.plain)
+                .glassButtonStyle()
 
                 Button(action: {
                     withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
@@ -286,11 +290,8 @@ struct ContentHeaderView: View {
                     .foregroundColor(headerCountColor)
                     .lineLimit(headerLineLimit)
                     .fixedSize(horizontal: true, vertical: false)
-                    .padding(.leading, 6)
-                    .frame(maxHeight: .infinity)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .glassButtonStyle()
                 .accessibilityLabel(
                     String(
                         format: String(localized: "content.accessibility.people_count", comment: "Accessibility label announcing number of people in header"),
@@ -324,7 +325,8 @@ struct ContentHeaderView: View {
         // headerHeight is a @ScaledMetric, so it still grows with Dynamic
         // Type.
         .frame(height: headerHeight)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
+        .padding(.top, 4)
         .onReceive(CourierStore.shared.$carriedCount) { count in
             carriedMailCount = count
         }
@@ -381,7 +383,6 @@ struct ContentHeaderView: View {
         .sheet(item: $activeSharePayload) { payload in
             ShareActivityView(text: payload.text)
         }
-        .themedChromePanel(edge: .top)
     }
 
     private func requestHeaderShare(forGeohash geohash: String) {
