@@ -21,6 +21,8 @@ struct GeohashPickerView: View {
     @ThemedPalette private var palette
 
     private enum Strings {
+        // The picker's one job is the teleport action it opens from.
+        static let title: LocalizedStringKey = "location_channels.action.teleport"
         static let instruction = String(localized: "geohash_picker.instruction", defaultValue: "drag to spin · pinch to zoom · tap to focus", comment: "Hint at the top of the globe geohash picker explaining its gestures")
         static let noSelection = String(localized: "geohash_picker.no_selection", defaultValue: "select location", comment: "Shown in the globe geohash picker before a geohash is under the crosshair")
         static let select = String(localized: "geohash_picker.select", defaultValue: "select", comment: "Button in the globe geohash picker that teleports to the geohash under the crosshair")
@@ -62,20 +64,32 @@ struct GeohashPickerView: View {
     }
 
     var body: some View {
-        ZStack {
-            if let world {
-                GlobeView(state: state, colors: globeColors, world: world)
-                    .ignoresSafeArea()
-            }
+        // A navigation bar over the full-bleed globe: the globe runs under a
+        // clear bar, and the bar holds the title and the native close button.
+        NavigationStack {
+            ZStack {
+                if let world {
+                    GlobeView(state: state, colors: globeColors, world: world)
+                        .ignoresSafeArea()
+                }
 
-            VStack(spacing: 0) {
-                topBar
-                Spacer(minLength: 0)
-                bottomControls
+                VStack(spacing: 0) {
+                    instructionPanel
+                    Spacer(minLength: 0)
+                    bottomControls
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 20)
-            .padding(.bottom, 20)
+            .navigationTitle(Text(Strings.title))
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            #endif
+            .toolbar {
+                SheetCloseToolbarItem(action: onCancel)
+            }
         }
         #if os(macOS)
         .frame(minWidth: 560, minHeight: 640)
@@ -88,23 +102,16 @@ struct GeohashPickerView: View {
 
     // MARK: - Chrome
 
-    private var topBar: some View {
-        HStack(spacing: 10) {
-            Text(Strings.instruction)
-                .bitchatFont(size: 12)
-                .foregroundColor(palette.primary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity)
-                .themedOverlayPanel()
-
-            SheetCloseButton(action: onCancel)
-                .foregroundColor(palette.primary)
-                .frame(width: 40, height: 40)
-                .themedOverlayPanel()
-        }
+    private var instructionPanel: some View {
+        Text(Strings.instruction)
+            .bitchatFont(size: 12)
+            .foregroundColor(palette.primary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .themedOverlayPanel()
     }
 
     private var bottomControls: some View {
