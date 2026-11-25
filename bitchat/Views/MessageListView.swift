@@ -51,35 +51,6 @@ private struct TimelineSignature: Equatable {
     }
 }
 
-private struct MessageReactionProjection {
-    let countsByTarget: [String: [String: Int]]
-    let namesByTarget: [String: [String: [String]]]
-    let ownEmojisByTarget: [String: Set<String>]
-
-    init(
-        messages: [BitchatMessage],
-        isMine: (BitchatMessage) -> Bool,
-        displayName: (BitchatMessage) -> String
-    ) {
-        let events = MessageReaction.resolvedEvents(in: messages)
-        var owners: [String: [String: [String: (name: String, isMine: Bool)]]] = [:]
-        for item in events {
-            let owner = item.message.senderPeerID?.id ?? item.message.sender
-            var emojiOwners = owners[item.event.targetID, default: [:]][item.event.emoji, default: [:]]
-            if item.event.removes { emojiOwners.removeValue(forKey: owner) }
-            else { emojiOwners[owner] = (displayName(item.message), isMine(item.message)) }
-            owners[item.event.targetID, default: [:]][item.event.emoji] = emojiOwners
-        }
-        countsByTarget = owners.mapValues { $0.mapValues(\.count) }
-        namesByTarget = owners.mapValues { target in
-            target.mapValues { $0.values.map(\.name).sorted() }
-        }
-        ownEmojisByTarget = owners.mapValues { target in
-            Set(target.compactMap { emoji, actors in actors.values.contains(where: \.isMine) ? emoji : nil })
-        }
-    }
-}
-
 struct MessageListView: View {
     @EnvironmentObject private var publicChatModel: PublicChatModel
     @EnvironmentObject private var privateInboxModel: PrivateInboxModel
@@ -91,6 +62,7 @@ struct MessageListView: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.resolvedMessageBubbleColor) private var messageBubbleColor
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let privatePeer: PeerID?
     @Binding var isAtBottom: Bool
@@ -109,7 +81,14 @@ struct MessageListView: View {
     @State private var createGroupPeerID: PeerID?
     @State private var createGroupPeerName = ""
     @State private var showClearConfirmation = false
+    /// macOS: the message under the pointer, and the one whose quick
+    /// reaction bar shows (after a short delay, never while scrolling).
     @State private var hoveredReactionMessageID: String?
+    @State private var reactionBarMessageID: String?
+    @State private var reactionBarTask: Task<Void, Never>?
+    /// The quick bar's own popover is open, so the bar stays.
+    @State private var isReactionBarPinned = false
+    @State private var isListScrolling = false
     @State private var lastScrollTime: Date = .distantPast
     @State private var scrollThrottleTimer: Timer?
     @State private var unseenCount = 0
@@ -194,9 +173,7 @@ struct MessageListView: View {
                             avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
                             maxBubbleWidth: maxBubbleWidth,
                             endsRun: item.endsRun,
-                            reactionCounts: reactionProjection.countsByTarget[message.id] ?? [:],
-                            reactionNames: reactionProjection.namesByTarget[message.id] ?? [:],
-                            ownReactionEmojis: reactionProjection.ownEmojisByTarget[message.id] ?? []
+                            reactions: reactionProjection.summaries(for: message.id)
                         )
                             .onAppear {
                                 // Callbacks lag a timeline switch: the new
@@ -249,12 +226,11 @@ struct MessageListView: View {
                                 // no event anyone could react to.
                                 if message.sender != "system" && !message.isUnsentLocationMessage {
                                     Section {
-                                        ControlGroup {
-                                            ForEach(MessageReaction.emojis, id: \.self) { emoji in
-                                                Button(emoji) {
-                                                    toggleReaction(emoji, on: message)
-                                                }
-                                            }
+                                        ReactionMenuRow(
+                                            selected: ownReactionEmojis(in: reactionProjection.summaries(for: message.id)),
+                                            tint: messageBubbleColor
+                                        ) { emoji in
+                                            toggleReaction(emoji, on: message)
                                         }
                                     }
                                 }
@@ -304,8 +280,23 @@ struct MessageListView: View {
                                 }
                             }
 #if os(macOS)
+                            // The bar sits in the free space beside the
+                            // bubble, so hovering anywhere on the row (bar
+                            // included) keeps it.
+                            .reactionQuickBar(
+                                alignment: rowAlignment(for: message, isSelf: isSelf).horizontal,
+                                isShown: reactionBarMessageID == message.id && message.sender != "system" && !message.isUnsentLocationMessage
+                            ) {
+                                ReactionQuickBar(
+                                    selected: ownReactionEmojis(in: reactionProjection.summaries(for: message.id)),
+                                    tint: messageBubbleColor,
+                                    isPresentingChoices: $isReactionBarPinned
+                                ) { emoji in
+                                    toggleReaction(emoji, on: message)
+                                }
+                            }
                             .onHover { hovering in
-                                hoveredReactionMessageID = hovering ? message.id : nil
+                                updateReactionHover(hovering, on: message)
                             }
 #endif
                             .frame(maxWidth: .infinity, alignment: rowAlignment(for: message, isSelf: isSelf))
@@ -336,6 +327,11 @@ struct MessageListView: View {
                         .padding(.bottom, 8)
                 }
             }
+#if os(macOS)
+            .onScrollPhaseChange { _, phase in
+                updateReactionBarForScrolling(phase.isScrolling)
+            }
+#endif
             .overlay(alignment: .bottomTrailing) {
                 if !isAtBottom && !messageItems.isEmpty {
                     jumpToLatestPill(proxy: proxy)
@@ -768,19 +764,17 @@ private extension MessageListView {
         avatar: AvatarSlot,
         maxBubbleWidth: CGFloat,
         endsRun: Bool,
-        reactionCounts: [String: Int] = [:],
-        reactionNames: [String: [String]] = [:],
-        ownReactionEmojis: Set<String> = []
+        reactions: [MessageReactionSummary] = []
     ) -> some View {
         Group {
             if avatar == .absent {
-                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts, reactionNames: reactionNames, ownReactionEmojis: ownReactionEmojis)
+                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactions: reactions)
             } else {
                 // The avatar lines up with the bottom of the bubble, as in
                 // Messages, not with anything below it (payment chips).
                 HStack(alignment: .messageBubbleBottom, spacing: MessageBubbleStyle.avatarSpacing) {
                     senderAvatar(for: message, isShown: avatar == .shown)
-                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactionCounts: reactionCounts, reactionNames: reactionNames, ownReactionEmojis: ownReactionEmojis)
+                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactions: reactions)
                 }
             }
         }
@@ -789,19 +783,10 @@ private extension MessageListView {
         // their own (MessageRunPolicy), so the sender's name shows again
         // where the live conversation picks up.
         .opacity(message.isArchivedEcho ? 0.55 : 1)
-#if os(macOS)
-        .overlay(alignment: isSelf ? .topTrailing : .topLeading) {
-            if hoveredReactionMessageID == message.id && message.sender != "system" && !message.isUnsentLocationMessage {
-                ReactionQuickBar { emoji in toggleReaction(emoji, on: message) }
-                    .offset(y: -20)
-                    .transition(.scale(scale: 0.92).combined(with: .opacity))
-                    .zIndex(1)
-            }
-        }
-        .animation(.spring(response: 0.24, dampingFraction: 0.82), value: hoveredReactionMessageID)
-#endif
     }
 
+    /// The message and, under its bubble, its reaction pills. The pills
+    /// line up with the bubble's edge and wrap within the bubble's width.
     @ViewBuilder
     func messageContent(
         for message: BitchatMessage,
@@ -809,13 +794,40 @@ private extension MessageListView {
         showsSenderName: Bool,
         maxBubbleWidth: CGFloat,
         endsRun: Bool,
-        reactionCounts: [String: Int] = [:],
-        reactionNames: [String: [String]] = [:],
-        ownReactionEmojis: Set<String> = []
+        reactions: [MessageReactionSummary] = []
     ) -> some View {
         if message.sender == "system" {
             systemMessageRow(message)
-        } else if let media = conversationUIModel.mediaAttachment(for: message) {
+        } else {
+            VStack(alignment: isSelf ? .trailing : .leading, spacing: MessageReactionStyle.bubbleGap) {
+                messageBody(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun)
+                if !reactions.isEmpty {
+                    MessageReactionsView(
+                        summaries: reactions,
+                        isSelf: isSelf,
+                        maxWidth: maxBubbleWidth,
+                        tint: messageBubbleColor
+                    ) { emoji in
+                        toggleReaction(emoji, on: message)
+                    }
+                    .transition(MessageReactionStyle.transition(reduceMotion: reduceMotion))
+                }
+            }
+            // The first reaction grows the row smoothly instead of making
+            // it jump.
+            .animation(MessageReactionStyle.animation(reduceMotion: reduceMotion), value: reactions.isEmpty)
+        }
+    }
+
+    @ViewBuilder
+    func messageBody(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        showsSenderName: Bool,
+        maxBubbleWidth: CGFloat,
+        endsRun: Bool
+    ) -> some View {
+        if let media = conversationUIModel.mediaAttachment(for: message) {
             MediaMessageView(
                 message: message,
                 media: media,
@@ -833,26 +845,62 @@ private extension MessageListView {
                 hasTail: endsRun
             )
         }
-        if !reactionCounts.isEmpty {
-            ReactionFlowLayout(spacing: 4) {
-                ForEach(reactionCounts.keys.sorted(), id: \.self) { emoji in
-                    ReactionBadgeView(
-                        emoji: emoji,
-                        count: reactionCounts[emoji] ?? 0,
-                        names: reactionNames[emoji] ?? [],
-                        isMine: ownReactionEmojis.contains(emoji),
-                        accent: messageBubbleColor.color,
-                        action: { toggleReaction(emoji, on: message) }
-                    )
-                    .transition(.scale.combined(with: .opacity))
-                }
-                ReactionMoreButton { emoji in toggleReaction(emoji, on: message) }
-                    .transition(.scale.combined(with: .opacity))
+    }
+
+    func ownReactionEmojis(in reactions: [MessageReactionSummary]) -> Set<String> {
+        Set(reactions.filter(\.includesMe).map(\.emoji))
+    }
+
+#if os(macOS)
+    /// Shows the quick bar for the message under the pointer after a short
+    /// delay, or at once when it moves over from another message, and hides
+    /// it a moment after the pointer leaves (so it can cross a gap).
+    func updateReactionHover(_ hovering: Bool, on message: BitchatMessage) {
+        // A location message that never went out has no event anyone could
+        // react to.
+        guard message.sender != "system", !message.isUnsentLocationMessage else { return }
+        if hovering {
+            hoveredReactionMessageID = message.id
+            reactionBarTask?.cancel()
+            guard !isListScrolling, !isReactionBarPinned else { return }
+            if reactionBarMessageID != nil {
+                reactionBarMessageID = message.id
+            } else {
+                showReactionBar(for: message.id, after: 0.35)
             }
-            .frame(maxWidth: maxBubbleWidth, alignment: isSelf ? .trailing : .leading)
-            .animation(.spring(response: 0.28, dampingFraction: 0.78), value: reactionCounts)
+        } else if hoveredReactionMessageID == message.id {
+            hoveredReactionMessageID = nil
+            reactionBarTask?.cancel()
+            reactionBarTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                guard !Task.isCancelled, hoveredReactionMessageID == nil, !isReactionBarPinned else { return }
+                reactionBarMessageID = nil
+            }
         }
     }
+
+    func showReactionBar(for messageID: String, after delay: TimeInterval) {
+        reactionBarTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard !Task.isCancelled, hoveredReactionMessageID == messageID, !isListScrolling else { return }
+            reactionBarMessageID = messageID
+        }
+    }
+
+    /// Scrolling hides the bar; when it stops, the message under the pointer
+    /// gets the bar again after the usual delay.
+    func updateReactionBarForScrolling(_ isScrolling: Bool) {
+        guard isScrolling != isListScrolling else { return }
+        isListScrolling = isScrolling
+        reactionBarTask?.cancel()
+        if isScrolling {
+            guard !isReactionBarPinned else { return }
+            reactionBarMessageID = nil
+        } else if let hovered = hoveredReactionMessageID {
+            showReactionBar(for: hovered, after: 0.35)
+        }
+    }
+#endif
 
     func toggleReaction(_ emoji: String, on message: BitchatMessage) {
         let ownEvents = MessageReaction.resolvedEvents(in: conversationMessages(for: privatePeer))
@@ -1112,174 +1160,6 @@ private extension MessageListView {
             return privateInboxModel.messages(for: privatePeer)
         }
         return publicChatModel.messages
-    }
-}
-
-private struct ReactionFlowLayout: Layout {
-    var spacing: CGFloat = 4
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let limit = proposal.width ?? .infinity
-        var x: CGFloat = 0
-        var y: CGFloat = 0
-        var rowHeight: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if x > 0 && x + size.width > limit {
-                y += rowHeight + spacing
-                x = 0
-                rowHeight = 0
-            }
-            x += size.width + spacing
-            rowHeight = max(rowHeight, size.height)
-        }
-        return CGSize(width: proposal.width ?? max(0, x - spacing), height: y + rowHeight)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x = bounds.minX
-        var y = bounds.minY
-        var rowHeight: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if x > bounds.minX && x + size.width > bounds.maxX {
-                x = bounds.minX
-                y += rowHeight + spacing
-                rowHeight = 0
-            }
-            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
-            x += size.width + spacing
-            rowHeight = max(rowHeight, size.height)
-        }
-    }
-}
-
-private struct ReactionBadgeView: View {
-    let emoji: String
-    let count: Int
-    let names: [String]
-    let isMine: Bool
-    let accent: Color
-    let action: () -> Void
-    @State private var showsReactors = false
-
-    private var accessibilityLabel: String {
-        let format = String(localized: "content.accessibility.reaction", comment: "VoiceOver label for a reaction badge, with the number of people and emoji")
-        return String(format: format, locale: .current, count, emoji)
-    }
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                Text(emoji)
-                Text("\(count)")
-                    .foregroundStyle(isMine ? accent : Color.primary.opacity(0.72))
-                    .contentTransition(.numericText())
-            }
-            .font(.system(size: 12, weight: .medium))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Capsule().fill(isMine ? accent.opacity(0.16) : Color.primary.opacity(0.07)))
-            .overlay(Capsule().strokeBorder(isMine ? accent.opacity(0.72) : Color.clear, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .animation(.spring(response: 0.26, dampingFraction: 0.74), value: count)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityHint(reactorDescription)
-        .simultaneousGesture(LongPressGesture().onEnded { _ in showsReactors = true })
-        .popover(isPresented: $showsReactors) {
-            Text(reactorDescription)
-            .padding()
-            .fixedSize()
-        }
-#if os(macOS)
-        .help(reactorDescription)
-#endif
-    }
-
-    private var reactorDescription: String {
-        let format = String(localized: "content.accessibility.reaction_names", comment: "Tooltip naming the people who reacted with an emoji")
-        let namesList = names.formatted(.list(type: .and))
-        return String(format: format, locale: .current, namesList, emoji)
-    }
-}
-
-private struct ReactionMoreButton: View {
-    let onSelect: (String) -> Void
-    @State private var showsPicker = false
-
-    var body: some View {
-        Button { showsPicker = true } label: {
-            Image(systemName: "face.smiling")
-                .font(.system(size: 12, weight: .medium))
-                .overlay(alignment: .bottomTrailing) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 7, weight: .bold))
-                        .offset(x: 3, y: 2)
-                }
-                .frame(width: 30, height: 25)
-                .background(Capsule().fill(Color.primary.opacity(0.07)))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(String(localized: "content.accessibility.add_reaction", comment: "Accessibility label for opening the emoji reaction picker"))
-        .popover(isPresented: $showsPicker) {
-            ReactionPickerView { emoji in
-                showsPicker = false
-                onSelect(emoji)
-            }
-            .padding(10)
-            .frame(width: 230)
-        }
-    }
-}
-
-private struct ReactionPickerView: View {
-    let onSelect: (String) -> Void
-
-    var body: some View {
-        ReactionFlowLayout(spacing: 8) {
-            ForEach(MessageReaction.emojis, id: \.self) { emoji in
-                Button(emoji) { onSelect(emoji) }
-                    .font(.system(size: 22))
-                    .buttonStyle(.plain)
-                    .frame(width: 32, height: 32)
-            }
-        }
-    }
-}
-
-private struct ReactionQuickBar: View {
-    let onSelect: (String) -> Void
-    @State private var showsPicker = false
-
-    var body: some View {
-        HStack(spacing: 3) {
-            ForEach(Array(MessageReaction.emojis.prefix(5)), id: \.self) { emoji in
-                Button(emoji) { onSelect(emoji) }
-                    .font(.system(size: 19))
-                    .buttonStyle(.plain)
-            }
-            Button { showsPicker = true } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 13, weight: .semibold))
-                    .frame(width: 24, height: 24)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(String(localized: "content.accessibility.more_reactions", comment: "Accessibility label for opening more emoji reactions"))
-            .popover(isPresented: $showsPicker) {
-                ReactionPickerView { emoji in
-                    showsPicker = false
-                    onSelect(emoji)
-                }
-                .padding(10)
-                .frame(width: 230)
-            }
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(.regularMaterial, in: Capsule())
-        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 1))
-        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
     }
 }
 
