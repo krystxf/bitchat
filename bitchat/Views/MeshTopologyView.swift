@@ -36,40 +36,25 @@ struct MeshTopologyView: View {
     @State private var model: MeshTopologyDisplayModel = .empty
 
     var body: some View {
-        #if os(macOS)
-        VStack(spacing: 0) {
-            HStack {
-                Text("topology.title")
-                    .bitchatFont(size: 16, weight: .bold)
-                    .foregroundColor(palette.primary)
-                Spacer()
-                refreshButton
-                Button("app_info.done") {
-                    dismiss()
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(palette.primary)
-            }
-            .padding()
-
-            content
-        }
-        .frame(width: 500, height: 520)
-        #else
-        NavigationView {
+        // NavigationStack, not NavigationView: on macOS a NavigationView is a
+        // two-column split view and squeezes this content into its sidebar.
+        NavigationStack {
             content
                 .navigationTitle(Text("topology.title"))
+                #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
+                    SheetCloseToolbarItem { dismiss() }
+                    // Trailing in the iOS navigation bar; leading in the
+                    // bottom button bar of a macOS sheet, away from Close.
+                    ToolbarItem(placement: .automatic) {
                         refreshButton
-                    }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        SheetCloseButton { dismiss() }
-                            .foregroundColor(palette.primary)
                     }
                 }
         }
+        #if os(macOS)
+        .frame(width: 500, height: 520)
         #endif
     }
 
@@ -77,12 +62,12 @@ struct MeshTopologyView: View {
         Button {
             model = provider()
         } label: {
-            Image(systemName: "arrow.clockwise")
-                .font(.bitchatSystem(size: 14))
-                .foregroundColor(palette.primary)
+            Label {
+                Text("topology.refresh")
+            } icon: {
+                Image(systemName: "arrow.clockwise")
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("topology.refresh"))
     }
 
     @ViewBuilder
