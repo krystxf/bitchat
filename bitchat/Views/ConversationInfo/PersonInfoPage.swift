@@ -12,8 +12,22 @@ import SwiftUI
 /// The info page of the open direct conversation: the person's avatar and
 /// name with how they are reachable, a link to set a nickname only this
 /// device uses, favorite, verify and new group, the background, and block
-/// or unblock.
+/// or unblock. Block and new group run through the shared person actions
+/// (`personActionsHost()`), as in the people lists.
 struct PersonInfoPage: View {
+    /// How the person is reachable, as the title bar says it.
+    let subtitle: String
+    @Binding var background: ChatBackgroundOption
+    let backgroundKey: ComposerDraftStore.Key
+
+    var body: some View {
+        PersonInfoContent(subtitle: subtitle, background: $background, backgroundKey: backgroundKey)
+            .personActionsHost()
+    }
+}
+
+private struct PersonInfoContent: View {
+    @Environment(\.personActions) private var personActions
     @EnvironmentObject private var appChromeModel: AppChromeModel
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
@@ -28,9 +42,6 @@ struct PersonInfoPage: View {
 
     @State private var showsNicknamePrompt = false
     @State private var nickname = ""
-    @State private var showsCreateGroupPrompt = false
-    @State private var newGroupName = ""
-    @State private var showsBlockConfirmation = false
 
     var body: some View {
         if let headerState = privateConversationModel.selectedHeaderState, !headerState.isGroupConversation {
@@ -93,30 +104,6 @@ struct PersonInfoPage: View {
         } message: {
             Text(verbatim: Strings.nicknameHint)
         }
-        .alert("group.create.title", isPresented: $showsCreateGroupPrompt) {
-            TextField("group.create.name", text: $newGroupName)
-            Button("common.cancel", role: .cancel) {}
-            Button("group.create.action") {
-                // Opens the new group's chat, which closes this page.
-                _ = conversationUIModel.createGroup(named: newGroupName, inviting: person.actionPeerID)
-            }
-        } message: {
-            Text("group.create.prompt")
-        }
-        .confirmationDialog(
-            Text(verbatim: Strings.blockConfirmTitle(headerState.displayName)),
-            isPresented: $showsBlockConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button(role: .destructive) {
-                conversationUIModel.block(peerID: person.actionPeerID, displayName: headerState.displayName)
-            } label: {
-                Text(verbatim: Strings.block)
-            }
-            Button("common.cancel", role: .cancel) {}
-        } message: {
-            Text(verbatim: Strings.blockConfirmMessage)
-        }
     }
 
     @ViewBuilder
@@ -131,7 +118,7 @@ struct PersonInfoPage: View {
                 title: Strings.favorite,
                 systemImage: "star",
                 isOn: headerState.isFavorite,
-                accessibilityLabel: headerState.isFavorite ? Strings.removeFavorite : Strings.addFavorite
+                accessibilityLabel: headerState.isFavorite ? PersonActionStrings.unfavorite : PersonActionStrings.favorite
             ) {
                 privateConversationModel.toggleFavoriteForSelectedConversation()
             }
@@ -146,16 +133,13 @@ struct PersonInfoPage: View {
             }
         case .createGroup:
             ConversationQuickAction(
-                title: String(localized: "group.create.title", comment: "Title of the prompt that names a new group"),
+                title: Strings.newGroup,
                 systemImage: "person.3",
-                accessibilityLabel: String(
-                    format: String(localized: "group.action.create_with_peer", comment: "Action that starts a new group with the person; placeholder is their name"),
-                    locale: .current,
-                    headerState.displayName
-                )
+                accessibilityLabel: PersonActionStrings.createGroup(with: headerState.displayName)
             ) {
-                newGroupName = GroupManagementPolicy.defaultName(with: headerState.displayName)
-                showsCreateGroupPrompt = true
+                // Asks for the name; the new group's chat then replaces
+                // this page.
+                personActions?.perform(.createGroup, person.actionTarget)
             }
         case .notices, .bookmark, .share, .channels, .addPeople:
             // Not offered for a person (see ConversationInfoPolicy).
@@ -172,15 +156,15 @@ struct PersonInfoPage: View {
         switch action {
         case .block:
             Button(role: .destructive) {
-                showsBlockConfirmation = true
+                personActions?.perform(.block, person.actionTarget)
             } label: {
-                Text(verbatim: Strings.block)
+                Text(verbatim: PersonActionStrings.block)
             }
         case .unblock:
             Button {
-                conversationUIModel.unblock(peerID: person.actionPeerID, displayName: headerState.displayName)
+                personActions?.perform(.unblock, person.actionTarget)
             } label: {
-                Text(verbatim: Strings.unblock)
+                Text(verbatim: PersonActionStrings.unblock)
             }
         case .leaveGroup:
             // Not offered for a person (see ConversationInfoPolicy).
@@ -192,9 +176,9 @@ struct PersonInfoPage: View {
 /// What the page needs to know about the person, read once per render.
 private struct PersonFacts {
     let policyFacts: ConversationInfoPolicy.Person
-    /// The ID that block, unblock and a new group act on: the short mesh
-    /// ID, or the geohash DM key, which maps to their full Nostr key.
-    let actionPeerID: PeerID
+    /// What block, unblock and a new group act on: the short mesh ID, or
+    /// the geohash DM key, which maps to their full Nostr key.
+    let actionTarget: PersonActionTarget
     /// The name the initials come from. A geohash DM's title is
     /// "#geohash/@name", and the initials belong to the name.
     let avatarName: String
@@ -202,12 +186,25 @@ private struct PersonFacts {
     @MainActor
     init(headerState: PrivateConversationHeaderState, model: ConversationUIModel) {
         let isGeohashDM = headerState.conversationPeerID.isGeoDM
-        actionPeerID = isGeohashDM ? headerState.conversationPeerID : headerState.headerPeerID
+        let actionPeerID = isGeohashDM ? headerState.conversationPeerID : headerState.headerPeerID
+        let canCreateGroup = !isGeohashDM && model.canCreateGroup(with: headerState.headerPeerID)
+        let isBlocked = model.isBlocked(peerID: actionPeerID)
         policyFacts = ConversationInfoPolicy.Person(
             isGeohashDM: isGeohashDM,
             hasFingerprint: !isGeohashDM && model.getFingerprint(for: headerState.headerPeerID) != nil,
-            canCreateGroup: !isGeohashDM && model.canCreateGroup(with: headerState.headerPeerID),
-            isBlocked: model.isBlocked(peerID: actionPeerID)
+            canCreateGroup: canCreateGroup,
+            isBlocked: isBlocked
+        )
+        actionTarget = PersonActionTarget(
+            identity: isGeohashDM ? .geohashDM(actionPeerID) : .mesh(actionPeerID),
+            displayName: headerState.displayName,
+            facts: ConversationInfoPolicy.ListedPerson(
+                isMe: false,
+                hasMeshIdentity: !isGeohashDM,
+                isFavorite: headerState.isFavorite,
+                isBlocked: isBlocked,
+                canCreateGroup: canCreateGroup
+            )
         )
         if isGeohashDM, let range = headerState.displayName.range(of: "/@") {
             avatarName = String(headerState.displayName[range.upperBound...])
@@ -221,21 +218,9 @@ private enum Strings {
     static let setNickname = String(localized: "conversation_info.action.set_nickname", defaultValue: "Set Nickname", comment: "Link under a person's name on their details page; opens a prompt for a nickname that only this device uses")
     static let nicknamePlaceholder = String(localized: "fingerprint.local_alias.placeholder", comment: "Placeholder for the local alias (petname) field")
     static let nicknameHint = String(localized: "fingerprint.local_alias.hint", comment: "Hint under the local alias field")
-    static let favorite = String(localized: "mesh_peers.state.favorite", comment: "State label for a favorited peer")
-    static let addFavorite = String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
-    static let removeFavorite = String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")
+    static let favorite = String(localized: "conversation_info.action.favorite", defaultValue: "Favorite", comment: "Short label of the button on a person's details page that adds them to favorites or removes them")
+    static let newGroup = String(localized: "conversation_info.action.new_group", defaultValue: "New Group", comment: "Short label of the button on a person's details page that starts a new group with them")
     static let verify = String(localized: "conversation_info.action.verify", defaultValue: "Verify", comment: "Short label of the button on a person's details page that shows the encryption fingerprints to verify")
     static let verifyEncryption = String(localized: "content.accessibility.verification", comment: "Accessibility label for the verification QR button")
     static let viewFingerprintHint = String(localized: "content.accessibility.view_fingerprint_hint", comment: "Accessibility hint for viewing encryption fingerprint")
-    static let block = String(localized: "content.actions.block", comment: "Action that blocks the person")
-    static let unblock = String(localized: "geohash_people.action.unblock", comment: "Context menu action to unblock a person")
-    static let blockConfirmMessage = String(localized: "conversation_info.block.message", defaultValue: "You will no longer see their messages. You can unblock them in Settings.", comment: "Message of the confirmation before blocking a person from their details page")
-
-    static func blockConfirmTitle(_ name: String) -> String {
-        String(
-            format: String(localized: "conversation_info.block.confirm", defaultValue: "Block %@?", comment: "Title of the confirmation before blocking a person from their details page; placeholder is their name"),
-            locale: .current,
-            name
-        )
-    }
 }

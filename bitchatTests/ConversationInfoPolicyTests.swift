@@ -107,4 +107,45 @@ struct ConversationInfoPolicyTests {
         let oneSeatLeft = Policy.layout(for: Self.group(isCreator: true, memberCount: BitchatGroup.maxMembers - 1))
         #expect(oneSeatLeft.quickActions == [.addPeople])
     }
+
+    // MARK: - People in a list
+
+    private static func listed(
+        isMe: Bool = false,
+        hasMeshIdentity: Bool = true,
+        isFavorite: Bool = false,
+        isBlocked: Bool = false,
+        canCreateGroup: Bool = false
+    ) -> Policy.ListedPerson {
+        Policy.ListedPerson(
+            isMe: isMe,
+            hasMeshIdentity: hasMeshIdentity,
+            isFavorite: isFavorite,
+            isBlocked: isBlocked,
+            canCreateGroup: canCreateGroup
+        )
+    }
+
+    @Test func nothingIsOfferedOnMyself() {
+        #expect(Policy.personActions(for: Self.listed(isMe: true, canCreateGroup: true)).isEmpty)
+    }
+
+    @Test func aMeshPersonCanBeFavoritedGroupedAndBlocked() {
+        #expect(Policy.personActions(for: Self.listed(canCreateGroup: true)) == [.favorite, .createGroup, .block])
+        #expect(Policy.personActions(for: Self.listed(isFavorite: true)) == [.unfavorite, .block])
+    }
+
+    @Test func aGroupNeedsSomeoneWhoCanJoinIt() {
+        #expect(!Policy.personActions(for: Self.listed(canCreateGroup: false)).contains(.createGroup))
+    }
+
+    @Test func aLocationChannelPersonCanOnlyBeBlocked() {
+        let actions = Policy.personActions(for: Self.listed(hasMeshIdentity: false, canCreateGroup: true))
+        #expect(actions == [.block])
+    }
+
+    @Test func aBlockedPersonCanOnlyBeUnblocked() {
+        #expect(Policy.personActions(for: Self.listed(isFavorite: true, isBlocked: true, canCreateGroup: true)) == [.unblock])
+        #expect(Policy.personActions(for: Self.listed(hasMeshIdentity: false, isBlocked: true)) == [.unblock])
+    }
 }

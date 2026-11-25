@@ -27,6 +27,7 @@ struct GroupInfoPage: View {
     var body: some View {
         if let group = conversationUIModel.selectedGroup() {
             page(for: group)
+                .personActionsHost()
         }
     }
 
@@ -100,18 +101,41 @@ struct GroupInfoPage: View {
                 ChatBackgroundPickerRow(conversationKey: backgroundKey, selection: $background)
             }
         case .members(let canRemove):
+            let rows = meshRowsByFingerprint(for: group)
+            let myFingerprint = conversationUIModel.currentNoiseFingerprint
             GroupMemberList(
                 members: group.members,
                 creatorFingerprint: group.creatorFingerprint,
                 canRemove: canRemove,
                 onRemove: { nickname in
                     _ = conversationUIModel.groupRemove(nickname: nickname)
+                },
+                actionTarget: { member in
+                    guard member.fingerprint != myFingerprint,
+                          let row = rows[member.fingerprint] else { return nil }
+                    return PersonActionTarget(meshPeer: row, model: conversationUIModel)
                 }
             )
         case .people:
             // Not offered for a group (see ConversationInfoPolicy).
             EmptyView()
         }
+    }
+}
+
+extension GroupInfoPage {
+    /// The mesh roster's rows of the group's members, by fingerprint. A
+    /// member out of reach and not a mutual favorite has none, so their row
+    /// gets no menu: favorite, block and a new group all need the peer.
+    fileprivate func meshRowsByFingerprint(for group: BitchatGroup) -> [String: MeshPeerRow] {
+        let members = Set(group.members.map(\.fingerprint))
+        var rows: [String: MeshPeerRow] = [:]
+        for row in peerListModel.meshRows where !row.isMe {
+            guard let fingerprint = conversationUIModel.getFingerprint(for: row.peerID),
+                  members.contains(fingerprint) else { continue }
+            rows[fingerprint] = row
+        }
+        return rows
     }
 }
 

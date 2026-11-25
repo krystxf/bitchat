@@ -15,6 +15,7 @@ import SwiftUI
 /// and the people in the channel.
 struct ChannelInfoPage: View {
     @EnvironmentObject private var appChromeModel: AppChromeModel
+    @EnvironmentObject private var conversationUIModel: ConversationUIModel
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @EnvironmentObject private var peerListModel: PeerListModel
     @EnvironmentObject private var boardAlertsModel: BoardAlertsModel
@@ -193,6 +194,7 @@ struct ChannelInfoPage: View {
                 }
             } destination: { close in
                 ChannelPeopleList(onOpenConversation: close)
+                    .environmentObject(conversationUIModel)
                     .environmentObject(peerListModel)
                     .environmentObject(locationChannelsModel)
                     .environmentObject(privateConversationModel)
@@ -205,8 +207,8 @@ struct ChannelInfoPage: View {
 }
 
 /// Who is in a public channel: the people I can reach on the mesh and
-/// across the bridge in #mesh, or those seen in a location channel. Not me,
-/// and not the people I blocked.
+/// across the bridge in #mesh, or those seen in a location channel. Not me.
+/// People I blocked stay listed, so their row can unblock them.
 struct ChannelRoster: Equatable {
     var meshPeers: [MeshPeerRow] = []
     var geohashPeople: [GeohashPersonRow] = []
@@ -225,19 +227,22 @@ struct ChannelRoster: Equatable {
         case .mesh:
             // Offline favorites are in the mesh roster too, but not in the
             // room.
-            meshPeers = meshRows.filter { !$0.isMe && !$0.isBlocked && ($0.isConnected || $0.isReachable) }
+            meshPeers = meshRows.filter { !$0.isMe && ($0.isConnected || $0.isReachable) }
             self.bridged = bridged
         case .location:
             // Those physically here first, then those who teleported in.
-            let people = geohashPeople.filter { !$0.isMe && !$0.isBlocked }
+            let people = geohashPeople.filter { !$0.isMe }
             self.geohashPeople = people.filter { !$0.isTeleported } + people.filter(\.isTeleported)
         }
     }
 }
 
 /// The people of the channel on screen. A row opens a private chat with
-/// the person; people across the bridge have no route for one yet.
+/// the person, and its context menu favorites, blocks or unblocks them or
+/// starts a group with them. People across the bridge have no route for
+/// either yet.
 private struct ChannelPeopleList: View {
+    @EnvironmentObject private var conversationUIModel: ConversationUIModel
     @EnvironmentObject private var peerListModel: PeerListModel
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
@@ -258,17 +263,19 @@ private struct ChannelPeopleList: View {
                 PeopleEmptyRow()
             }
             ForEach(roster.meshPeers) { peer in
-                personButton(name: peer.displayName, peerID: peer.peerID, presence: peer.presence) {
+                personButton(name: peer.displayName, peerID: peer.peerID, presence: peer.presence, isBlocked: peer.isBlocked) {
                     privateConversationModel.startConversation(with: peer.peerID)
                 }
+                .personActions(for: PersonActionTarget(meshPeer: peer, model: conversationUIModel))
             }
             ForEach(roster.geohashPeople) { person in
-                personButton(name: person.displayName, peerID: PeerID(nostr_: person.id), presence: person.presence) {
+                personButton(name: person.displayName, peerID: PeerID(nostr_: person.id), presence: person.presence, isBlocked: person.isBlocked) {
                     privateConversationModel.startGeohashConversation(withPubkeyHex: person.id)
                 }
+                .personActions(for: PersonActionTarget(geohashPerson: person))
             }
             ForEach(roster.bridged) { person in
-                personRow(name: person.displayName, peerID: PeerID(bridge: person.pubkey), presence: .bridged)
+                personRow(name: person.displayName, peerID: PeerID(bridge: person.pubkey), presence: .bridged, isBlocked: false)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text(verbatim: "\(person.displayName), \(PersonPresence.bridged.label)"))
             }
@@ -279,31 +286,39 @@ private struct ChannelPeopleList: View {
         .listStyle(.inset)
         #endif
         .navigationTitle(Text(verbatim: Strings.people))
+        .personActionsHost()
     }
 
     private func personButton(
         name: String,
         peerID: PeerID,
         presence: PersonPresence,
+        isBlocked: Bool,
         open: @escaping () -> Void
     ) -> some View {
         Button {
             open()
             onOpenConversation()
         } label: {
-            personRow(name: name, peerID: peerID, presence: presence)
+            personRow(name: name, peerID: peerID, presence: presence, isBlocked: isBlocked)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: "\(name), \(presence.label)"))
+        .accessibilityLabel(Text(verbatim: ([name, presence.label] + (isBlocked ? [Strings.blocked] : [])).joined(separator: ", ")))
         .accessibilityHint(Text(verbatim: Strings.openDMHint))
         .accessibilityAddTraits(.isButton)
     }
 
-    private func personRow(name: String, peerID: PeerID, presence: PersonPresence) -> some View {
+    private func personRow(name: String, peerID: PeerID, presence: PersonPresence, isBlocked: Bool) -> some View {
         PeopleRow(subtitle: presence.label) {
             SidebarPersonAvatar(name: name, peerID: peerID, presence: presence)
         } title: {
             PeopleRowName(name: name)
+        } accessories: {
+            if isBlocked {
+                Image(systemName: "nosign")
+                    .foregroundColor(.red)
+                    .help(Strings.blocked)
+            }
         }
     }
 }
@@ -386,5 +401,6 @@ private enum Strings {
     static let channels = String(localized: "sidebar.section.channels", defaultValue: "channels", comment: "Sidebar section header above the public channels and private groups")
     static let locationChannels = String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button")
     static let people = String(localized: "conversation_info.row.people", defaultValue: "People", comment: "Row on a channel's details page, and the title of the page it opens, listing the people in the channel")
+    static let blocked = String(localized: "mesh_peers.state.blocked", comment: "State label for a blocked peer")
     static let openDMHint = String(localized: "mesh_peers.accessibility.open_dm_hint", comment: "Accessibility hint on a peer row explaining activation opens a private chat")
 }

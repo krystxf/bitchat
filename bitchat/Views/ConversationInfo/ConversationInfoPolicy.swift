@@ -154,3 +154,47 @@ enum ConversationInfoPolicy {
         }
     }
 }
+
+// MARK: - People in a list
+
+extension ConversationInfoPolicy {
+    /// Someone in a people list of an info page: a channel's people or a
+    /// group's members.
+    struct ListedPerson: Equatable {
+        var isMe: Bool
+        /// A Noise identity: a mesh peer. Favorites and groups need one; a
+        /// location channel's people have only a Nostr key.
+        var hasMeshIdentity: Bool
+        var isFavorite: Bool
+        var isBlocked: Bool
+        /// A new group with them can start now: they are connected and
+        /// their identity is known (`ConversationUIModel.canCreateGroup`).
+        var canCreateGroup: Bool
+    }
+
+    /// What a person row's context menu (and swipe actions) offer.
+    enum PersonAction: Hashable {
+        case favorite
+        case unfavorite
+        case createGroup
+        case block
+        case unblock
+    }
+
+    /// Only actions that can work for this person. None on myself. A
+    /// blocked person can only be unblocked: a favorite or a new group
+    /// would contradict the block.
+    static func personActions(for person: ListedPerson) -> [PersonAction] {
+        guard !person.isMe else { return [] }
+        guard !person.isBlocked else { return [.unblock] }
+        var actions: [PersonAction] = []
+        if person.hasMeshIdentity {
+            actions.append(person.isFavorite ? .unfavorite : .favorite)
+            if person.canCreateGroup {
+                actions.append(.createGroup)
+            }
+        }
+        actions.append(.block)
+        return actions
+    }
+}

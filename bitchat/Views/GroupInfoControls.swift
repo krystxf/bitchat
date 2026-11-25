@@ -10,6 +10,9 @@ struct GroupMemberList: View {
     let creatorFingerprint: String
     let canRemove: Bool
     let onRemove: (String) -> Void
+    /// Who a member's context menu acts on (`personActions(for:)`), or nil
+    /// for no menu: myself, or a member with no route right now.
+    var actionTarget: (GroupMember) -> PersonActionTarget? = { _ in nil }
 
     var body: some View {
         Section("group.members.title") {
@@ -29,6 +32,8 @@ struct GroupMemberList: View {
                         .accessibilityLabel(Text(verbatim: "\(String(localized: "group.member.remove")) \(member.nickname)"))
                     }
                 }
+                .contentShape(Rectangle())
+                .personActions(for: actionTarget(member))
             }
         }
         .confirmationDialog("group.member.remove_confirm", isPresented: Binding(
