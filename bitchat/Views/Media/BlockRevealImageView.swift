@@ -146,9 +146,9 @@ struct BlockRevealImageView: View {
             Image(platformImage: image)
                 .resizable()
                 .aspectRatio(aspectRatio, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous)
                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                 )
                 .mask(
@@ -162,7 +162,7 @@ struct BlockRevealImageView: View {
                 .blur(radius: isBlurred ? 20 : 0)
                 .overlay {
                     if isBlurred {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous)
                             .fill(Color.black.opacity(0.35))
                             .overlay(
                                 VStack(spacing: 6) {
@@ -176,7 +176,7 @@ struct BlockRevealImageView: View {
                     }
                 }
         } else {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous)
                 .fill(palette.secondary.opacity(0.2))
                 // Same shape as the image it stands in for, so nothing moves
                 // when the image arrives.
