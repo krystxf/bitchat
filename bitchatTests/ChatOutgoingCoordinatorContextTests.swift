@@ -227,6 +227,37 @@ struct ChatOutgoingCoordinatorContextTests {
     }
 
     @Test @MainActor
+    func sendMessage_onLocationChannel_minesTheTargetFromSettingsAtSendTime() async throws {
+        let context = MockChatOutgoingContext()
+        var target = 12
+        let coordinator = ChatOutgoingCoordinator(context: context, powTargetBits: { target })
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        coordinator.sendMessage("mined")
+        await coordinator.geohashMiningTask?.value
+        // Proof of work switched off between sends: the next send mines
+        // nothing, so the setting is read per send, not once.
+        target = 0
+        coordinator.sendMessage("not mined")
+        await coordinator.geohashMiningTask?.value
+        await drainMainActorTasks()
+
+        #expect(context.sentGeohashContexts.count == 2)
+        let mined = context.sentGeohashContexts[0].event
+        let nonceTag = try #require(mined.tags.first { $0.first == "nonce" })
+        let committed = try #require(Int(nonceTag[2]))
+        // 12 bits is ~4,096 hashes, far inside the 2 s cap; a step-down would
+        // still be an honest, lower commitment.
+        #expect(committed == 12 || committed == 6)
+        #expect(NostrPoW.validatedDifficulty(idHex: mined.id, tags: mined.tags) == committed)
+
+        let unmined = context.sentGeohashContexts[1].event
+        #expect(!unmined.tags.contains { $0.first == "nonce" })
+        // The local echo still carries the signed event's ID.
+        #expect(context.appendedPublicMessages.map(\.message.id) == [mined.id, unmined.id])
+    }
+
+    @Test @MainActor
     func sendMessage_onLocationChannel_serializesRapidSendsInSendOrder() async {
         let context = MockChatOutgoingContext()
         let coordinator = ChatOutgoingCoordinator(context: context)

@@ -166,6 +166,87 @@ struct NostrPoWTests {
         #expect(event.kind == NostrProtocol.EventKind.ephemeralEvent.rawValue)
     }
 
+    @Test func minedGeohashEventUsesTheRequestedTarget() async throws {
+        // A low but non-default target keeps the test fast and proves the
+        // setting's value, not the default, is what gets committed.
+        let identity = try NostrIdentity.generate()
+        let event = try await NostrProtocol.createMinedEphemeralGeohashEvent(
+            content: "twelve bits",
+            geohash: "u4pruydq",
+            senderIdentity: identity,
+            powTargetBits: 12
+        )
+
+        #expect(event.isValidSignature())
+        let nonceTag = try #require(event.tags.first { $0.first == "nonce" })
+        #expect(nonceTag.count == 3)
+        // The 2 s budget makes 12 bits (~4,096 hashes) effectively certain,
+        // but a stepped-down commitment is still honest, so accept either.
+        let committed = try #require(Int(nonceTag[2]))
+        #expect(committed == 12 || committed == 6)
+        #expect(NostrPoW.validatedDifficulty(idHex: event.id, tags: event.tags) == committed)
+    }
+
+    @Test func proofOfWorkOffSendsWithoutANonceTag() async throws {
+        let identity = try NostrIdentity.generate()
+        for target in [0, -1] {
+            let event = try await NostrProtocol.createMinedEphemeralGeohashEvent(
+                content: "no work",
+                geohash: "u4pruydq",
+                senderIdentity: identity,
+                nickname: "lazy",
+                powTargetBits: target
+            )
+            #expect(event.isValidSignature())
+            #expect(!event.tags.contains { $0.first == "nonce" })
+            #expect(event.tags == [["g", "u4pruydq"], ["n", "lazy"]])
+            #expect(NostrPoW.validatedDifficulty(idHex: event.id, tags: event.tags) == 0)
+        }
+    }
+
+    // MARK: - Cost
+
+    @Test func estimatedMiningTimeDoublesWithEveryBit() {
+        #expect(NostrPoW.estimatedMiningTime(forTargetBits: 0) == 0)
+        #expect(NostrPoW.estimatedMiningTime(forTargetBits: -3) == 0)
+        #expect(NostrPoW.estimatedMiningTime(forTargetBits: 8) == 256 / NostrPoW.conservativeHashRate)
+        for bits in 1..<40 {
+            let ratio = NostrPoW.estimatedMiningTime(forTargetBits: bits + 1)
+                / NostrPoW.estimatedMiningTime(forTargetBits: bits)
+            #expect(abs(ratio - 2) < 1e-9)
+        }
+    }
+
+    @Test func miningTimeCapScalesWithDifficultyWithinBounds() {
+        // Low targets keep the original 2 s cap.
+        for bits in [0, 1, 8, 12, 16] {
+            #expect(NostrPoW.miningTimeCap(forTargetBits: bits) == NostrPoW.baseMiningTimeCap)
+        }
+        // Mid targets get room for the extra work: each bit doubles the cap…
+        let cap20 = NostrPoW.miningTimeCap(forTargetBits: 20)
+        let cap21 = NostrPoW.miningTimeCap(forTargetBits: 21)
+        #expect(cap20 > NostrPoW.baseMiningTimeCap)
+        #expect(cap20 >= NostrPoW.estimatedMiningTime(forTargetBits: 20))
+        #expect(abs(cap21 / cap20 - 2) < 1e-9)
+        // …but nothing ever holds a message longer than the hard maximum.
+        for bits in [24, 28, 32, 240, 256, 400] {
+            #expect(NostrPoW.miningTimeCap(forTargetBits: bits) == NostrPoW.maxMiningTimeCap)
+        }
+        // Never shrinks as the difficulty grows.
+        for bits in 0..<64 {
+            #expect(NostrPoW.miningTimeCap(forTargetBits: bits + 1) >= NostrPoW.miningTimeCap(forTargetBits: bits))
+        }
+    }
+
+    @Test func everyOfferedDifficultyFitsTheMaximumCap() {
+        // The settings picker must not offer a level whose expected work on
+        // the slowest supported device overruns the hard cap by much: the top
+        // level is "very high – may cause delays", not "never reached".
+        for bits in LocationProofOfWorkSettings.difficultyLevels {
+            #expect(NostrPoW.estimatedMiningTime(forTargetBits: bits) < 2 * NostrPoW.maxMiningTimeCap)
+        }
+    }
+
     @Test func cancelledMiningStillProducesHonestCommitment() async throws {
         // Cancelling the surrounding task expedites mining: it steps the
         // committed target down and still returns a tag whose commitment the

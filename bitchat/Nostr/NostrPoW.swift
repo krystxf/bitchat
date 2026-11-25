@@ -13,9 +13,10 @@ enum NostrPoW {
 
     // MARK: - Tuning
 
-    /// Difficulty (leading zero bits of the event ID) mined onto outgoing
-    /// geohash messages. 8 bits is ~256 hash attempts — typically well under
-    /// 100 ms on any supported device.
+    /// Default difficulty (leading zero bits of the event ID) mined onto
+    /// outgoing geohash messages; people can pick another in settings (see
+    /// `LocationProofOfWorkSettings`). 8 bits is ~256 hash attempts —
+    /// typically well under 100 ms on any supported device.
     static let targetBits = 8
 
     /// Inbound events whose validated NIP-13 difficulty is at least this many
@@ -23,10 +24,23 @@ enum NostrPoW {
     /// still applies). See `MessageRateLimiter.allow`.
     static let rateLimitBypassBits = 8
 
-    /// Hard cap on mining wall-clock time. When it hits, the committed target
-    /// steps down until a difficulty reachable in a small extra budget is
-    /// found and the message is sent anyway — mining never blocks sending.
-    static let miningTimeCap: TimeInterval = 2.0
+    /// Mining wall-clock budget for targets any supported device reaches
+    /// quickly (up to about 16 bits). See `miningTimeCap(forTargetBits:)`.
+    static let baseMiningTimeCap: TimeInterval = 2.0
+
+    /// The longest mining may hold a message, whatever the target.
+    static let maxMiningTimeCap: TimeInterval = 60
+
+    /// Hash attempts per second assumed for estimates and caps. A cautious
+    /// figure for the oldest supported iPhone; recent phones and Macs mine
+    /// several times faster (about 1.6 million per second on an M-series
+    /// Mac).
+    static let conservativeHashRate: Double = 250_000
+
+    /// How many times the expected mining time the cap allows. At 4, a device
+    /// mining at `conservativeHashRate` misses the target about 2% of the
+    /// time (e^-4), and then steps down instead of waiting longer.
+    private static let miningTimeCapHeadroom: Double = 4
 
     /// Budget for each stepped-down attempt after the main cap (or a task
     /// cancellation) hits.
@@ -39,6 +53,26 @@ enum NostrPoW {
     /// The nonce value is a fixed-width hex counter so the serialized event
     /// template can be mutated in place without reallocation.
     private static let nonceLength = 16
+
+    // MARK: - Cost
+
+    /// Expected mining time for a target at `conservativeHashRate`: each bit
+    /// doubles the expected 2^bits hash attempts. 0 for no proof of work.
+    static func estimatedMiningTime(forTargetBits bits: Int) -> TimeInterval {
+        guard bits > 0 else { return 0 }
+        return pow(2, Double(min(bits, 256))) / conservativeHashRate
+    }
+
+    /// Hard cap on mining wall-clock time for a target. It grows with the
+    /// expected work, so a higher difficulty gets the time it needs, but never
+    /// below `baseMiningTimeCap` or above `maxMiningTimeCap`. When it hits,
+    /// the committed target steps down until a difficulty reachable in a
+    /// small extra budget is found and the message is sent anyway — mining
+    /// never blocks sending.
+    static func miningTimeCap(forTargetBits bits: Int) -> TimeInterval {
+        let scaled = estimatedMiningTime(forTargetBits: bits) * miningTimeCapHeadroom
+        return min(maxMiningTimeCap, max(baseMiningTimeCap, scaled))
+    }
 
     // MARK: - Scoring
 
@@ -81,11 +115,12 @@ enum NostrPoW {
     /// Mine a `["nonce", value, target]` tag for the given unsigned-event
     /// fields. Nonisolated async: runs off the calling actor.
     ///
-    /// Bounded by `miningTimeCap`: when the cap hits — or the surrounding
-    /// task is cancelled — the committed target steps down (halving to 0,
-    /// which any hash satisfies) so the event still ships promptly with an
-    /// honest commitment at the difficulty actually reached. Returns nil only
-    /// if canonical serialization fails; the caller then sends unmined.
+    /// Bounded by `miningTimeCap(forTargetBits:)`: when the cap hits — or
+    /// the surrounding task is cancelled — the committed target steps down
+    /// (halving to 0, which any hash satisfies) so the event still ships
+    /// promptly with an honest commitment at the difficulty actually reached.
+    /// Returns nil only if canonical serialization fails; the caller then
+    /// sends unmined.
     static func mineNonceTag(
         pubkey: String,
         createdAt: Int,
@@ -95,7 +130,7 @@ enum NostrPoW {
         targetBits: Int = NostrPoW.targetBits
     ) async -> [String]? {
         var target = min(max(targetBits, 0), 256)
-        var budget = miningTimeCap
+        var budget = miningTimeCap(forTargetBits: target)
         while true {
             if let tag = mineAttempt(
                 pubkey: pubkey,

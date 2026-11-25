@@ -84,8 +84,17 @@ final class ChatOutgoingCoordinator {
     /// (Read access is internal so tests can await the send's completion.)
     private(set) var geohashMiningTask: Task<Void, Never>?
 
-    init(context: any ChatOutgoingContext) {
+    /// The NIP-13 target for the next geohash send, read when the message is
+    /// sent (0 = proof of work off: no mining, no nonce tag). Injected so
+    /// tests do not depend on the shared preferences.
+    private let powTargetBits: () -> Int
+
+    init(
+        context: any ChatOutgoingContext,
+        powTargetBits: @escaping () -> Int = { LocationProofOfWorkSettings.sendTargetBits() }
+    ) {
         self.context = context
+        self.powTargetBits = powTargetBits
     }
 
     /// Finish any in-flight geohash PoW mining early (the pending message
@@ -155,9 +164,11 @@ private extension ChatOutgoingCoordinator {
 
     /// Geohash sends mine a NIP-13 nonce tag first (off the main actor, see
     /// `NostrPoW`), so the whole echo-and-send runs in a task once the signed
-    /// event — whose ID is also the local message ID — exists. Typical mining
-    /// at the default target is well under 100 ms and hard-capped at
-    /// `NostrPoW.miningTimeCap`, so sending is never meaningfully delayed.
+    /// event — whose ID is also the local message ID — exists. The target
+    /// comes from settings: mining at the default is well under 100 ms,
+    /// higher targets are hard-capped at
+    /// `NostrPoW.miningTimeCap(forTargetBits:)`, and with proof of work off
+    /// nothing is mined at all.
     func sendGeohashPublicMessage(_ trimmed: String, mentions: [String], channel: GeohashChannel) {
         let identity: NostrIdentity
         do {
@@ -174,6 +185,7 @@ private extension ChatOutgoingCoordinator {
         let senderPeerID = PeerID(nostr: identity.publicKeyHex)
         let teleported = context.isTeleported
         let nickname = context.nickname
+        let powTargetBits = self.powTargetBits()
 
         // Serialize geohash sends: each send awaits the previous send's task
         // before it appends + relays, so user-visible order always matches
@@ -181,7 +193,7 @@ private extension ChatOutgoingCoordinator {
         // one. Cancelling the previous task only *expedites* its mining (the
         // NIP-13 target is polled, not aborted), so it still finishes and
         // sends — and it finishes fast, so awaiting it never stacks mining
-        // delays or blocks a send beyond `NostrPoW.miningTimeCap`.
+        // delays or blocks a send beyond its own mining time cap.
         let previousSend = geohashMiningTask
         previousSend?.cancel()
         geohashMiningTask = Task { @MainActor [weak context = self.context] in
@@ -194,7 +206,8 @@ private extension ChatOutgoingCoordinator {
                     geohash: channel.geohash,
                     senderIdentity: identity,
                     nickname: nickname,
-                    teleported: teleported
+                    teleported: teleported,
+                    powTargetBits: powTargetBits
                 )
             } catch {
                 SecureLogger.error("❌ Failed to prepare geohash message: \(error)", category: .session)

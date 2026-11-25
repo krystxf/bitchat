@@ -393,7 +393,8 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
                         geohash: channel.geohash,
                         senderIdentity: identity,
                         nickname: context.nickname,
-                        teleported: context.isTeleported
+                        teleported: context.isTeleported,
+                        powTargetBits: LocationProofOfWorkSettings.sendTargetBits()
                     )
                     let targetRelays = GeoRelayDirectory.shared.closestRelays(toGeohash: channel.geohash, count: 5)
                     if targetRelays.isEmpty {
