@@ -127,6 +127,14 @@ final class PeerListModel: ObservableObject {
         chatViewModel.toggleFavorite(peerID: peerID)
     }
 
+    /// The full Nostr pubkey behind a geohash DM key, while the person is in
+    /// the location channel's roster. A geohash row is tagged with the short
+    /// DM key, and opening the DM needs the full key.
+    func geohashPubkeyHex(forConversation peerID: PeerID) -> String? {
+        guard peerID.isGeoDM else { return nil }
+        return geohashPeople.first { PeerID(nostr_: $0.id) == peerID }?.id
+    }
+
     func openGeohashDirectMessage(with pubkeyHex: String) {
         chatViewModel.startGeohashDM(withPubkeyHex: pubkeyHex)
     }

@@ -15,25 +15,25 @@ import AppKit
 import BitFoundation
 
 struct ContentRootModalPresentationState {
-    var isPeopleSheetPresented = false
     var isAppInfoPresented = false
     var isFingerprintPresented = false
     var isLocationChannelsSheetPresented = false
     var isNoticesSheetPresented = false
     var isImagePreviewPresented = false
     var isVerificationSheetPresented = false
+    var legacyPrivateMediaConsentRequest: LegacyPrivateMediaConsentRequest? = nil
     var isVoiceAlertPresented = false
     var isScreenshotPrivacyAlertPresented = false
     var isMediaPickerPresented = false
 
     var hasPresentation: Bool {
-        isPeopleSheetPresented
-            || isAppInfoPresented
+        isAppInfoPresented
             || isFingerprintPresented
             || isLocationChannelsSheetPresented
             || isNoticesSheetPresented
             || isImagePreviewPresented
             || isVerificationSheetPresented
+            || legacyPrivateMediaConsentRequest != nil
             || isVoiceAlertPresented
             || isScreenshotPrivacyAlertPresented
             || isMediaPickerPresented
@@ -44,14 +44,13 @@ extension ContentRootModalPresentationState {
     @MainActor
     init(
         appChromeModel: AppChromeModel,
-        isPeopleSheetPresented: Bool = false,
         isImagePreviewPresented: Bool = false,
         isVerificationSheetPresented: Bool = false,
+        legacyPrivateMediaConsentRequest: LegacyPrivateMediaConsentRequest? = nil,
         isVoiceAlertPresented: Bool = false,
         isMediaPickerPresented: Bool = false
     ) {
         self.init(
-            isPeopleSheetPresented: isPeopleSheetPresented,
             isAppInfoPresented: appChromeModel.isAppInfoPresented,
             isFingerprintPresented:
                 appChromeModel.showingFingerprintFor != nil,
@@ -61,6 +60,7 @@ extension ContentRootModalPresentationState {
                 appChromeModel.isNoticesSheetPresented,
             isImagePreviewPresented: isImagePreviewPresented,
             isVerificationSheetPresented: isVerificationSheetPresented,
+            legacyPrivateMediaConsentRequest: legacyPrivateMediaConsentRequest,
             isVoiceAlertPresented: isVoiceAlertPresented,
             isScreenshotPrivacyAlertPresented:
                 appChromeModel.showScreenshotPrivacyWarning,
@@ -104,7 +104,19 @@ struct ContentView: View {
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.scenePhase) private var scenePhase
-    @State private var showSidebar = false
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
+    /// The sidebar's selection. It mirrors the models, which stay the source
+    /// of truth (`currentSidebarItem`); `nil` means the compact split view
+    /// shows the sidebar list. Starts on #mesh until the view appears and
+    /// reads the open conversation, so the compact split view never starts
+    /// out on the list.
+    @State private var sidebarSelection: SidebarItem? = .mesh
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    /// Which column the collapsed (compact) split view shows. Starts in the
+    /// chat, as Messages does with an open conversation.
+    @State private var showsDetailWhenCompact = true
     @State private var selectedMessageSender: String?
     @State private var selectedMessageSenderID: PeerID?
     @State private var isAtBottomPublic = true
@@ -133,10 +145,6 @@ struct ContentView: View {
         )
     }
 
-    private var isPeopleSheetPresented: Bool {
-        showSidebar || selectedPrivatePeerID != nil
-    }
-
     private func rootModalPresentationState(
         includingVoiceAlert: Bool
     ) -> ContentRootModalPresentationState {
@@ -149,9 +157,10 @@ struct ContentView: View {
 
         return ContentRootModalPresentationState(
             appChromeModel: appChromeModel,
-            isPeopleSheetPresented: isPeopleSheetPresented,
             isImagePreviewPresented: imagePreviewURL != nil,
             isVerificationSheetPresented: showVerifySheet,
+            legacyPrivateMediaConsentRequest:
+                conversationUIModel.legacyPrivateMediaConsentRequest,
             isVoiceAlertPresented: includingVoiceAlert && voiceRecordingVM.showAlert,
             isMediaPickerPresented: isMediaPickerPresented
         )
@@ -191,11 +200,9 @@ struct ContentView: View {
         )
     }
 
-    /// Voice recording errors can surface while the people/DM sheet is up
-    /// (recording happens inside the sheet). Presenting the root alert then
-    /// would force-dismiss the sheet, so the root copy defers to any other
-    /// root modal; the sheet presents its own copy. Mirrors the Bluetooth
-    /// alert treatment above.
+    /// Voice recording errors defer to any other root modal: presenting the
+    /// alert then would force-dismiss it. Mirrors the Bluetooth alert
+    /// treatment above.
     private var rootVoiceAlertBinding: Binding<Bool> {
         Binding(
             get: {
@@ -210,7 +217,7 @@ struct ContentView: View {
                     return
                 }
                 // Same deferral as the Bluetooth alert above: the setter can
-                // run inside a view update when the sheet state changes.
+                // run inside a view update when the modal state changes.
                 Task { @MainActor in
                     voiceRecordingVM.showAlert = false
                 }
@@ -219,7 +226,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        mainContent
+        splitView
             .onAppear { [conversationUIModel, voiceRecordingVM] in
                 conversationUIModel.setCurrentColorScheme(colorScheme)
                 voiceRecordingVM.sessionProvider = { [weak conversationUIModel] in
@@ -245,6 +252,7 @@ struct ContentView: View {
                     channel: locationChannelsModel.selectedChannel
                 )
                 messageText = ComposerDraftStore.load(activeDraftKey)
+                sidebarSelection = currentSidebarItem
             }
             .onChange(of: colorScheme) { newValue in
                 conversationUIModel.setCurrentColorScheme(newValue)
@@ -254,15 +262,22 @@ struct ContentView: View {
         .frame(minWidth: 600, minHeight: 400)
         #endif
         .onChange(of: selectedPrivatePeerID) { newValue in
-            if newValue != nil {
-                showSidebar = true
-            }
             sharedContentImportModel.updateDestination(sharedContentDestination)
             switchComposerDraft(to: ComposerDraftStore.Key.from(
                 peerID: newValue,
                 fingerprint: newValue.flatMap { conversationUIModel.getFingerprint(for: $0) },
                 channel: locationChannelsModel.selectedChannel
             ))
+            if let newValue {
+                // Opened from anywhere (a message's DM action, the unread
+                // envelope, a notification): show it.
+                showInSidebar(.conversation(newValue))
+            } else if case .conversation = sidebarSelection {
+                // Ended on its own (a block, a panic wipe): the channel takes
+                // its place. A channel the user picked is already selected,
+                // and leaving from the compact list keeps the list.
+                sidebarSelection = SidebarItem(channel: locationChannelsModel.selectedChannel)
+            }
         }
         .onChange(of: locationChannelsModel.selectedChannel) { newChannel in
             sharedContentImportModel.updateDestination(sharedContentDestination)
@@ -274,8 +289,34 @@ struct ContentView: View {
                     fingerprint: nil,
                     channel: newChannel
                 ))
+            } else {
+                // The sidebar opens the location channels sheet over a DM
+                // too; picking a channel there means going to it. Ending the
+                // DM swaps the draft in its own change handler.
+                privateConversationModel.endConversation()
+            }
+            // Switched from anywhere (the location channels sheet, the title
+            // menu, a link): show it.
+            showInSidebar(SidebarItem(channel: newChannel))
+        }
+        .onChange(of: sidebarSelection) { item in
+            applySidebarSelection(item)
+        }
+        .onChange(of: showsDetailWhenCompact) { showsDetail in
+            // The compact split view went back to the list.
+            if !showsDetail, isCompact {
+                sidebarSelection = nil
             }
         }
+        #if os(iOS)
+        .onChange(of: horizontalSizeClass) { _ in
+            // Regular width always shows a conversation, so it needs one
+            // selected after the list was on screen in compact width.
+            if !isCompact, sidebarSelection == nil {
+                sidebarSelection = currentSidebarItem
+            }
+        }
+        #endif
         .onChange(of: scenePhase) { phase in
             if phase == .background || phase == .inactive {
                 // Always save, including empty — clearing the composer must
@@ -283,79 +324,6 @@ struct ContentView: View {
                 // next switch back into this conversation.
                 ComposerDraftStore.save(messageText, for: activeDraftKey)
             }
-        }
-        .sheet(
-            isPresented: Binding(
-                get: { isPeopleSheetPresented },
-                set: { isPresented in
-                    if !isPresented {
-                        showSidebar = false
-                        // Scene/background and alert-presentation
-                        // reconciliation (Bluetooth-off, recording errors)
-                        // are not user requests to leave the conversation.
-                        // Keep the selected DM so the sheet remains live
-                        // when the app returns from Settings.
-                        if scenePhase == .active,
-                           !appChromeModel.showBluetoothAlert,
-                           !voiceRecordingVM.showAlert {
-                            privateConversationModel.endConversation()
-                        }
-                    }
-                }
-            )
-        ) {
-            #if os(iOS)
-            ContentPeopleSheetView(
-                showSidebar: $showSidebar,
-                messageText: $messageText,
-                selectedMessageSender: $selectedMessageSender,
-                selectedMessageSenderID: $selectedMessageSenderID,
-                imagePreviewURL: $imagePreviewURL,
-                windowCountPublic: $windowCountPublic,
-                windowCountPrivate: $windowCountPrivate,
-                isAtBottomPrivate: $isAtBottomPrivate,
-                isTextFieldFocused: $isTextFieldFocused,
-                voiceRecordingVM: voiceRecordingVM,
-                autocompleteDebounceTimer: $autocompleteDebounceTimer,
-                onSendMessage: sendMessage,
-                showImagePicker: $showImagePicker,
-                imagePickerSourceType: $imagePickerSourceType
-            )
-            // Sheets + NavigationStack can drop inherited EnvironmentObjects on
-            // some iOS versions (#1558). Re-inject every model the sheet tree
-            // reads so ContentPeopleListView / MessageListView never crash.
-            .environmentObject(appChromeModel)
-            .environmentObject(privateConversationModel)
-            .environmentObject(verificationModel)
-            .environmentObject(conversationUIModel)
-            .environmentObject(locationChannelsModel)
-            .environmentObject(peerListModel)
-            .environmentObject(publicChatModel)
-            .environmentObject(privateInboxModel)
-            #else
-            ContentPeopleSheetView(
-                showSidebar: $showSidebar,
-                messageText: $messageText,
-                selectedMessageSender: $selectedMessageSender,
-                selectedMessageSenderID: $selectedMessageSenderID,
-                imagePreviewURL: $imagePreviewURL,
-                windowCountPublic: $windowCountPublic,
-                windowCountPrivate: $windowCountPrivate,
-                isAtBottomPrivate: $isAtBottomPrivate,
-                isTextFieldFocused: $isTextFieldFocused,
-                voiceRecordingVM: voiceRecordingVM,
-                autocompleteDebounceTimer: $autocompleteDebounceTimer,
-                onSendMessage: sendMessage
-            )
-            .environmentObject(appChromeModel)
-            .environmentObject(privateConversationModel)
-            .environmentObject(verificationModel)
-            .environmentObject(conversationUIModel)
-            .environmentObject(locationChannelsModel)
-            .environmentObject(peerListModel)
-            .environmentObject(publicChatModel)
-            .environmentObject(privateInboxModel)
-            #endif
         }
         .sheet(isPresented: $appChromeModel.isAppInfoPresented) {
             AppInfoView(
@@ -370,7 +338,7 @@ struct ContentView: View {
             .environmentObject(locationChannelsModel)
         }
         .sheet(isPresented: Binding(
-            get: { appChromeModel.showingFingerprintFor != nil && !showSidebar && selectedPrivatePeerID == nil },
+            get: { appChromeModel.showingFingerprintFor != nil },
             set: { _ in appChromeModel.clearFingerprint() }
         )) {
             if let peerID = appChromeModel.showingFingerprintFor {
@@ -378,15 +346,18 @@ struct ContentView: View {
                     .environmentObject(verificationModel)
             }
         }
+        .sheet(isPresented: $showVerifySheet) {
+            VerificationSheetView(isPresented: $showVerifySheet)
+                .environmentObject(verificationModel)
+        }
+        // Hosted at the root: the sidebar and the chat toolbar both open it.
+        .sheet(isPresented: $appChromeModel.isLocationChannelsSheetPresented) {
+            LocationChannelsSheet(isPresented: $appChromeModel.isLocationChannelsSheetPresented)
+                .environmentObject(locationChannelsModel)
+                .environmentObject(peerListModel)
+        }
         #if os(iOS)
-        .fullScreenCover(isPresented: Binding(
-            get: { showImagePicker && !showSidebar && selectedPrivatePeerID == nil },
-            set: { newValue in
-                if !newValue {
-                    showImagePicker = false
-                }
-            }
-        )) {
+        .fullScreenCover(isPresented: $showImagePicker) {
             ImagePickerView(sourceType: imagePickerSourceType) { image in
                 showImagePicker = false
                 conversationUIModel.processSelectedImage(image)
@@ -405,6 +376,23 @@ struct ContentView: View {
             if let url = imagePreviewURL {
                 ImagePreviewView(url: url)
             }
+        }
+        .modifier(LegacyPrivateMediaConsentDialog())
+        .confirmationDialog(
+            Text(
+                String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")
+            ),
+            isPresented: $appChromeModel.showPanicConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                appChromeModel.panicClearAllData()
+            } label: {
+                Text(
+                    String(localized: "app_info.settings.danger.panic_confirm_action", defaultValue: "wipe everything", comment: "Destructive confirmation button that performs the panic wipe")
+                )
+            }
+            Button("common.cancel", role: .cancel) {}
         }
         .alert(Text(String(localized: "voice.error.title", defaultValue: "recording error", comment: "Title of the voice recording error alert")), isPresented: rootVoiceAlertBinding, actions: {
             Button("common.ok", role: .cancel) {}
@@ -426,6 +414,11 @@ struct ContentView: View {
             Button("common.ok", role: .cancel) {}
         } message: {
             Text(appChromeModel.bluetoothAlertMessage)
+        }
+        .alert("content.alert.screenshot.title", isPresented: $appChromeModel.showScreenshotPrivacyWarning) {
+            Button("common.ok", role: .cancel) {}
+        } message: {
+            Text("content.alert.screenshot.message")
         }
         .alert(
             String(localized: "share_import.review.title", comment: "Title for reviewing content received from the share extension"),
@@ -461,66 +454,189 @@ struct ContentView: View {
         }
     }
 
-    /// Full-bleed message list under the native title bar, with the status
-    /// banners and the composer floating over it (safe-area bars), so the
-    /// translucency gains usable space instead of losing it.
-    private var mainContent: some View {
-        NavigationStack {
-            publicMessageList
-                .floatingBar(edge: .top) {
-                    statusBanners
+    // MARK: - Split view
+
+    /// Channels and people in the sidebar, the selected conversation as the
+    /// detail, as in Messages. iPhone collapses it to a stack that starts
+    /// in the chat (iOS 17+; iOS 16 keeps the system default).
+    @ViewBuilder
+    private var splitView: some View {
+        #if os(iOS)
+        if #available(iOS 17.0, *) {
+            NavigationSplitView(
+                columnVisibility: $columnVisibility,
+                preferredCompactColumn: preferredCompactColumn
+            ) {
+                sidebar
+            } detail: {
+                detail
+            }
+        } else {
+            NavigationSplitView(columnVisibility: $columnVisibility) {
+                sidebar
+            } detail: {
+                detail
+            }
+        }
+        #else
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            sidebar
+        } detail: {
+            detail
+        }
+        #endif
+    }
+
+    @available(iOS 17.0, macOS 14.0, *)
+    private var preferredCompactColumn: Binding<NavigationSplitViewColumn> {
+        Binding(
+            get: { showsDetailWhenCompact ? .detail : .sidebar },
+            set: { column in
+                let showsDetail = column != .sidebar
+                if showsDetail != showsDetailWhenCompact {
+                    showsDetailWhenCompact = showsDetail
                 }
-                .floatingBar(edge: .bottom) {
-                    if selectedPrivatePeerID == nil {
-                        composerView
-                    }
-                }
-                // macOS: drop an image anywhere on the chat to send it.
-                .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in
-                    conversationUIModel.processSelectedImage(from: url)
-                }
-                .background(ThemedRootBackground())
-                .modifier(ContentHeaderToolbar(
-                    showSidebar: $showSidebar,
-                    showVerifySheet: $showVerifySheet
-                ))
+            }
+        )
+    }
+
+    private var sidebar: some View {
+        ContentSidebarView(
+            selection: $sidebarSelection,
+            showVerifySheet: $showVerifySheet
+        )
+        #if os(macOS)
+        .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 380)
+        #endif
+    }
+
+    /// The open conversation, read from the models: a DM or private group
+    /// when one is open, the public channel otherwise.
+    @ViewBuilder
+    private var detail: some View {
+        Group {
+            if selectedPrivatePeerID != nil {
+                privateChat
+            } else {
+                publicChat
+            }
+        }
+        #if os(macOS)
+        .navigationSplitViewColumnWidth(min: 380, ideal: 640)
+        #endif
+    }
+
+    private var isCompact: Bool {
+        #if os(iOS)
+        horizontalSizeClass == .compact
+        #else
+        false
+        #endif
+    }
+
+    /// The sidebar item for what the models have open.
+    private var currentSidebarItem: SidebarItem {
+        if let peerID = selectedPrivatePeerID {
+            return .conversation(peerID)
+        }
+        return SidebarItem(channel: locationChannelsModel.selectedChannel)
+    }
+
+    /// Selects `item` for a change the models made, and brings the chat on
+    /// screen in the compact split view.
+    private func showInSidebar(_ item: SidebarItem) {
+        if sidebarSelection != item {
+            sidebarSelection = item
+        }
+        if isCompact, !showsDetailWhenCompact {
+            showsDetailWhenCompact = true
         }
     }
 
-    /// Status that floats under the title bar while it applies.
-    private var statusBanners: some View {
-        VStack(spacing: 0) {
-            // Failed-wipe outranks connectivity: "your data may still be
-            // here" matters more than "the radio is off".
-            if appChromeModel.panicWipeBlocked {
-                PanicWipeBlockedBanner()
+    /// Opens what the user selected in the sidebar. Every path back from the
+    /// models goes through `showInSidebar`, so applying a selection the
+    /// models already have does nothing.
+    private func applySidebarSelection(_ item: SidebarItem?) {
+        guard let item else {
+            if isCompact {
+                // Back to the list: leave the private conversation, as the
+                // people sheet's back button did.
+                if selectedPrivatePeerID != nil {
+                    privateConversationModel.endConversation()
+                }
+            } else {
+                // Regular width always shows a conversation: keep it
+                // selected (a macOS Command-click can deselect).
+                sidebarSelection = currentSidebarItem
             }
+            return
+        }
 
-            if let issue = ConnectivityIssue.resolve(
-                bluetoothState: appChromeModel.bluetoothState,
-                torBlocked: appChromeModel.torBlocked
-            ) {
-                ConnectivityStatusBanner(issue: issue)
+        if isCompact, !showsDetailWhenCompact {
+            showsDetailWhenCompact = true
+        }
+
+        switch item {
+        case .mesh:
+            leavePrivateConversation()
+            if locationChannelsModel.selectedChannel != .mesh {
+                locationChannelsModel.select(.mesh)
+            }
+        case .location(let geohash):
+            leavePrivateConversation()
+            locationChannelsModel.selectLocationChannel(geohash: geohash)
+        case .conversation(let peerID):
+            guard selectedPrivatePeerID != peerID else { return }
+            if let pubkeyHex = peerListModel.geohashPubkeyHex(forConversation: peerID) {
+                privateConversationModel.startGeohashConversation(withPubkeyHex: pubkeyHex)
+            } else {
+                privateConversationModel.startConversation(with: peerID)
+            }
+            // A blocked person's chat does not open: select what is open.
+            let current = currentSidebarItem
+            if sidebarSelection != current {
+                sidebarSelection = current
             }
         }
-        // Hosted here, outside the toolbar, so a pending dialog survives
-        // whatever happens to the title bar.
-        .confirmationDialog(
-            Text(
-                String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")
-            ),
-            isPresented: $appChromeModel.showPanicConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button(role: .destructive) {
-                appChromeModel.panicClearAllData()
-            } label: {
-                Text(
-                    String(localized: "app_info.settings.danger.panic_confirm_action", defaultValue: "wipe everything", comment: "Destructive confirmation button that performs the panic wipe")
-                )
+    }
+
+    private func leavePrivateConversation() {
+        guard selectedPrivatePeerID != nil else { return }
+        privateConversationModel.endConversation()
+    }
+
+    /// Reveals the people: the sidebar in the compact split view, or the
+    /// sidebar column shown or hidden in regular width.
+    private func togglePeople() {
+        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
+            if isCompact {
+                showsDetailWhenCompact = false
+                sidebarSelection = nil
+            } else {
+                columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
             }
-            Button("common.cancel", role: .cancel) {}
         }
+    }
+
+    // MARK: - Detail
+
+    /// Full-bleed message list under the native title bar, with the status
+    /// banners and the composer floating over it (safe-area bars), so the
+    /// translucency gains usable space instead of losing it.
+    private var publicChat: some View {
+        publicMessageList
+            .floatingBar(edge: .top) {
+                ContentStatusBanners()
+            }
+            .floatingBar(edge: .bottom) {
+                composerView
+            }
+            // macOS: drop an image anywhere on the chat to send it.
+            .imageDropTarget(isEnabled: conversationUIModel.canSendMediaInCurrentContext) { url in
+                conversationUIModel.processSelectedImage(from: url)
+            }
+            .background(ThemedRootBackground())
+            .modifier(ContentHeaderToolbar(onShowPeople: togglePeople))
     }
 
     private var publicMessageList: some View {
@@ -533,9 +649,44 @@ struct ContentView: View {
             imagePreviewURL: $imagePreviewURL,
             windowCountPublic: $windowCountPublic,
             windowCountPrivate: $windowCountPrivate,
-            showSidebar: $showSidebar,
+            showSidebar: .constant(false),
             isTextFieldFocused: $isTextFieldFocused
         )
+    }
+
+    @ViewBuilder
+    private var privateChat: some View {
+        #if os(iOS)
+        PrivateChatDetailView(
+            messageText: $messageText,
+            selectedMessageSender: $selectedMessageSender,
+            selectedMessageSenderID: $selectedMessageSenderID,
+            imagePreviewURL: $imagePreviewURL,
+            windowCountPublic: $windowCountPublic,
+            windowCountPrivate: $windowCountPrivate,
+            isAtBottomPrivate: $isAtBottomPrivate,
+            isTextFieldFocused: $isTextFieldFocused,
+            voiceRecordingVM: voiceRecordingVM,
+            autocompleteDebounceTimer: $autocompleteDebounceTimer,
+            onSendMessage: sendMessage,
+            showImagePicker: $showImagePicker,
+            imagePickerSourceType: $imagePickerSourceType
+        )
+        #else
+        PrivateChatDetailView(
+            messageText: $messageText,
+            selectedMessageSender: $selectedMessageSender,
+            selectedMessageSenderID: $selectedMessageSenderID,
+            imagePreviewURL: $imagePreviewURL,
+            windowCountPublic: $windowCountPublic,
+            windowCountPrivate: $windowCountPrivate,
+            isAtBottomPrivate: $isAtBottomPrivate,
+            isTextFieldFocused: $isTextFieldFocused,
+            voiceRecordingVM: voiceRecordingVM,
+            autocompleteDebounceTimer: $autocompleteDebounceTimer,
+            onSendMessage: sendMessage
+        )
+        #endif
     }
 
     private var composerView: some View {
@@ -576,6 +727,69 @@ struct ContentView: View {
         ComposerDraftStore.save(messageText, for: activeDraftKey)
         activeDraftKey = newKey
         messageText = ComposerDraftStore.load(newKey)
+    }
+}
+
+/// Asks before sending private media to an older client in a clear signed
+/// envelope. Hosted at the root, so a pending request is answered even
+/// when the user leaves the conversation it came from.
+private struct LegacyPrivateMediaConsentDialog: ViewModifier {
+    @EnvironmentObject private var conversationUIModel: ConversationUIModel
+
+    func body(content: Content) -> some View {
+        let request = conversationUIModel.legacyPrivateMediaConsentRequest
+        content.confirmationDialog(
+            String(
+                localized: "content.private_media.legacy_warning.title",
+                defaultValue: "Send without end-to-end encryption?",
+                comment: "Title warning before sending private media to an older client in a clear signed envelope"
+            ),
+            isPresented: Binding(
+                get: { request != nil },
+                set: { isPresented in
+                    if !isPresented, let requestID = request?.id {
+                        resolve(requestID, approved: false)
+                    }
+                }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(
+                String(
+                    localized: "content.private_media.legacy_warning.send",
+                    defaultValue: "send visible file",
+                    comment: "Destructive confirmation action for one legacy clear private-media send"
+                ),
+                role: .destructive
+            ) {
+                if let requestID = request?.id {
+                    resolve(requestID, approved: true)
+                }
+            }
+            Button("common.cancel", role: .cancel) {
+                if let requestID = request?.id {
+                    resolve(requestID, approved: false)
+                }
+            }
+        } message: {
+            if let request {
+                Text(
+                    String(
+                        format: String(
+                            localized: "content.private_media.legacy_warning.message",
+                            defaultValue: "%@'s client does not advertise encrypted private media. This file will be signed but not end-to-end encrypted, so mesh relays can see it. Send this file anyway?",
+                            comment: "Warning explaining the confidentiality loss for one legacy private-media send; parameter is the peer name"
+                        ),
+                        locale: .current,
+                        request.peerName
+                    )
+                )
+            }
+        }
+    }
+
+    private func resolve(_ requestID: LegacyPrivateMediaConsentRequest.ID, approved: Bool) {
+        conversationUIModel.resolveLegacyPrivateMediaConsent(requestID: requestID, approved: approved)
     }
 }
 

@@ -3,18 +3,19 @@ import SwiftUI
 /// Native title bar for the main chat. The channel is the navigation title,
 /// the nickname its subtitle, and the header's controls are toolbar buttons.
 /// The title opens a menu with the channel actions (switch, bookmark, share).
-/// Also hosts the sheets and dialogs those controls present.
+/// Also hosts the notices sheet and the share dialogs those controls
+/// present; the location channels sheet lives at the root, because the
+/// sidebar opens it too.
 struct ContentHeaderToolbar: ViewModifier {
     @EnvironmentObject private var appChromeModel: AppChromeModel
-    @EnvironmentObject private var verificationModel: VerificationModel
     @EnvironmentObject private var locationChannelsModel: LocationChannelsModel
     @EnvironmentObject private var peerListModel: PeerListModel
     @EnvironmentObject private var boardAlertsModel: BoardAlertsModel
     @ObservedObject private var bridgeService = BridgeService.shared
     @ThemedPalette private var palette
 
-    @Binding var showSidebar: Bool
-    @Binding var showVerifySheet: Bool
+    /// Reveals the people in the sidebar.
+    let onShowPeople: () -> Void
 
     /// Courier envelopes this device is carrying for offline third parties.
     @State private var carriedMailCount = 0
@@ -46,15 +47,6 @@ struct ContentHeaderToolbar: ViewModifier {
             .onReceive(BoardStore.shared.$postsSnapshot) { posts in
                 boardPosts = posts
             }
-            .sheet(isPresented: $showVerifySheet) {
-                VerificationSheetView(isPresented: $showVerifySheet)
-                    .environmentObject(verificationModel)
-            }
-            .sheet(isPresented: $appChromeModel.isLocationChannelsSheetPresented) {
-                LocationChannelsSheet(isPresented: $appChromeModel.isLocationChannelsSheetPresented)
-                    .environmentObject(locationChannelsModel)
-                    .environmentObject(peerListModel)
-            }
             .sheet(
                 isPresented: $appChromeModel.isNoticesSheetPresented,
                 onDismiss: { appChromeModel.noticesSheetPrefersGeoTab = false }
@@ -74,11 +66,6 @@ struct ContentHeaderToolbar: ViewModifier {
             }
             .onChange(of: locationChannelsModel.permissionState) { _ in
                 locationChannelsModel.refreshMeshChannelsIfNeeded()
-            }
-            .alert("content.alert.screenshot.title", isPresented: $appChromeModel.showScreenshotPrivacyWarning) {
-                Button("common.ok", role: .cancel) {}
-            } message: {
-                Text("content.alert.screenshot.message")
             }
             .confirmationDialog(
                 String(localized: "channel.share.precision_warning.title", defaultValue: "share a precise location channel?", comment: "Title of the confirmation before sharing a neighborhood-or-finer geohash invite"),
@@ -261,11 +248,7 @@ struct ContentHeaderToolbar: ViewModifier {
             return countAndColor.0 + bridgeService.bridgedPeerCount
         }()
 
-        return Button(action: {
-            withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                showSidebar.toggle()
-            }
-        }) {
+        return Button(action: onShowPeople) {
             HStack(spacing: 4) {
                 Image(systemName: "person.2.fill")
                 // Format style, not Text("\(count)"): same locale digits
