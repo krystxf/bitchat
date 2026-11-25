@@ -6732,378 +6732,6 @@
         }
       }
     },
-    "command.error.favorites_mesh_only" : {
-      "comment" : "Error when a favorites command is used outside the mesh channel",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المفضلة متاحة فقط لأقران شبكة mesh في #mesh"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "প্রিয় তালিকা শুধু #mesh-এ থাকা mesh পিয়ারদের জন্য"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "favoriten gibt es nur für mesh-peers in #mesh"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "favorites are only for mesh peers in #mesh"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "los favoritos son solo para peers de la mesh en #mesh"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "موردعلاقه‌ها فقط برای همتاهای mesh در #mesh هستند"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "para lang sa mga mesh peer sa #mesh ang mga favorite"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "les favoris sont réservés aux pairs du mesh dans #mesh"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מועדפים זמינים רק לעמיתי mesh ב-#mesh"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "पसंदीदा सिर्फ #mesh के mesh पीयर के लिए हैं"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "favorit hanya untuk peer mesh di #mesh"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "i preferiti sono solo per i peer mesh in #mesh"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "お気に入りは #mesh のメッシュピア専用"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "즐겨찾기는 #mesh의 메시 피어에게만 쓸 수 있어요"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kegemaran hanya untuk rakan mesh di #mesh"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "मनपर्नेहरू #mesh का मेस पियरहरूका लागि मात्र हुन्"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "favorieten zijn alleen voor mesh-peers in #mesh"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ulubione są tylko dla peerów mesh w #mesh"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "os favoritos são só para peers mesh no #mesh"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "favoritos são só para peers mesh no #mesh"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "избранное только для mesh-пиров в #mesh"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "favoriter är bara för mesh-deltagare i #mesh"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "பிடித்தவை #mesh இல் உள்ள mesh நபர்களுக்கு மட்டும்தான்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "รายการโปรดมีไว้สำหรับคนในเครือข่าย mesh ใน #mesh เท่านั้น"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "favoriler sadece #mesh'teki mesh kişileri için"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "обране доступне лише людям у mesh у #mesh"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "پسندیدہ صرف #mesh میں mesh والے لوگوں کے لیے ہیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "mục yêu thích chỉ dành cho những người trong mesh ở #mesh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "收藏只对 #mesh 里的 mesh 成员可用"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最愛只限 #mesh 裡的 mesh 成員使用"
-          }
-        }
-      }
-    },
-    "command.error.groups_mesh_only" : {
-      "comment" : "Error when a group command is used outside the mesh channel",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المجموعات متاحة فقط لأقران شبكة mesh في #mesh"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "গ্রুপ শুধু #mesh-এ থাকা mesh পিয়ারদের জন্য"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "gruppen gibt es nur für mesh-peers in #mesh"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "groups are only for mesh peers in #mesh"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "los grupos son solo para peers de la mesh en #mesh"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "گروه‌ها فقط برای همتاهای mesh در #mesh هستند"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "para lang sa mga mesh peer sa #mesh ang mga group"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "les groupes sont réservés aux pairs du mesh dans #mesh"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קבוצות זמינות רק לעמיתי mesh ב-#mesh"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ग्रुप सिर्फ #mesh के mesh पीयर के लिए हैं"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "grup hanya untuk peer mesh di #mesh"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "i gruppi sono solo per i peer mesh in #mesh"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "グループは #mesh のメッシュピア専用"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "그룹은 #mesh의 메시 피어끼리만 쓸 수 있어요"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kumpulan hanya untuk rakan mesh di #mesh"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "समूहहरू #mesh का मेस पियरहरूका लागि मात्र हुन्"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "groepen zijn alleen voor mesh-peers in #mesh"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "grupy są tylko dla peerów mesh w #mesh"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "os grupos são só para peers mesh no #mesh"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "grupos são só para peers mesh no #mesh"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "группы только для mesh-пиров в #mesh"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "grupper är bara för mesh-deltagare i #mesh"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "குழுக்கள் #mesh இல் உள்ள mesh நபர்களுக்கு மட்டும்தான்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "กลุ่มมีไว้สำหรับคนในเครือข่าย mesh ใน #mesh เท่านั้น"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "gruplar sadece #mesh'teki mesh kişileri için"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "групи доступні лише людям у mesh у #mesh"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "گروپ صرف #mesh میں mesh والے لوگوں کے لیے ہیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "nhóm chỉ dành cho những người trong mesh ở #mesh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "群组只对 #mesh 里的 mesh 成员开放"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "群組只限 #mesh 裡的 mesh 成員使用"
-          }
-        }
-      }
-    },
     "command.error.invalid" : {
       "comment" : "Error for an empty or unparseable slash command",
       "extractionState" : "manual",
@@ -7848,192 +7476,6 @@
         }
       }
     },
-    "command.group.usage" : {
-      "comment" : "Usage hint for /group subcommands",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الاستخدام: /group create <name> · invite @name · remove @name · leave · list"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ব্যবহার: /group create <নাম> · invite @name · remove @name · leave · list"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "verwendung: /group create <name> · invite @name · remove @name · leave · list"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "usage: /group create <name> · invite @name · remove @name · leave · list"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "uso: /group create <nombre> · invite @name · remove @name · leave · list"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "کاربرد: /group create <name> · invite @name · remove @name · leave · list"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "paggamit: /group create <pangalan> · invite @name · remove @name · leave · list"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "usage : /group create <nom> · invite @name · remove @name · leave · list"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שימוש: /group create <name> · invite @name · remove @name · leave · list"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "उपयोग: /group create <नाम> · invite @name · remove @name · leave · list"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "penggunaan: /group create <nama> · invite @name · remove @name · leave · list"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "uso: /group create <nome> · invite @name · remove @name · leave · list"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使い方: /group create <名前> · invite @name · remove @name · leave · list"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "사용법: /group create <이름> · invite @name · remove @name · leave · list"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cara guna: /group create <nama> · invite @name · remove @name · leave · list"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "प्रयोग: /group create <नाम> · invite @name · remove @name · leave · list"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "gebruik: /group create <naam> · invite @name · remove @name · leave · list"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "użycie: /group create <nazwa> · invite @name · remove @name · leave · list"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "uso: /group create <nome> · invite @name · remove @name · leave · list"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "uso: /group create <nome> · invite @name · remove @name · leave · list"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "использование: /group create <название> · invite @name · remove @name · leave · list"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "användning: /group create <namn> · invite @name · remove @name · leave · list"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "பயன்பாடு: /group create <பெயர்> · invite @name · remove @name · leave · list"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "วิธีใช้: /group create <ชื่อ> · invite @name · remove @name · leave · list"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kullanım: /group create <ad> · invite @name · remove @name · leave · list"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "використання: /group create <назва> · invite @name · remove @name · leave · list"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استعمال: /group create <نام> · invite @name · remove @name · leave · list"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cách dùng: /group create <tên> · invite @name · remove @name · leave · list"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用法：/group create <名称> · invite @name · remove @name · leave · list"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用法：/group create <名稱> · invite @name · remove @name · leave · list"
-          }
-        }
-      }
-    },
     "command.help.text" : {
       "comment" : "The /help reference list; command syntax stays verbatim, only the descriptions after each dash are translated",
       "extractionState" : "manual",
@@ -8041,181 +7483,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "الأوامر:\n/who — عرض من هنا\n/clear — مسح هذه المحادثة\n/hug @name — إرسال عناق\n/slap @name — صفعة بسمكة تراوت ضخمة\n/block @name · /unblock @name\n/group create <name> — إنشاء مجموعة مشفّرة\n/group invite @name · /group remove @name — إدارة الأعضاء (المنشئ)\n/group leave · /group list — مغادرة مجموعاتك أو عرضها\n/ping @name — قياس زمن الذهاب والإياب (mesh فقط)\n/trace @name — مسار mesh المقدّر (mesh فقط)\n/pay <token> — إرسال رمز cashu (ecash) في هذه المحادثة\n/drop <message> — تثبيت ملاحظة في هذا المكان لمدة 24 ساعة (يحتاج إلى الموقع)\n/help — هذه القائمة"
+            "value" : "الأوامر:\n/who — عرض من هنا\n/clear — مسح هذه المحادثة\n/hug @name — إرسال عناق\n/slap @name — صفعة بسمكة تراوت ضخمة\n/block @name · /unblock @name\n/ping @name — قياس زمن الذهاب والإياب (mesh فقط)\n/trace @name — مسار mesh المقدّر (mesh فقط)\n/pay <token> — إرسال رمز cashu (ecash) في هذه المحادثة\n/drop <message> — تثبيت ملاحظة في هذا المكان لمدة 24 ساعة (يحتاج إلى الموقع)\n/help — هذه القائمة"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "কমান্ড:\n/who — কে কে আছে দেখো\n/clear — এই চ্যাট মুছে ফেলো\n/hug @name — একটা আলিঙ্গন পাঠাও\n/slap @name — বিশাল এক ট্রাউট মাছ দিয়ে চড় মারো\n/block @name · /unblock @name\n/group create <name> — এনক্রিপ্ট করা গ্রুপ শুরু করো\n/group invite @name · /group remove @name — সদস্য ব্যবস্থাপনা (নির্মাতা)\n/group leave · /group list — গ্রুপ ছাড়ো বা তালিকা দেখো\n/ping @name — রাউন্ড-ট্রিপ সময় মাপো (শুধু mesh)\n/trace @name — আনুমানিক mesh পথ (শুধু mesh)\n/pay <token> — এই চ্যাটে একটি cashu ecash টোকেন পাঠাও\n/drop <message> — এই জায়গায় ২৪ ঘণ্টার জন্য একটা নোট আটকে দাও (লোকেশন লাগবে)\n/help — এই তালিকা"
+            "value" : "কমান্ড:\n/who — কে কে আছে দেখো\n/clear — এই চ্যাট মুছে ফেলো\n/hug @name — একটা আলিঙ্গন পাঠাও\n/slap @name — বিশাল এক ট্রাউট মাছ দিয়ে চড় মারো\n/block @name · /unblock @name\n/ping @name — রাউন্ড-ট্রিপ সময় মাপো (শুধু mesh)\n/trace @name — আনুমানিক mesh পথ (শুধু mesh)\n/pay <token> — এই চ্যাটে একটি cashu ecash টোকেন পাঠাও\n/drop <message> — এই জায়গায় ২৪ ঘণ্টার জন্য একটা নোট আটকে দাও (লোকেশন লাগবে)\n/help — এই তালিকা"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "befehle:\n/who — zeigen, wer hier ist\n/clear — diesen chat leeren\n/hug @name — eine umarmung senden\n/slap @name — mit einer großen forelle ohrfeigen\n/block @name · /unblock @name\n/group create <name> — eine verschlüsselte gruppe starten\n/group invite @name · /group remove @name — mitglieder verwalten (ersteller)\n/group leave · /group list — gruppen verlassen oder auflisten\n/ping @name — round-trip-zeit messen (nur mesh)\n/trace @name — geschätzter mesh-pfad (nur mesh)\n/pay <token> — einen cashu-ecash-token in diesem chat senden\n/drop <message> — eine notiz für 24h an diesem ort anpinnen (braucht standort)\n/help — diese liste"
+            "value" : "befehle:\n/who — zeigen, wer hier ist\n/clear — diesen chat leeren\n/hug @name — eine umarmung senden\n/slap @name — mit einer großen forelle ohrfeigen\n/block @name · /unblock @name\n/ping @name — round-trip-zeit messen (nur mesh)\n/trace @name — geschätzter mesh-pfad (nur mesh)\n/pay <token> — einen cashu-ecash-token in diesem chat senden\n/drop <message> — eine notiz für 24h an diesem ort anpinnen (braucht standort)\n/help — diese liste"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "commands:\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/group create <name> — start an encrypted group\n/group invite @name · /group remove @name — manage members (creator)\n/group leave · /group list — leave or list your groups\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list"
+            "value" : "commands:\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "comandos:\n/who — listar quién está aquí\n/clear — limpiar este chat\n/hug @name — enviar un abrazo\n/slap @name — dar un golpe con una trucha enorme\n/block @name · /unblock @name\n/group create <name> — iniciar un grupo cifrado\n/group invite @name · /group remove @name — gestionar miembros (creador)\n/group leave · /group list — salir o listar tus grupos\n/ping @name — medir el tiempo de ida y vuelta (solo mesh)\n/trace @name — ruta estimada por la mesh (solo mesh)\n/pay <token> — enviar un token ecash de cashu en este chat\n/drop <message> — fijar una nota en este lugar por 24h (necesita ubicación)\n/help — esta lista"
+            "value" : "comandos:\n/who — listar quién está aquí\n/clear — limpiar este chat\n/hug @name — enviar un abrazo\n/slap @name — dar un golpe con una trucha enorme\n/block @name · /unblock @name\n/ping @name — medir el tiempo de ida y vuelta (solo mesh)\n/trace @name — ruta estimada por la mesh (solo mesh)\n/pay <token> — enviar un token ecash de cashu en este chat\n/drop <message> — fijar una nota en este lugar por 24h (necesita ubicación)\n/help — esta lista"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "دستورها:\n/who — فهرست کسانی که اینجا هستند\n/clear — پاک کردن این چت\n/hug @name — فرستادن یک بغل\n/slap @name — سیلی با یک قزل‌آلای گنده\n/block @name · /unblock @name\n/group create <name> — شروع یک گروه رمزگذاری‌شده\n/group invite @name · /group remove @name — مدیریت اعضا (سازنده)\n/group leave · /group list — ترک گروه‌هایت یا فهرست‌شان\n/ping @name — اندازه‌گیری زمان رفت‌وبرگشت (فقط mesh)\n/trace @name — مسیر تخمینی mesh (فقط mesh)\n/pay <token> — ارسال توکن ecash از cashu در این چت\n/drop <message> — سنجاق کردن یادداشت به این مکان برای ۲۴ ساعت (به موقعیت نیاز دارد)\n/help — همین فهرست"
+            "value" : "دستورها:\n/who — فهرست کسانی که اینجا هستند\n/clear — پاک کردن این چت\n/hug @name — فرستادن یک بغل\n/slap @name — سیلی با یک قزل‌آلای گنده\n/block @name · /unblock @name\n/ping @name — اندازه‌گیری زمان رفت‌وبرگشت (فقط mesh)\n/trace @name — مسیر تخمینی mesh (فقط mesh)\n/pay <token> — ارسال توکن ecash از cashu در این چت\n/drop <message> — سنجاق کردن یادداشت به این مکان برای ۲۴ ساعت (به موقعیت نیاز دارد)\n/help — همین فهرست"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mga command:\n/who — ilista kung sino ang narito\n/clear — i-clear ang chat na ito\n/hug @name — magpadala ng yakap\n/slap @name — sampalin gamit ang malaking trout\n/block @name · /unblock @name\n/group create <name> — magsimula ng encrypted na group\n/group invite @name · /group remove @name — pamahalaan ang mga miyembro (creator)\n/group leave · /group list — umalis o ilista ang mga group mo\n/ping @name — sukatin ang round-trip time (mesh lang)\n/trace @name — tinatayang mesh path (mesh lang)\n/pay <token> — magpadala ng cashu ecash token sa chat na ito\n/drop <message> — mag-pin ng note sa lugar na ito nang 24h (kailangan ng location)\n/help — ang listahang ito"
+            "value" : "mga command:\n/who — ilista kung sino ang narito\n/clear — i-clear ang chat na ito\n/hug @name — magpadala ng yakap\n/slap @name — sampalin gamit ang malaking trout\n/block @name · /unblock @name\n/ping @name — sukatin ang round-trip time (mesh lang)\n/trace @name — tinatayang mesh path (mesh lang)\n/pay <token> — magpadala ng cashu ecash token sa chat na ito\n/drop <message> — mag-pin ng note sa lugar na ito nang 24h (kailangan ng location)\n/help — ang listahang ito"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "commandes :\n/who — lister qui est là\n/clear — effacer ce chat\n/hug @name — envoyer un câlin\n/slap @name — mettre une claque avec une grosse truite\n/block @name · /unblock @name\n/group create <name> — démarrer un groupe chiffré\n/group invite @name · /group remove @name — gérer les membres (créateur)\n/group leave · /group list — quitter ou lister tes groupes\n/ping @name — mesurer le temps aller-retour (mesh uniquement)\n/trace @name — chemin mesh estimé (mesh uniquement)\n/pay <token> — envoyer un token ecash cashu dans ce chat\n/drop <message> — épingler une note à cet endroit pour 24h (nécessite la localisation)\n/help — cette liste"
+            "value" : "commandes :\n/who — lister qui est là\n/clear — effacer ce chat\n/hug @name — envoyer un câlin\n/slap @name — mettre une claque avec une grosse truite\n/block @name · /unblock @name\n/ping @name — mesurer le temps aller-retour (mesh uniquement)\n/trace @name — chemin mesh estimé (mesh uniquement)\n/pay <token> — envoyer un token ecash cashu dans ce chat\n/drop <message> — épingler une note à cet endroit pour 24h (nécessite la localisation)\n/help — cette liste"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "פקודות:\n/who — מי נמצא כאן\n/clear — ניקוי הצ'אט הזה\n/hug @name — שליחת חיבוק\n/slap @name — סטירה עם פורל ענק\n/block @name · /unblock @name\n/group create <name> — פתיחת קבוצה מוצפנת\n/group invite @name · /group remove @name — ניהול חברים (יוצר הקבוצה)\n/group leave · /group list — עזיבה או הצגת הקבוצות שלכם\n/ping @name — מדידת זמן הלוך-חזור (mesh בלבד)\n/trace @name — נתיב mesh משוער (mesh בלבד)\n/pay <token> — שליחת טוקן ecash של cashu בצ'אט הזה\n/drop <message> — הצמדת הערה למקום הזה ל-24 שעות (דורש מיקום)\n/help — הרשימה הזאת"
+            "value" : "פקודות:\n/who — מי נמצא כאן\n/clear — ניקוי הצ'אט הזה\n/hug @name — שליחת חיבוק\n/slap @name — סטירה עם פורל ענק\n/block @name · /unblock @name\n/ping @name — מדידת זמן הלוך-חזור (mesh בלבד)\n/trace @name — נתיב mesh משוער (mesh בלבד)\n/pay <token> — שליחת טוקן ecash של cashu בצ'אט הזה\n/drop <message> — הצמדת הערה למקום הזה ל-24 שעות (דורש מיקום)\n/help — הרשימה הזאת"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "कमांड:\n/who — देखो यहाँ कौन-कौन है\n/clear — यह चैट साफ़ करो\n/hug @name — झप्पी भेजो\n/slap @name — एक बड़ी ट्राउट मछली से थप्पड़ मारो\n/block @name · /unblock @name\n/group create <name> — एक एन्क्रिप्टेड ग्रुप शुरू करो\n/group invite @name · /group remove @name — सदस्य प्रबंधन (निर्माता)\n/group leave · /group list — ग्रुप छोड़ो या अपने ग्रुप की सूची देखो\n/ping @name — राउंड-ट्रिप समय मापो (सिर्फ mesh)\n/trace @name — अनुमानित mesh रास्ता (सिर्फ mesh)\n/pay <token> — इस चैट में cashu ecash टोकन भेजो\n/drop <message> — इस जगह 24 घंटे के लिए नोट पिन करो (लोकेशन चाहिए)\n/help — यही सूची"
+            "value" : "कमांड:\n/who — देखो यहाँ कौन-कौन है\n/clear — यह चैट साफ़ करो\n/hug @name — झप्पी भेजो\n/slap @name — एक बड़ी ट्राउट मछली से थप्पड़ मारो\n/block @name · /unblock @name\n/ping @name — राउंड-ट्रिप समय मापो (सिर्फ mesh)\n/trace @name — अनुमानित mesh रास्ता (सिर्फ mesh)\n/pay <token> — इस चैट में cashu ecash टोकन भेजो\n/drop <message> — इस जगह 24 घंटे के लिए नोट पिन करो (लोकेशन चाहिए)\n/help — यही सूची"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "perintah:\n/who — daftar siapa saja yang ada di sini\n/clear — bersihkan chat ini\n/hug @name — kirim pelukan\n/slap @name — tampar dengan ikan trout besar\n/block @name · /unblock @name\n/group create <name> — mulai grup terenkripsi\n/group invite @name · /group remove @name — kelola anggota (pembuat)\n/group leave · /group list — keluar dari grup atau lihat daftar grupmu\n/ping @name — ukur waktu bolak-balik (khusus mesh)\n/trace @name — perkiraan jalur mesh (khusus mesh)\n/pay <token> — kirim token ecash cashu di chat ini\n/drop <message> — sematkan catatan di tempat ini selama 24 jam (butuh lokasi)\n/help — daftar ini"
+            "value" : "perintah:\n/who — daftar siapa saja yang ada di sini\n/clear — bersihkan chat ini\n/hug @name — kirim pelukan\n/slap @name — tampar dengan ikan trout besar\n/block @name · /unblock @name\n/ping @name — ukur waktu bolak-balik (khusus mesh)\n/trace @name — perkiraan jalur mesh (khusus mesh)\n/pay <token> — kirim token ecash cashu di chat ini\n/drop <message> — sematkan catatan di tempat ini selama 24 jam (butuh lokasi)\n/help — daftar ini"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "comandi:\n/who — elenca chi c'è\n/clear — pulisci questa chat\n/hug @name — manda un abbraccio\n/slap @name — schiaffeggia con una grossa trota\n/block @name · /unblock @name\n/group create <nome> — avvia un gruppo cifrato\n/group invite @name · /group remove @name — gestisci i membri (creatore)\n/group leave · /group list — esci dai tuoi gruppi o elencali\n/ping @name — misura il tempo di andata e ritorno (solo mesh)\n/trace @name — percorso mesh stimato (solo mesh)\n/pay <token> — invia un token ecash cashu in questa chat\n/drop <messaggio> — appunta una nota in questo posto per 24h (serve la posizione)\n/help — questa lista"
+            "value" : "comandi:\n/who — elenca chi c'è\n/clear — pulisci questa chat\n/hug @name — manda un abbraccio\n/slap @name — schiaffeggia con una grossa trota\n/block @name · /unblock @name\n/ping @name — misura il tempo di andata e ritorno (solo mesh)\n/trace @name — percorso mesh stimato (solo mesh)\n/pay <token> — invia un token ecash cashu in questa chat\n/drop <messaggio> — appunta una nota in questo posto per 24h (serve la posizione)\n/help — questa lista"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コマンド:\n/who — 誰がいるか一覧表示\n/clear — このチャットをクリア\n/hug @name — ハグを送る\n/slap @name — 大きなマスでひっぱたく\n/block @name · /unblock @name\n/group create <名前> — 暗号化グループを開始\n/group invite @name · /group remove @name — メンバー管理 (作成者)\n/group leave · /group list — グループから抜ける・一覧表示\n/ping @name — 往復時間を測定 (メッシュのみ)\n/trace @name — 推定メッシュ経路 (メッシュのみ)\n/pay <トークン> — このチャットで cashu ecash トークンを送る\n/drop <メッセージ> — この場所に24時間ノートをピン留め (位置情報が必要)\n/help — この一覧"
+            "value" : "コマンド:\n/who — 誰がいるか一覧表示\n/clear — このチャットをクリア\n/hug @name — ハグを送る\n/slap @name — 大きなマスでひっぱたく\n/block @name · /unblock @name\n/ping @name — 往復時間を測定 (メッシュのみ)\n/trace @name — 推定メッシュ経路 (メッシュのみ)\n/pay <トークン> — このチャットで cashu ecash トークンを送る\n/drop <メッセージ> — この場所に24時間ノートをピン留め (位置情報が必要)\n/help — この一覧"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "명령어:\n/who — 여기 누가 있는지 보기\n/clear — 이 채팅 지우기\n/hug @name — 포옹 보내기\n/slap @name — 큰 송어로 찰싹 때리기\n/block @name · /unblock @name\n/group create <이름> — 암호화 그룹 만들기\n/group invite @name · /group remove @name — 멤버 관리 (만든 사람)\n/group leave · /group list — 그룹 나가기 또는 목록 보기\n/ping @name — 왕복 시간 측정 (메시 전용)\n/trace @name — 예상 메시 경로 (메시 전용)\n/pay <토큰> — 이 채팅에서 cashu ecash 토큰 보내기\n/drop <메시지> — 이 장소에 24시간 노트 고정 (위치 정보 필요)\n/help — 이 목록"
+            "value" : "명령어:\n/who — 여기 누가 있는지 보기\n/clear — 이 채팅 지우기\n/hug @name — 포옹 보내기\n/slap @name — 큰 송어로 찰싹 때리기\n/block @name · /unblock @name\n/ping @name — 왕복 시간 측정 (메시 전용)\n/trace @name — 예상 메시 경로 (메시 전용)\n/pay <토큰> — 이 채팅에서 cashu ecash 토큰 보내기\n/drop <메시지> — 이 장소에 24시간 노트 고정 (위치 정보 필요)\n/help — 이 목록"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "arahan:\n/who — senaraikan siapa yang ada di sini\n/clear — kosongkan sembang ini\n/hug @name — hantar pelukan\n/slap @name — tampar dengan ikan trout besar\n/block @name · /unblock @name\n/group create <nama> — mulakan kumpulan tersulit\n/group invite @name · /group remove @name — urus ahli (pencipta)\n/group leave · /group list — keluar atau senaraikan kumpulan anda\n/ping @name — ukur masa pergi balik (mesh sahaja)\n/trace @name — laluan mesh anggaran (mesh sahaja)\n/pay <token> — hantar token ecash cashu dalam sembang ini\n/drop <mesej> — sematkan nota di tempat ini selama 24 jam (perlukan lokasi)\n/help — senarai ini"
+            "value" : "arahan:\n/who — senaraikan siapa yang ada di sini\n/clear — kosongkan sembang ini\n/hug @name — hantar pelukan\n/slap @name — tampar dengan ikan trout besar\n/block @name · /unblock @name\n/ping @name — ukur masa pergi balik (mesh sahaja)\n/trace @name — laluan mesh anggaran (mesh sahaja)\n/pay <token> — hantar token ecash cashu dalam sembang ini\n/drop <mesej> — sematkan nota di tempat ini selama 24 jam (perlukan lokasi)\n/help — senarai ini"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "कमाण्डहरू:\n/who — यहाँ को छ भनेर हेर्नुहोस्\n/clear — यो च्याट खाली गर्नुहोस्\n/hug @name — अँगालो पठाउनुहोस्\n/slap @name — ठूलो ट्राउट माछाले हिर्काउनुहोस्\n/block @name · /unblock @name\n/group create <नाम> — इन्क्रिप्टेड समूह सुरु गर्नुहोस्\n/group invite @name · /group remove @name — सदस्य व्यवस्थापन (सर्जक)\n/group leave · /group list — समूह छोड्नुहोस् वा सूची हेर्नुहोस्\n/ping @name — राउन्ड-ट्रिप समय नाप्नुहोस् (मेस मात्र)\n/trace @name — अनुमानित मेस बाटो (मेस मात्र)\n/pay <टोकन> — यो च्याटमा cashu ecash टोकन पठाउनुहोस्\n/drop <सन्देश> — यो ठाउँमा 24 घण्टाका लागि नोट राख्नुहोस् (स्थान चाहिन्छ)\n/help — यो सूची"
+            "value" : "कमाण्डहरू:\n/who — यहाँ को छ भनेर हेर्नुहोस्\n/clear — यो च्याट खाली गर्नुहोस्\n/hug @name — अँगालो पठाउनुहोस्\n/slap @name — ठूलो ट्राउट माछाले हिर्काउनुहोस्\n/block @name · /unblock @name\n/ping @name — राउन्ड-ट्रिप समय नाप्नुहोस् (मेस मात्र)\n/trace @name — अनुमानित मेस बाटो (मेस मात्र)\n/pay <टोकन> — यो च्याटमा cashu ecash टोकन पठाउनुहोस्\n/drop <सन्देश> — यो ठाउँमा 24 घण्टाका लागि नोट राख्नुहोस् (स्थान चाहिन्छ)\n/help — यो सूची"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "commando's:\n/who — toon wie er is\n/clear — wis deze chat\n/hug @name — stuur een knuffel\n/slap @name — sla met een grote forel\n/block @name · /unblock @name\n/group create <naam> — start een versleutelde groep\n/group invite @name · /group remove @name — beheer leden (maker)\n/group leave · /group list — verlaat of toon je groepen\n/ping @name — meet de rondreistijd (alleen mesh)\n/trace @name — geschat mesh-pad (alleen mesh)\n/pay <token> — stuur een cashu-ecash-token in deze chat\n/drop <bericht> — pin 24 uur lang een notitie op deze plek (vereist locatie)\n/help — deze lijst"
+            "value" : "commando's:\n/who — toon wie er is\n/clear — wis deze chat\n/hug @name — stuur een knuffel\n/slap @name — sla met een grote forel\n/block @name · /unblock @name\n/ping @name — meet de rondreistijd (alleen mesh)\n/trace @name — geschat mesh-pad (alleen mesh)\n/pay <token> — stuur een cashu-ecash-token in deze chat\n/drop <bericht> — pin 24 uur lang een notitie op deze plek (vereist locatie)\n/help — deze lijst"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "polecenia:\n/who — pokaż, kto tu jest\n/clear — wyczyść ten czat\n/hug @name — wyślij przytulasa\n/slap @name — trzaśnij wielkim pstrągiem\n/block @name · /unblock @name\n/group create <nazwa> — załóż szyfrowaną grupę\n/group invite @name · /group remove @name — zarządzaj członkami (założyciel)\n/group leave · /group list — opuść grupę lub pokaż swoje grupy\n/ping @name — zmierz czas podróży w obie strony (tylko mesh)\n/trace @name — szacowana ścieżka mesh (tylko mesh)\n/pay <token> — wyślij token ecash cashu na tym czacie\n/drop <wiadomość> — przypnij notkę w tym miejscu na 24 h (wymaga lokalizacji)\n/help — ta lista"
+            "value" : "polecenia:\n/who — pokaż, kto tu jest\n/clear — wyczyść ten czat\n/hug @name — wyślij przytulasa\n/slap @name — trzaśnij wielkim pstrągiem\n/block @name · /unblock @name\n/ping @name — zmierz czas podróży w obie strony (tylko mesh)\n/trace @name — szacowana ścieżka mesh (tylko mesh)\n/pay <token> — wyślij token ecash cashu na tym czacie\n/drop <wiadomość> — przypnij notkę w tym miejscu na 24 h (wymaga lokalizacji)\n/help — ta lista"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "comandos:\n/who — lista quem está aqui\n/clear — limpa esta conversa\n/hug @name — envia um abraço\n/slap @name — dá uma chapada com uma truta enorme\n/block @name · /unblock @name\n/group create <nome> — cria um grupo encriptado\n/group invite @name · /group remove @name — gere os membros (criador)\n/group leave · /group list — sai dos teus grupos ou lista-os\n/ping @name — mede o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envia um token ecash cashu nesta conversa\n/drop <mensagem> — fixa uma nota neste sítio por 24h (precisa de localização)\n/help — esta lista"
+            "value" : "comandos:\n/who — lista quem está aqui\n/clear — limpa esta conversa\n/hug @name — envia um abraço\n/slap @name — dá uma chapada com uma truta enorme\n/block @name · /unblock @name\n/ping @name — mede o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envia um token ecash cashu nesta conversa\n/drop <mensagem> — fixa uma nota neste sítio por 24h (precisa de localização)\n/help — esta lista"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "comandos:\n/who — veja quem está aqui\n/clear — limpe este chat\n/hug @name — mande um abraço\n/slap @name — dê um tapa com uma truta gigante\n/block @name · /unblock @name\n/group create <nome> — crie um grupo criptografado\n/group invite @name · /group remove @name — gerencie os membros (criador)\n/group leave · /group list — saia dos seus grupos ou liste-os\n/ping @name — meça o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envie um token ecash cashu neste chat\n/drop <mensagem> — fixe uma nota neste lugar por 24h (precisa de localização)\n/help — esta lista"
+            "value" : "comandos:\n/who — veja quem está aqui\n/clear — limpe este chat\n/hug @name — mande um abraço\n/slap @name — dê um tapa com uma truta gigante\n/block @name · /unblock @name\n/ping @name — meça o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envie um token ecash cashu neste chat\n/drop <mensagem> — fixe uma nota neste lugar por 24h (precisa de localização)\n/help — esta lista"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "команды:\n/who — показать, кто здесь\n/clear — очистить этот чат\n/hug @name — отправить обнимашку\n/slap @name — шлёпнуть большой форелью\n/block @name · /unblock @name\n/group create <название> — создать зашифрованную группу\n/group invite @name · /group remove @name — управление участниками (создатель)\n/group leave · /group list — выйти из групп или показать их список\n/ping @name — измерить время туда-обратно (только mesh)\n/trace @name — примерный путь по mesh (только mesh)\n/pay <токен> — отправить cashu-токен (ecash) в этот чат\n/drop <сообщение> — закрепить заметку в этом месте на 24 ч (нужна геолокация)\n/help — этот список"
+            "value" : "команды:\n/who — показать, кто здесь\n/clear — очистить этот чат\n/hug @name — отправить обнимашку\n/slap @name — шлёпнуть большой форелью\n/block @name · /unblock @name\n/ping @name — измерить время туда-обратно (только mesh)\n/trace @name — примерный путь по mesh (только mesh)\n/pay <токен> — отправить cashu-токен (ecash) в этот чат\n/drop <сообщение> — закрепить заметку в этом месте на 24 ч (нужна геолокация)\n/help — этот список"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "kommandon:\n/who — lista vilka som är här\n/clear — rensa den här chatten\n/hug @name — skicka en kram\n/slap @name — daska till med en stor forell\n/block @name · /unblock @name\n/group create <name> — starta en krypterad grupp\n/group invite @name · /group remove @name — hantera medlemmar (skapare)\n/group leave · /group list — lämna eller lista dina grupper\n/ping @name — mät tur- och returtid (endast mesh)\n/trace @name — uppskattad mesh-väg (endast mesh)\n/pay <token> — skicka en cashu ecash-token i den här chatten\n/drop <message> — fäst en anteckning på den här platsen i 24h (kräver plats)\n/help — den här listan"
+            "value" : "kommandon:\n/who — lista vilka som är här\n/clear — rensa den här chatten\n/hug @name — skicka en kram\n/slap @name — daska till med en stor forell\n/block @name · /unblock @name\n/ping @name — mät tur- och returtid (endast mesh)\n/trace @name — uppskattad mesh-väg (endast mesh)\n/pay <token> — skicka en cashu ecash-token i den här chatten\n/drop <message> — fäst en anteckning på den här platsen i 24h (kräver plats)\n/help — den här listan"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "கட்டளைகள்:\n/who — இங்கு யார் இருக்கிறார்கள் என்று பட்டியலிடு\n/clear — இந்த அரட்டையை அழி\n/hug @name — ஒரு அணைப்பை அனுப்பு\n/slap @name — ஒரு பெரிய ட்ரவுட் மீனால் அறை\n/block @name · /unblock @name\n/group create <name> — மறைகுறியாக்கப்பட்ட குழுவைத் தொடங்கு\n/group invite @name · /group remove @name — உறுப்பினர்களை நிர்வகி (உருவாக்கியவர்)\n/group leave · /group list — உங்கள் குழுக்களிலிருந்து வெளியேறு அல்லது பட்டியலிடு\n/ping @name — சுற்றுப்பயண நேரத்தை அளவிடு (mesh மட்டும்)\n/trace @name — மதிப்பிடப்பட்ட mesh பாதை (mesh மட்டும்)\n/pay <token> — இந்த அரட்டையில் cashu ecash டோக்கனை அனுப்பு\n/drop <message> — இந்த இடத்தில் 24 மணி நேரத்திற்கு ஒரு குறிப்பை பொருத்து (இருப்பிடம் தேவை)\n/help — இந்த பட்டியல்"
+            "value" : "கட்டளைகள்:\n/who — இங்கு யார் இருக்கிறார்கள் என்று பட்டியலிடு\n/clear — இந்த அரட்டையை அழி\n/hug @name — ஒரு அணைப்பை அனுப்பு\n/slap @name — ஒரு பெரிய ட்ரவுட் மீனால் அறை\n/block @name · /unblock @name\n/ping @name — சுற்றுப்பயண நேரத்தை அளவிடு (mesh மட்டும்)\n/trace @name — மதிப்பிடப்பட்ட mesh பாதை (mesh மட்டும்)\n/pay <token> — இந்த அரட்டையில் cashu ecash டோக்கனை அனுப்பு\n/drop <message> — இந்த இடத்தில் 24 மணி நேரத்திற்கு ஒரு குறிப்பை பொருத்து (இருப்பிடம் தேவை)\n/help — இந்த பட்டியல்"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "คำสั่ง:\n/who — ดูว่าใครอยู่ที่นี่บ้าง\n/clear — ล้างแชทนี้\n/hug @name — ส่งอ้อมกอด\n/slap @name — ตบด้วยปลาเทราต์ตัวใหญ่\n/block @name · /unblock @name\n/group create <name> — เริ่มกลุ่มที่เข้ารหัส\n/group invite @name · /group remove @name — จัดการสมาชิก (ผู้สร้าง)\n/group leave · /group list — ออกจากกลุ่มหรือดูรายชื่อกลุ่มของคุณ\n/ping @name — วัดเวลาไปกลับ (เฉพาะ mesh)\n/trace @name — เส้นทาง mesh โดยประมาณ (เฉพาะ mesh)\n/pay <token> — ส่งโทเคน ecash ของ cashu ในแชทนี้\n/drop <message> — ปักโน้ตไว้ที่นี่นาน 24 ชม. (ต้องใช้ตำแหน่งที่ตั้ง)\n/help — รายการนี้"
+            "value" : "คำสั่ง:\n/who — ดูว่าใครอยู่ที่นี่บ้าง\n/clear — ล้างแชทนี้\n/hug @name — ส่งอ้อมกอด\n/slap @name — ตบด้วยปลาเทราต์ตัวใหญ่\n/block @name · /unblock @name\n/ping @name — วัดเวลาไปกลับ (เฉพาะ mesh)\n/trace @name — เส้นทาง mesh โดยประมาณ (เฉพาะ mesh)\n/pay <token> — ส่งโทเคน ecash ของ cashu ในแชทนี้\n/drop <message> — ปักโน้ตไว้ที่นี่นาน 24 ชม. (ต้องใช้ตำแหน่งที่ตั้ง)\n/help — รายการนี้"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "komutlar:\n/who — burada kimler var, listele\n/clear — bu sohbeti temizle\n/hug @name — sarılma gönder\n/slap @name — koca bir alabalıkla tokat at\n/block @name · /unblock @name\n/group create <name> — şifreli bir grup başlat\n/group invite @name · /group remove @name — üyeleri yönet (kurucu)\n/group leave · /group list — gruplarından ayrıl veya listele\n/ping @name — gidiş-dönüş süresini ölç (sadece mesh)\n/trace @name — tahmini mesh yolu (sadece mesh)\n/pay <token> — bu sohbette cashu ecash token'ı gönder\n/drop <message> — buraya 24 saatliğine not sabitle (konum gerekli)\n/help — bu liste"
+            "value" : "komutlar:\n/who — burada kimler var, listele\n/clear — bu sohbeti temizle\n/hug @name — sarılma gönder\n/slap @name — koca bir alabalıkla tokat at\n/block @name · /unblock @name\n/ping @name — gidiş-dönüş süresini ölç (sadece mesh)\n/trace @name — tahmini mesh yolu (sadece mesh)\n/pay <token> — bu sohbette cashu ecash token'ı gönder\n/drop <message> — buraya 24 saatliğine not sabitle (konum gerekli)\n/help — bu liste"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "команди:\n/who — показати, хто тут є\n/clear — очистити цей чат\n/hug @name — надіслати обійми\n/slap @name — ляснути великою фореллю\n/block @name · /unblock @name\n/group create <name> — створити зашифровану групу\n/group invite @name · /group remove @name — керувати учасниками (творець)\n/group leave · /group list — вийти з груп або показати список\n/ping @name — виміряти час проходження туди й назад (лише mesh)\n/trace @name — орієнтовний шлях у mesh (лише mesh)\n/pay <token> — надіслати cashu ecash-токен у цей чат\n/drop <message> — закріпити нотатку в цьому місці на 24 год (потрібна геолокація)\n/help — цей список"
+            "value" : "команди:\n/who — показати, хто тут є\n/clear — очистити цей чат\n/hug @name — надіслати обійми\n/slap @name — ляснути великою фореллю\n/block @name · /unblock @name\n/ping @name — виміряти час проходження туди й назад (лише mesh)\n/trace @name — орієнтовний шлях у mesh (лише mesh)\n/pay <token> — надіслати cashu ecash-токен у цей чат\n/drop <message> — закріпити нотатку в цьому місці на 24 год (потрібна геолокація)\n/help — цей список"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "کمانڈز:\n/who — دیکھیں یہاں کون کون ہے\n/clear — یہ چیٹ صاف کریں\n/hug @name — جھپی بھیجیں\n/slap @name — ایک بڑی ٹراؤٹ مچھلی سے تھپڑ ماریں\n/block @name · /unblock @name\n/group create <name> — ایک انکرپٹڈ گروپ بنائیں\n/group invite @name · /group remove @name — اراکین کا انتظام کریں (بنانے والا)\n/group leave · /group list — اپنے گروپ چھوڑیں یا فہرست دیکھیں\n/ping @name — راؤنڈ ٹرپ وقت ناپیں (صرف mesh)\n/trace @name — تخمینی mesh راستہ (صرف mesh)\n/pay <token> — اس چیٹ میں cashu ای کیش ٹوکن بھیجیں\n/drop <message> — اس جگہ 24 گھنٹے کے لیے نوٹ لگائیں (مقام درکار)\n/help — یہ فہرست"
+            "value" : "کمانڈز:\n/who — دیکھیں یہاں کون کون ہے\n/clear — یہ چیٹ صاف کریں\n/hug @name — جھپی بھیجیں\n/slap @name — ایک بڑی ٹراؤٹ مچھلی سے تھپڑ ماریں\n/block @name · /unblock @name\n/ping @name — راؤنڈ ٹرپ وقت ناپیں (صرف mesh)\n/trace @name — تخمینی mesh راستہ (صرف mesh)\n/pay <token> — اس چیٹ میں cashu ای کیش ٹوکن بھیجیں\n/drop <message> — اس جگہ 24 گھنٹے کے لیے نوٹ لگائیں (مقام درکار)\n/help — یہ فہرست"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "các lệnh:\n/who — xem ai đang ở đây\n/clear — xóa cuộc trò chuyện này\n/hug @name — gửi một cái ôm\n/slap @name — tát bằng một con cá hồi vân to\n/block @name · /unblock @name\n/group create <name> — tạo nhóm mã hóa\n/group invite @name · /group remove @name — quản lý thành viên (người tạo)\n/group leave · /group list — rời hoặc xem danh sách nhóm của bạn\n/ping @name — đo thời gian khứ hồi (chỉ mesh)\n/trace @name — đường đi mesh ước tính (chỉ mesh)\n/pay <token> — gửi token ecash cashu trong cuộc trò chuyện này\n/drop <message> — ghim ghi chú tại nơi này trong 24 giờ (cần vị trí)\n/help — danh sách này"
+            "value" : "các lệnh:\n/who — xem ai đang ở đây\n/clear — xóa cuộc trò chuyện này\n/hug @name — gửi một cái ôm\n/slap @name — tát bằng một con cá hồi vân to\n/block @name · /unblock @name\n/ping @name — đo thời gian khứ hồi (chỉ mesh)\n/trace @name — đường đi mesh ước tính (chỉ mesh)\n/pay <token> — gửi token ecash cashu trong cuộc trò chuyện này\n/drop <message> — ghim ghi chú tại nơi này trong 24 giờ (cần vị trí)\n/help — danh sách này"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "命令：\n/who — 列出谁在这里\n/clear — 清空当前聊天\n/hug @name — 送出一个拥抱\n/slap @name — 用一条大鳟鱼拍过去\n/block @name · /unblock @name\n/group create <name> — 创建加密群组\n/group invite @name · /group remove @name — 管理成员（创建者）\n/group leave · /group list — 退出或列出你的群组\n/ping @name — 测量往返时间（仅 mesh）\n/trace @name — 估计的 mesh 路径（仅 mesh）\n/pay <token> — 在当前聊天发送 cashu ecash 代币\n/drop <message> — 在这个地方钉一条便签，保留 24 小时（需要位置）\n/help — 本列表"
+            "value" : "命令：\n/who — 列出谁在这里\n/clear — 清空当前聊天\n/hug @name — 送出一个拥抱\n/slap @name — 用一条大鳟鱼拍过去\n/block @name · /unblock @name\n/ping @name — 测量往返时间（仅 mesh）\n/trace @name — 估计的 mesh 路径（仅 mesh）\n/pay <token> — 在当前聊天发送 cashu ecash 代币\n/drop <message> — 在这个地方钉一条便签，保留 24 小时（需要位置）\n/help — 本列表"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "指令：\n/who — 列出誰在這裡\n/clear — 清除這個聊天\n/hug @name — 送出一個擁抱\n/slap @name — 用一條大鱒魚巴下去\n/block @name · /unblock @name\n/group create <name> — 建立加密群組\n/group invite @name · /group remove @name — 管理成員（建立者）\n/group leave · /group list — 離開或列出你的群組\n/ping @name — 測量來回時間（僅限 mesh）\n/trace @name — 估計的 mesh 路徑（僅限 mesh）\n/pay <token> — 在這個聊天中傳送 cashu ecash 代幣\n/drop <message> — 在這個地方釘一張便箋 24 小時（需要位置）\n/help — 這份清單"
+            "value" : "指令：\n/who — 列出誰在這裡\n/clear — 清除這個聊天\n/hug @name — 送出一個擁抱\n/slap @name — 用一條大鱒魚巴下去\n/block @name · /unblock @name\n/ping @name — 測量來回時間（僅限 mesh）\n/trace @name — 估計的 mesh 路徑（僅限 mesh）\n/pay <token> — 在這個聊天中傳送 cashu ecash 代幣\n/drop <message> — 在這個地方釘一張便箋 24 小時（需要位置）\n/help — 這份清單"
           }
         }
       }
@@ -45401,191 +44843,6 @@
         }
       }
     },
-    "content.commands.group" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "إنشاء أو إدارة المجموعات الخاصة"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ব্যক্তিগত গ্রুপ তৈরি বা পরিচালনা করুন"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "private gruppen erstellen oder verwalten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "create or manage private groups"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "crear o gestionar grupos privados"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ساخت یا مدیریت گروه‌های خصوصی"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "lumikha o mamahala ng mga pribadong grupo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "créer ou gérer des groupes privés"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "יצירה או ניהול של קבוצות פרטיות"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "निजी समूह बनाएँ या प्रबंधित करें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "buat atau kelola grup pribadi"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "crea o gestisci gruppi privati"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "プライベートグループを作成または管理"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "비공개 그룹 생성 또는 관리"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "cipta atau urus kumpulan peribadi"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "निजी समूह सिर्जना वा व्यवस्थापन गर"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "privégroepen maken of beheren"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "twórz lub zarządzaj prywatnymi grupami"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "criar ou gerir grupos privados"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "criar ou gerenciar grupos privados"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "создать частные группы или управлять ими"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "skapa eller hantera privata grupper"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "தனிப்பட்ட குழுக்களை உருவாக்கவும் அல்லது நிர்வகிக்கவும்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "สร้างหรือจัดการกลุ่มส่วนตัว"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "özel gruplar oluştur veya yönet"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "створюй або керуй приватними групами"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "نجی گروپ بنائیں یا ان کا نظم کریں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "tạo hoặc quản lý nhóm riêng tư"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "创建或管理私密群组"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "建立或管理私密群組"
-          }
-        }
-      }
-    },
     "content.commands.help" : {
       "comment" : "Description of the /help command in the suggestions panel",
       "extractionState" : "manual",
@@ -53193,191 +52450,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "驗證：展示我的 qr 或掃描好友"
-          }
-        }
-      }
-    },
-    "content.input.group_placeholder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "create|invite|leave|list"
           }
         }
       }
@@ -84154,181 +83226,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "أُنشئت المجموعة '%@' — استخدم /group invite @name لإضافة أشخاص"
+            "value" : "أُنشئت المجموعة '%@'"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "'%@' গ্রুপ তৈরি হয়েছে — মানুষ যোগ করতে /group invite @name ব্যবহার করুন"
+            "value" : "'%@' গ্রুপ তৈরি হয়েছে"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "gruppe '%@' erstellt — nutze /group invite @name, um leute hinzuzufügen"
+            "value" : "gruppe '%@' erstellt"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "created group '%@' — use /group invite @name to add people"
+            "value" : "created group '%@'"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "grupo '%@' creado — usa /group invite @name para añadir personas"
+            "value" : "grupo '%@' creado"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "گروه «%@» ساخته شد — با ‎/group invite @name افراد را اضافه کنید"
+            "value" : "گروه «%@» ساخته شد"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "nalikha ang grupong '%@' — gamitin ang /group invite @name para magdagdag ng tao"
+            "value" : "nalikha ang grupong '%@'"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "groupe '%@' créé — utilise /group invite @name pour ajouter des personnes"
+            "value" : "groupe '%@' créé"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "נוצרה הקבוצה '%@' — השתמש ב-/group invite @name כדי להוסיף אנשים"
+            "value" : "נוצרה הקבוצה '%@'"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "समूह '%@' बनाया गया — लोगों को जोड़ने के लिए /group invite @name का उपयोग करें"
+            "value" : "समूह '%@' बनाया गया"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "grup '%@' dibuat — gunakan /group invite @name untuk menambah orang"
+            "value" : "grup '%@' dibuat"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "gruppo '%@' creato — usa /group invite @name per aggiungere persone"
+            "value" : "gruppo '%@' creato"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "グループ '%@' を作成しました — /group invite @name で人を追加できます"
+            "value" : "グループ '%@' を作成しました"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "그룹 '%@' 을(를) 생성했습니다 — /group invite @name 으로 사람을 추가하세요"
+            "value" : "그룹 '%@' 을(를) 생성했습니다"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "kumpulan '%@' dicipta — guna /group invite @name untuk menambah orang"
+            "value" : "kumpulan '%@' dicipta"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "समूह '%@' सिर्जना भयो — मानिस थप्न /group invite @name प्रयोग गर"
+            "value" : "समूह '%@' सिर्जना भयो"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "groep '%@' aangemaakt — gebruik /group invite @name om mensen toe te voegen"
+            "value" : "groep '%@' aangemaakt"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "utworzono grupę '%@' — użyj /group invite @name, aby dodać osoby"
+            "value" : "utworzono grupę '%@'"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "grupo '%@' criado — usa /group invite @name para adicionar pessoas"
+            "value" : "grupo '%@' criado"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "grupo '%@' criado — use /group invite @nome para adicionar pessoas"
+            "value" : "grupo '%@' criado"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "создана группа «%@» — используй /group invite @name, чтобы добавить людей"
+            "value" : "создана группа «%@»"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "skapade grupp '%@' — använd /group invite @name för att lägga till personer"
+            "value" : "skapade grupp '%@'"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "'%@' குழு உருவாக்கப்பட்டது — நபர்களைச் சேர்க்க /group invite @name ஐப் பயன்படுத்தவும்"
+            "value" : "'%@' குழு உருவாக்கப்பட்டது"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "สร้างกลุ่ม '%@' แล้ว — ใช้ /group invite @name เพื่อเพิ่มคน"
+            "value" : "สร้างกลุ่ม '%@' แล้ว"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "'%@' grubu oluşturuldu — kişi eklemek için /group invite @name kullanın"
+            "value" : "'%@' grubu oluşturuldu"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "створено групу '%@' — використай /group invite @name, щоб додати людей"
+            "value" : "створено групу '%@'"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "گروپ '%@' بنایا گیا — لوگوں کو شامل کرنے کیلئے /group invite @name استعمال کریں"
+            "value" : "گروپ '%@' بنایا گیا"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "đã tạo nhóm '%@' — dùng /group invite @name để thêm người"
+            "value" : "đã tạo nhóm '%@'"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "已创建群组 '%@' — 使用 /group invite @name 添加成员"
+            "value" : "已创建群组 '%@'"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "已建立群組「%@」— 使用 /group invite @name 添加成員"
+            "value" : "已建立群組「%@」"
           }
         }
       }
@@ -85628,191 +84700,6 @@
         }
       }
     },
-    "system.group.list_header" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "مجموعاتك:"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "আপনার গ্রুপসমূহ:"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "deine gruppen:"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "your groups:"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tus grupos:"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "گروه‌های شما:"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "mga grupo mo:"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "tes groupes :"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "הקבוצות שלך:"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "आपके समूह:"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "grupmu:"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "i tuoi gruppi:"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "あなたのグループ："
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "내 그룹:"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kumpulanmu:"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "तिम्रा समूहहरू:"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "je groepen:"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "twoje grupy:"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "os teus grupos:"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "seus grupos:"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "твои группы:"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "dina grupper:"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "உங்கள் குழுக்கள்:"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "กลุ่มของคุณ:"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "grupların:"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "твої групи:"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "آپ کے گروپس:"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "nhóm của bạn:"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "你的群组："
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "你的群組："
-          }
-        }
-      }
-    },
     "system.group.member_not_found" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -86179,191 +85066,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "群組名稱最多 40 個字元"
-          }
-        }
-      }
-    },
-    "system.group.none" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "لست في أي مجموعة — /group create <name> لبدء واحدة"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "আপনি কোনো গ্রুপে নেই — একটি শুরু করতে /group create <name>"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "du bist in keiner gruppe — /group create <name>, um eine zu starten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "you are not in any groups — /group create <name> to start one"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "no estás en ningún grupo — /group create <name> para crear uno"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "در هیچ گروهی نیستید — با ‎/group create <name> یکی بسازید"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "wala ka sa anumang grupo — /group create <name> para magsimula"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "tu n'es dans aucun groupe — /group create <name> pour en démarrer un"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "אתה לא באף קבוצה — /group create <name> כדי להתחיל אחת"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "आप किसी समूह में नहीं हैं — शुरू करने के लिए /group create <name>"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "kamu tidak ada di grup mana pun — /group create <name> untuk memulai"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "non sei in nessun gruppo — /group create <name> per crearne uno"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "どのグループにも参加していません — /group create <name> で作成できます"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "참여 중인 그룹이 없습니다 — /group create <name> 으로 시작하세요"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "anda tiada dalam mana-mana kumpulan — /group create <name> untuk memulakan"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "तिमी कुनै समूहमा छैनौ — सुरु गर्न /group create <name>"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "je zit in geen enkele groep — /group create <name> om er een te starten"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "nie należysz do żadnej grupy — /group create <name>, aby utworzyć"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "não estás em nenhum grupo — /group create <name> para começar um"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "você não está em nenhum grupo — /group create <nome> para começar um"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ты не состоишь ни в одной группе — /group create <name>, чтобы создать"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "du är inte med i någon grupp — /group create <name> för att skapa en"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "நீங்கள் எந்தக் குழுவிலும் இல்லை — ஒன்றைத் தொடங்க /group create <name>"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "คุณยังไม่ได้อยู่ในกลุ่มใด — /group create <name> เพื่อเริ่มกลุ่ม"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "hiçbir grupta değilsin — bir grup oluşturmak için /group create <name>"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ти не в жодній групі — /group create <name>, щоб створити"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "آپ کسی گروپ میں نہیں ہیں — ایک شروع کرنے کیلئے /group create <name>"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "bạn không ở trong nhóm nào — /group create <name> để tạo một nhóm"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "你不在任何群组中 — 使用 /group create <name> 创建一个"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "你不在任何群組中 — 使用 /group create <name> 建立一個"
           }
         }
       }
@@ -88039,181 +86741,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "الاستخدام: /group create <name>"
+            "value" : "الاستخدام: enter a group name"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "ব্যবহার: /group create <name>"
+            "value" : "ব্যবহার: enter a group name"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "verwendung: /group create <name>"
+            "value" : "verwendung: enter a group name"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "usage: /group create <name>"
+            "value" : "usage: enter a group name"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "uso: /group create <name>"
+            "value" : "uso: enter a group name"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "استفاده: ‎/group create <name>"
+            "value" : "استفاده: ‎enter a group name"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "paggamit: /group create <name>"
+            "value" : "paggamit: enter a group name"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "utilisation : /group create <name>"
+            "value" : "utilisation : enter a group name"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "שימוש: /group create <name>"
+            "value" : "שימוש: enter a group name"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "उपयोग: /group create <name>"
+            "value" : "उपयोग: enter a group name"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "penggunaan: /group create <name>"
+            "value" : "penggunaan: enter a group name"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "uso: /group create <name>"
+            "value" : "uso: enter a group name"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "使い方: /group create <name>"
+            "value" : "使い方: enter a group name"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "사용법: /group create <name>"
+            "value" : "사용법: enter a group name"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "penggunaan: /group create <name>"
+            "value" : "penggunaan: enter a group name"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "प्रयोग: /group create <name>"
+            "value" : "प्रयोग: enter a group name"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "gebruik: /group create <name>"
+            "value" : "gebruik: enter a group name"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "użycie: /group create <name>"
+            "value" : "użycie: enter a group name"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "utilização: /group create <name>"
+            "value" : "utilização: enter a group name"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "uso: /group create <nome>"
+            "value" : "uso: enter a group name"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "использование: /group create <name>"
+            "value" : "использование: enter a group name"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "användning: /group create <name>"
+            "value" : "användning: enter a group name"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "பயன்பாடு: /group create <name>"
+            "value" : "பயன்பாடு: enter a group name"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "วิธีใช้: /group create <name>"
+            "value" : "วิธีใช้: enter a group name"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "kullanım: /group create <name>"
+            "value" : "kullanım: enter a group name"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "використання: /group create <name>"
+            "value" : "використання: enter a group name"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "استعمال: /group create <name>"
+            "value" : "استعمال: enter a group name"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "cách dùng: /group create <name>"
+            "value" : "cách dùng: enter a group name"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "用法：/group create <name>"
+            "value" : "用法：enter a group name"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "用法：/group create <name>"
+            "value" : "用法：enter a group name"
           }
         }
       }
@@ -88224,181 +86926,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "الاستخدام: /group invite @name"
+            "value" : "الاستخدام: choose someone to invite"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "ব্যবহার: /group invite @name"
+            "value" : "ব্যবহার: choose someone to invite"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "verwendung: /group invite @name"
+            "value" : "verwendung: choose someone to invite"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "usage: /group invite @name"
+            "value" : "usage: choose someone to invite"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "uso: /group invite @name"
+            "value" : "uso: choose someone to invite"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "استفاده: ‎/group invite @name"
+            "value" : "استفاده: ‎choose someone to invite"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "paggamit: /group invite @name"
+            "value" : "paggamit: choose someone to invite"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "utilisation : /group invite @name"
+            "value" : "utilisation : choose someone to invite"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "שימוש: /group invite @name"
+            "value" : "שימוש: choose someone to invite"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "उपयोग: /group invite @name"
+            "value" : "उपयोग: choose someone to invite"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "penggunaan: /group invite @name"
+            "value" : "penggunaan: choose someone to invite"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "uso: /group invite @name"
+            "value" : "uso: choose someone to invite"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "使い方: /group invite @name"
+            "value" : "使い方: choose someone to invite"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "사용법: /group invite @name"
+            "value" : "사용법: choose someone to invite"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "penggunaan: /group invite @name"
+            "value" : "penggunaan: choose someone to invite"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "प्रयोग: /group invite @name"
+            "value" : "प्रयोग: choose someone to invite"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "gebruik: /group invite @name"
+            "value" : "gebruik: choose someone to invite"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "użycie: /group invite @name"
+            "value" : "użycie: choose someone to invite"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "utilização: /group invite @name"
+            "value" : "utilização: choose someone to invite"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "uso: /group invite @nome"
+            "value" : "uso: choose someone to invite"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "использование: /group invite @name"
+            "value" : "использование: choose someone to invite"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "användning: /group invite @name"
+            "value" : "användning: choose someone to invite"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "பயன்பாடு: /group invite @name"
+            "value" : "பயன்பாடு: choose someone to invite"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "วิธีใช้: /group invite @name"
+            "value" : "วิธีใช้: choose someone to invite"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "kullanım: /group invite @name"
+            "value" : "kullanım: choose someone to invite"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "використання: /group invite @name"
+            "value" : "використання: choose someone to invite"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "استعمال: /group invite @name"
+            "value" : "استعمال: choose someone to invite"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "cách dùng: /group invite @name"
+            "value" : "cách dùng: choose someone to invite"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "用法：/group invite @name"
+            "value" : "用法：choose someone to invite"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "用法：/group invite @name"
+            "value" : "用法：choose someone to invite"
           }
         }
       }
@@ -88409,181 +87111,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "الاستخدام: /group remove @name"
+            "value" : "الاستخدام: choose a member to remove"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "ব্যবহার: /group remove @name"
+            "value" : "ব্যবহার: choose a member to remove"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "verwendung: /group remove @name"
+            "value" : "verwendung: choose a member to remove"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "usage: /group remove @name"
+            "value" : "usage: choose a member to remove"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "uso: /group remove @name"
+            "value" : "uso: choose a member to remove"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "استفاده: ‎/group remove @name"
+            "value" : "استفاده: ‎choose a member to remove"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "paggamit: /group remove @name"
+            "value" : "paggamit: choose a member to remove"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "utilisation : /group remove @name"
+            "value" : "utilisation : choose a member to remove"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "שימוש: /group remove @name"
+            "value" : "שימוש: choose a member to remove"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "उपयोग: /group remove @name"
+            "value" : "उपयोग: choose a member to remove"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "penggunaan: /group remove @name"
+            "value" : "penggunaan: choose a member to remove"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "uso: /group remove @name"
+            "value" : "uso: choose a member to remove"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "使い方: /group remove @name"
+            "value" : "使い方: choose a member to remove"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "사용법: /group remove @name"
+            "value" : "사용법: choose a member to remove"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "penggunaan: /group remove @name"
+            "value" : "penggunaan: choose a member to remove"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "प्रयोग: /group remove @name"
+            "value" : "प्रयोग: choose a member to remove"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "gebruik: /group remove @name"
+            "value" : "gebruik: choose a member to remove"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "użycie: /group remove @name"
+            "value" : "użycie: choose a member to remove"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "utilização: /group remove @name"
+            "value" : "utilização: choose a member to remove"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "uso: /group remove @nome"
+            "value" : "uso: choose a member to remove"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "использование: /group remove @name"
+            "value" : "использование: choose a member to remove"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "användning: /group remove @name"
+            "value" : "användning: choose a member to remove"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "பயன்பாடு: /group remove @name"
+            "value" : "பயன்பாடு: choose a member to remove"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "วิธีใช้: /group remove @name"
+            "value" : "วิธีใช้: choose a member to remove"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "kullanım: /group remove @name"
+            "value" : "kullanım: choose a member to remove"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "використання: /group remove @name"
+            "value" : "використання: choose a member to remove"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "استعمال: /group remove @name"
+            "value" : "استعمال: choose a member to remove"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "cách dùng: /group remove @name"
+            "value" : "cách dùng: choose a member to remove"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "用法：/group remove @name"
+            "value" : "用法：choose a member to remove"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "用法：/group remove @name"
+            "value" : "用法：choose a member to remove"
           }
         }
       }

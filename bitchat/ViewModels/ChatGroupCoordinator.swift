@@ -120,31 +120,10 @@ extension ChatViewModel: ChatGroupContext {
         groupTransport?.broadcastGroupMessage(payload)
     }
 
-    // MARK: CommandContextProvider group commands (parsed by CommandProcessor)
-
-    func groupCreate(named name: String) -> CommandResult {
-        groupCoordinator.createGroup(named: name)
-    }
-
-    func groupInvite(nickname: String) -> CommandResult {
-        groupCoordinator.inviteMember(nickname: nickname)
-    }
-
-    func groupRemove(nickname: String) -> CommandResult {
-        groupCoordinator.removeMember(nickname: nickname)
-    }
-
-    func groupLeave() -> CommandResult {
-        groupCoordinator.leaveGroup()
-    }
-
     func groupRename(named name: String) -> CommandResult {
         groupCoordinator.renameGroup(named: name)
     }
 
-    func groupList() -> CommandResult {
-        groupCoordinator.listGroups()
-    }
 }
 
 /// Owns the private-groups feature: creating groups, creator-managed invites
@@ -161,12 +140,12 @@ final class ChatGroupCoordinator {
         self.context = context
     }
 
-    // MARK: - Commands
+    // MARK: - Group lifecycle and member controls
 
     func createGroup(named rawName: String) -> CommandResult {
         let name = rawName.trimmed
         guard !name.isEmpty else {
-            return .error(message: String(localized: "system.group.usage_create", comment: "Usage hint for /group create"))
+            return .error(message: String(localized: "system.group.usage_create", comment: "Prompt when a group name is missing"))
         }
         guard name.count <= Self.maxGroupNameLength else {
             return .error(message: String(localized: "system.group.name_too_long", comment: "Error when a group name exceeds the length cap"))
@@ -185,7 +164,7 @@ final class ChatGroupCoordinator {
 
         context.startPrivateChat(with: group.peerID)
         return .success(message: String(
-            format: String(localized: "system.group.created", comment: "System message after creating a group; placeholder is the group name"),
+            format: String(localized: "system.group.created", comment: "Confirmation after creating a group; placeholder is the group name"),
             locale: .current,
             name
         ))
@@ -194,10 +173,10 @@ final class ChatGroupCoordinator {
     func inviteMember(nickname rawNickname: String) -> CommandResult {
         let nickname = normalizedNickname(rawNickname)
         guard !nickname.isEmpty else {
-            return .error(message: String(localized: "system.group.usage_invite", comment: "Usage hint for /group invite"))
+            return .error(message: String(localized: "system.group.usage_invite", comment: "Prompt when an invite target is missing"))
         }
         guard let group = selectedGroup() else {
-            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
         guard group.creatorFingerprint == context.myNoiseFingerprint() else {
             return .error(message: String(localized: "system.group.creator_only", comment: "Error when a non-creator attempts a creator-only group action"))
@@ -270,10 +249,10 @@ final class ChatGroupCoordinator {
     func removeMember(nickname rawNickname: String) -> CommandResult {
         let nickname = normalizedNickname(rawNickname)
         guard !nickname.isEmpty else {
-            return .error(message: String(localized: "system.group.usage_remove", comment: "Usage hint for /group remove"))
+            return .error(message: String(localized: "system.group.usage_remove", comment: "Prompt when a removal target is missing"))
         }
         guard let group = selectedGroup() else {
-            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
         guard group.creatorFingerprint == context.myNoiseFingerprint() else {
             return .error(message: String(localized: "system.group.creator_only", comment: "Error when a non-creator attempts a creator-only group action"))
@@ -307,7 +286,7 @@ final class ChatGroupCoordinator {
 
     func leaveGroup() -> CommandResult {
         guard let group = selectedGroup() else {
-            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
         // Close the chat window first so the confirmation message doesn't
         // resurrect the conversation we're about to remove.
@@ -324,14 +303,14 @@ final class ChatGroupCoordinator {
 
     func renameGroup(named rawName: String) -> CommandResult {
         guard let group = selectedGroup() else {
-            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
         guard group.creatorFingerprint == context.myNoiseFingerprint() else {
             return .error(message: String(localized: "system.group.creator_only", comment: "Error when a non-creator attempts a creator-only group action"))
         }
         let trimmed = rawName.trimmed
         guard !trimmed.isEmpty else {
-            return .error(message: String(localized: "system.group.usage_create", comment: "Usage hint for /group create"))
+            return .error(message: String(localized: "system.group.usage_create", comment: "Prompt when a group name is missing"))
         }
         guard let name = GroupManagementPolicy.validatedName(rawName) else {
             return .error(message: String(localized: "system.group.name_too_long", comment: "Error when a group name exceeds the length cap"))
@@ -349,23 +328,6 @@ final class ChatGroupCoordinator {
         ))
     }
 
-    func listGroups() -> CommandResult {
-        let groups = context.groupStore.groups
-        guard !groups.isEmpty else {
-            return .success(message: String(localized: "system.group.none", comment: "System message when the user is in no groups"))
-        }
-        let myFingerprint = context.myNoiseFingerprint()
-        let lines = groups.map { group -> String in
-            let role = group.creatorFingerprint == myFingerprint ? " (creator)" : ""
-            return "#\(group.name)\(role) — \(group.members.count)/\(BitchatGroup.maxMembers)"
-        }
-        return .success(message: String(localized: "system.group.list_header", comment: "Header line for the /group list output") + "\n" + lines.joined(separator: "\n"))
-    }
-
-    // MARK: - Sending
-
-    /// Fire-and-flood send: local echo goes straight to `.sent` because group
-    /// messages have no per-member acknowledgments in v1.
     func sendGroupMessage(_ content: String, to groupPeerID: PeerID) {
         guard !content.isEmpty, content.count <= InputValidator.Limits.maxMessageLength else { return }
         guard let group = context.groupStore.group(for: groupPeerID),

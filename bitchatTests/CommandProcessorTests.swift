@@ -518,8 +518,6 @@ private final class MockCommandContextProvider: CommandContextProvider {
     private(set) var publicSystemMessages: [String] = []
     private(set) var commandOutputs: [String] = []
     private(set) var commandOutputDestinations: [CommandOutputDestination] = []
-    private(set) var toggledFavorites: [PeerID] = []
-    private(set) var favoriteNotifications: [(peerID: PeerID, isFavorite: Bool)] = []
     private(set) var geohashBlockListChangeCount = 0
 
     init(nickname: String = "tester", idBridge: NostrIdentityBridge = NostrIdentityBridge(keychain: MockKeychain())) {
@@ -590,15 +588,6 @@ private final class MockCommandContextProvider: CommandContextProvider {
         commandOutputDestinations.append(destination)
     }
 
-    func toggleFavorite(peerID: PeerID) {
-        toggledFavorites.append(peerID)
-    }
-
-    func groupCreate(named name: String) -> CommandResult { .handled }
-    func groupInvite(nickname: String) -> CommandResult { .handled }
-    func groupRemove(nickname: String) -> CommandResult { .handled }
-    func groupLeave() -> CommandResult { .handled }
-    func groupList() -> CommandResult { .handled }
 
 
 

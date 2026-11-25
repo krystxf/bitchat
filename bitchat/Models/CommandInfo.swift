@@ -16,7 +16,6 @@ enum CommandInfo: String, Identifiable {
     // suggesting a spelling the processor rejects teaches users dead ends.
     case block
     case clear
-    case group
     case help
     case hug
     case slap
@@ -35,8 +34,6 @@ enum CommandInfo: String, Identifiable {
         switch self {
         case .block, .hug, .slap, .unblock, .ping, .trace:
             return "<" + String(localized: "content.input.nickname_placeholder") + ">"
-        case .group:
-            return "<" + String(localized: "content.input.group_placeholder") + ">"
         case .pay:
             return "<" + String(localized: "content.input.token_placeholder") + ">"
         case .drop:
@@ -50,7 +47,6 @@ enum CommandInfo: String, Identifiable {
         switch self {
         case .block:        String(localized: "content.commands.block")
         case .clear:        String(localized: "content.commands.clear")
-        case .group:        String(localized: "content.commands.group")
         case .help:         String(localized: "content.commands.help")
         case .hug:          String(localized: "content.commands.hug")
         case .pay:          String(localized: "content.commands.pay")
@@ -64,7 +60,7 @@ enum CommandInfo: String, Identifiable {
     }
 
     static func all(isGeoPublic: Bool, isGeoDM: Bool) -> [CommandInfo] {
-        var commands: [CommandInfo] = [.block, .unblock, .clear, .drop, .help,  .hug, .slap, .who]
+        var commands: [CommandInfo] = [.block, .unblock, .clear, .drop, .help, .hug, .slap, .who]
         // Cashu tokens are bearer instruments: in a public geohash any nearby
         // stranger can redeem one, so don't *suggest* /pay there (the
         // processor still allows it behind an explicit "public" confirm).
@@ -72,11 +68,10 @@ enum CommandInfo: String, Identifiable {
         if !isGeoPublic {
             commands.append(.pay)
         }
-        // The processor rejects groups and mesh diagnostics in geohash
-        // contexts, so only suggest them where they work: mesh.
+        // Mesh diagnostics only work in the mesh context.
         if isGeoPublic || isGeoDM {
             return commands
         }
-        return commands + [.ping, .trace, .group]
+        return commands + [.ping, .trace]
     }
 }
