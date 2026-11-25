@@ -188,7 +188,7 @@ struct AppInfoView: View {
         }
 
         enum Voice {
-            static let title: LocalizedStringKey = "app_info.voice.title"
+            static let title = String(localized: "app_info.voice.title")
             // The live-voice title/description keys are referenced inline at
             // the toggle (they ride the shared settingToggle now).
         }
@@ -251,24 +251,22 @@ struct AppInfoView: View {
     }
 
     var body: some View {
-        ScrollView {
-            paneContent
-        }
-        // A segmented control in the title slot, as in the system apps; it
-        // replaces the title on screen.
-        .sheetChrome(
-            title: Text(Strings.appName),
-            onClose: { dismiss() },
-            principal: { panePicker }
-        )
-        #if os(macOS)
-        .frame(width: 600, height: 700)
-        #endif
-        .sheet(isPresented: $showTopology) {
-            if let topologyProvider {
-                MeshTopologyView(provider: topologyProvider)
+        paneContent
+            // A segmented control in the title slot, as in the system apps;
+            // it replaces the title on screen.
+            .sheetChrome(
+                title: Text(Strings.appName),
+                onClose: { dismiss() },
+                principal: { panePicker }
+            )
+            #if os(macOS)
+            .frame(width: 600, height: 700)
+            #endif
+            .sheet(isPresented: $showTopology) {
+                if let topologyProvider {
+                    MeshTopologyView(provider: topologyProvider)
+                }
             }
-        }
     }
 
     // MARK: - Pane switching
@@ -290,251 +288,347 @@ struct AppInfoView: View {
         case .settings:
             settingsContent
         case .info:
-            infoContent
+            ScrollView {
+                infoContent
+            }
         }
+    }
+
+    /// A section header in title case. The catalog keeps the old all-caps
+    /// headers; iOS sets its own case for grouped headers, and macOS shows
+    /// them as written.
+    private func sectionHeader(_ title: String) -> Text {
+        Text(verbatim: title.localizedCapitalized)
     }
 
     // MARK: - Settings pane
 
-    @ViewBuilder
+    /// A native settings form: grouped sections, system text styles and
+    /// system controls (inset grouped on iOS, the System Settings look on
+    /// macOS).
     private var settingsContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        Form {
             if let nickname {
                 nicknameSection(nickname)
             }
-
-            // Language — an in-app override so the UI language can differ
-            // from the device language (takes effect on next launch).
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(verbatim: Strings.Settings.languageTitle)
-
-                settingsCard {
-                    Menu {
-                        Button {
-                            selectLanguage(nil)
-                        } label: {
-                            menuItemLabel(Strings.Settings.languageSystem, isSelected: languageOverride.isEmpty)
-                        }
-                        Divider()
-                        ForEach(AppLanguageSettings.availableLanguages, id: \.self) { code in
-                            Button {
-                                selectLanguage(code)
-                            } label: {
-                                menuItemLabel(AppLanguageSettings.endonym(for: code), isSelected: languageOverride == code)
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(Strings.Settings.languagePickerLabel)
-                                .bitchatFont(size: 12, weight: .semibold)
-                                .foregroundColor(textColor)
-                            Spacer()
-                            Text(languageOverride.isEmpty ? Strings.Settings.languageSystem : AppLanguageSettings.endonym(for: languageOverride))
-                                .bitchatFont(size: 12)
-                                .foregroundColor(palette.accent)
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.system(size: 10))
-                                .foregroundColor(secondaryTextColor)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-
-                    if showLanguageRestartNote {
-                        Text(Strings.Settings.languageRestartNote)
-                            .bitchatFont(size: 11)
-                            .foregroundColor(secondaryTextColor)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-
-            // Voice — same card + switch as every other toggle setting.
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(Strings.Voice.title)
-
-                settingsCard {
-                    settingToggle(
-                        title: Text("app_info.voice.live.title"),
-                        subtitle: Text("app_info.voice.live.description"),
-                        isOn: Binding(
-                            get: { liveVoiceEnabled },
-                            set: { newValue in
-                                liveVoiceEnabled = newValue
-                                PTTSettings.liveVoiceEnabled = newValue
-                            }
-                        )
-                    )
-                }
-            }
-
-            // Connectivity: mesh bridge, internet gateway, tor routing
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(verbatim: Strings.Settings.connectivityTitle)
-
-                settingsCard {
-                    settingToggle(
-                        title: Text(Strings.Settings.bridgeTitle),
-                        subtitle: Text(Strings.Settings.bridgeSubtitle),
-                        isOn: bridgeToggleBinding
-                    )
-                    // Where the bridge meets: the geohash rendezvous cell, or
-                    // a hint about why there isn't one yet (no location and no
-                    // bridge peer advertising a cell).
-                    if bridgeService.isEnabled {
-                        Text(bridgeService.activeCell.map(Strings.Settings.bridgeCell) ?? Strings.Settings.bridgeNoCell)
-                            .bitchatFont(size: 11)
-                            .foregroundColor(secondaryTextColor)
-                    }
-                }
-
-                settingsCard {
-                    settingToggle(
-                        title: Text(Strings.Settings.torTitle),
-                        subtitle: Text(verbatim: Strings.Settings.torSubtitle),
-                        isOn: torToggleBinding
-                    )
-                    // Turning tor off is not a location-channels-only choice, so
-                    // say what it costs while it is off rather than in the
-                    // subtitle everyone skims.
-                    if !locationChannelsModel.userTorEnabled {
-                        Text(verbatim: Strings.Settings.torOffWarning)
-                            .bitchatFont(size: 11)
-                            .foregroundColor(palette.alertRed)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-
-                relaySettingsCard
-
-                // Location notes / dead drops (merged from main's flat
-                // layout into the shared card + switch style). Turning it on
-                // may need the location prompt; the permission control below
-                // covers the denied path.
-                settingsCard {
-                    settingToggle(
-                        title: Strings.Location.notes.title,
-                        subtitle: Strings.Location.notes.description,
-                        isOn: Binding(
-                            get: { locationNotesEnabled },
-                            set: { newValue in
-                                locationNotesEnabled = newValue
-                                LocationNotesSettings.enabled = newValue
-                                if newValue {
-                                    locationManager.enableLocationChannels()
-                                }
-                            }
-                        )
-                    )
-                }
-
-                // Location powers the channels list and the bridge cell, so
-                // its control lives with the other connectivity settings.
-                // Platform reality shapes the three states: the app may only
-                // prompt while never-asked; granted/denied both flip in the
-                // system permission screen.
-                switch locationChannelsModel.permissionState {
-                case .authorized:
-                    Button(action: SystemSettings.location.open) {
-                        Text("location_channels.action.remove_access")
-                            .bitchatFont(size: 12)
-                            .foregroundColor(palette.alertRed)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                            .background(Color.red.opacity(0.08))
-                            .cornerRadius(6)
-                    }
-                    .buttonStyle(.plain)
-                case .notDetermined:
-                    Button(action: { locationChannelsModel.enableLocationChannels() }) {
-                        Text("location_channels.action.request_permissions")
-                            .bitchatFont(size: 12)
-                            .foregroundColor(palette.accent)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                            .background(palette.accent.opacity(0.12))
-                            .cornerRadius(6)
-                    }
-                    .buttonStyle(.plain)
-                case .denied, .restricted:
-                    settingsCard {
-                        Text("location_channels.permission_denied")
-                            .bitchatFont(size: 11)
-                            .foregroundColor(secondaryTextColor)
-                        Button("location_channels.action.open_settings", action: SystemSettings.location.open)
-                            .buttonStyle(.plain)
-                            .bitchatFont(size: 12)
-                            .foregroundColor(palette.accent)
-                    }
-                }
-            }
-
-            // Privacy: what a locked, seized, or borrowed phone gives away
-            // without being unlocked.
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(verbatim: Strings.Settings.privacyTitle)
-
-                settingsCard {
-                    settingToggle(
-                        title: Text(verbatim: Strings.Settings.hidePreviewsTitle),
-                        subtitle: Text(verbatim: Strings.Settings.hidePreviewsSubtitle),
-                        isOn: Binding(
-                            get: { hideMessagePreviews },
-                            set: { newValue in
-                                hideMessagePreviews = newValue
-                                NotificationPrivacySettings.hideMessagePreviews = newValue
-                            }
-                        )
-                    )
-
-                    settingToggle(
-                        title: Text(verbatim: Strings.Settings.autoRevealFavoritesTitle),
-                        subtitle: Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle),
-                        isOn: Binding(
-                            get: { autoRevealFavoriteImages },
-                            set: { newValue in
-                                autoRevealFavoriteImages = newValue
-                                MediaRevealSettings.autoRevealFavorites = newValue
-                            }
-                        )
-                    )
-                }
-            }
-
-            // Danger zone
+            languageSection
+            voiceSection
+            bridgeSection
+            torSection
+            relaySection
+            locationSection
+            privacySection
             if onPanicWipe != nil {
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionHeader(verbatim: Strings.Settings.dangerTitle)
-
-                    Button(action: { showPanicConfirmation = true }) {
-                        Text(Strings.Settings.panicButton)
-                            .bitchatFont(size: 12)
-                            .foregroundColor(palette.alertRed)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                            .background(Color.red.opacity(0.08))
-                            .cornerRadius(6)
-                    }
-                    .buttonStyle(.plain)
-                    .confirmationDialog(
-                        Strings.Settings.panicConfirmTitle,
-                        isPresented: $showPanicConfirmation,
-                        titleVisibility: .visible
-                    ) {
-                        Button(Strings.Settings.panicConfirmAction, role: .destructive) {
-                            onPanicWipe?()
-                        }
-                        Button("common.cancel", role: .cancel) {}
-                    }
-
-                    Text(Strings.Settings.panicNote)
-                        .bitchatFont(size: 11)
-                        .foregroundColor(secondaryTextColor)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                dangerSection
             }
         }
-        .padding()
+        .formStyle(.grouped)
+        // The default on macOS is a checkbox; settings use the switch.
+        .toggleStyle(.switch)
+        // Commit the nickname when editing ends: focus leaves the field, or
+        // the pane or sheet goes away.
+        .onChange(of: isNicknameFocused) { isFocused in
+            if !isFocused {
+                onNicknameCommit?()
+            }
+        }
+        .onDisappear { onNicknameCommit?() }
+    }
+
+    /// Nickname editor. It lived in the main header until the header became
+    /// a native title bar, which shows the nickname as its subtitle.
+    private func nicknameSection(_ nickname: Binding<String>) -> some View {
+        Section {
+            HStack(spacing: 2) {
+                Text(verbatim: "@")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                // An explicit prompt: a macOS form shows the title as a
+                // label, not as a placeholder.
+                TextField(
+                    text: nickname,
+                    prompt: Text("content.input.nickname_placeholder")
+                ) {
+                    Text("content.input.nickname_placeholder")
+                }
+                .labelsHidden()
+                .textFieldStyle(.plain)
+                .focused($isNicknameFocused)
+                .autocorrectionDisabled(true)
+                #if os(iOS)
+                .textInputAutocapitalization(.never)
+                #endif
+                .submitLabel(.done)
+                .onSubmit { onNicknameCommit?() }
+            }
+        } header: {
+            sectionHeader(Strings.Settings.nicknameTitle)
+        }
+    }
+
+    /// Language: an in-app override so the UI language can differ from the
+    /// device language. It takes effect on the next launch.
+    private var languageSection: some View {
+        Section {
+            Picker(selection: languageSelection) {
+                Text(Strings.Settings.languageSystem).tag("")
+                Divider()
+                ForEach(AppLanguageSettings.availableLanguages, id: \.self) { code in
+                    Text(AppLanguageSettings.endonym(for: code)).tag(code)
+                }
+            } label: {
+                Text(Strings.Settings.languagePickerLabel)
+            }
+            .pickerStyle(.menu)
+        } header: {
+            sectionHeader(Strings.Settings.languageTitle)
+        } footer: {
+            if showLanguageRestartNote {
+                Text(Strings.Settings.languageRestartNote)
+            }
+        }
+    }
+
+    private var languageSelection: Binding<String> {
+        Binding(
+            get: { languageOverride },
+            set: { selectLanguage($0.isEmpty ? nil : $0) }
+        )
+    }
+
+    private var voiceSection: some View {
+        Section {
+            Toggle(isOn: Binding(
+                get: { liveVoiceEnabled },
+                set: { newValue in
+                    liveVoiceEnabled = newValue
+                    PTTSettings.liveVoiceEnabled = newValue
+                }
+            )) {
+                Text("app_info.voice.live.title")
+                Text("app_info.voice.live.description")
+            }
+        } header: {
+            sectionHeader(Strings.Voice.title)
+        }
+    }
+
+    /// Mesh bridge. The row's secondary text says where the bridge meets:
+    /// the geohash rendezvous cell, or why there isn't one yet (no location
+    /// and no bridge peer advertising a cell).
+    private var bridgeSection: some View {
+        Section {
+            Toggle(isOn: bridgeToggleBinding) {
+                Text(Strings.Settings.bridgeTitle)
+                if bridgeService.isEnabled {
+                    Text(bridgeService.activeCell.map(Strings.Settings.bridgeCell) ?? Strings.Settings.bridgeNoCell)
+                }
+            }
+        } header: {
+            sectionHeader(Strings.Settings.connectivityTitle)
+        } footer: {
+            Text(Strings.Settings.bridgeSubtitle)
+        }
+    }
+
+    private var torSection: some View {
+        Section {
+            Toggle(isOn: torToggleBinding) {
+                Text(Strings.Settings.torTitle)
+            }
+            // Turning tor off is not a location-channels-only choice, so say
+            // what it costs while it is off, in the section, rather than in
+            // the footer everyone skims.
+            if !locationChannelsModel.userTorEnabled {
+                Label {
+                    Text(verbatim: Strings.Settings.torOffWarning)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                }
+                .font(.footnote)
+                .foregroundStyle(palette.alertRed)
+            }
+        } footer: {
+            Text(verbatim: Strings.Settings.torSubtitle)
+        }
+    }
+
+    /// Relay list editor. The built-in relays are four well-known hostnames, so
+    /// a filter blocking four names ends internet-delivered private messages;
+    /// adding one here is the only fix that does not need a new build.
+    private var relaySection: some View {
+        Section {
+            ForEach(NostrRelayManager.builtInRelayURLs.sorted(), id: \.self) { relay in
+                LabeledContent {
+                    Text(verbatim: Strings.Settings.relayBuiltIn)
+                } label: {
+                    relayText(relay)
+                }
+            }
+
+            ForEach(customRelays, id: \.self) { relay in
+                #if os(iOS)
+                relayText(relay)
+                #else
+                // A macOS form has no swipe to delete.
+                LabeledContent {
+                    Button(role: .destructive) {
+                        removeRelay(relay)
+                    } label: {
+                        Image(systemName: "minus.circle")
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(Strings.Settings.relayRemove)
+                } label: {
+                    relayText(relay)
+                }
+                #endif
+            }
+            .onDelete { offsets in
+                offsets.map { customRelays[$0] }.forEach(removeRelay)
+            }
+
+            if customRelays.count < NostrRelaySettings.maxCustomRelays {
+                HStack {
+                    TextField(
+                        text: $relayInput,
+                        prompt: Text(Strings.Settings.relayPlaceholder)
+                    ) {
+                        Text(Strings.Settings.relayPlaceholder)
+                    }
+                    .labelsHidden()
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled(true)
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+                    #endif
+                    .onSubmit(addRelay)
+                    Button(Strings.Settings.relayAdd, action: addRelay)
+                        .buttonStyle(.borderless)
+                        .disabled(relayInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+
+            if let relayError {
+                Text(verbatim: relayError)
+                    .font(.footnote)
+                    .foregroundStyle(palette.alertRed)
+            }
+        } header: {
+            sectionHeader(Strings.Settings.relaysTitle)
+        } footer: {
+            Text(Strings.Settings.relaysSubtitle)
+        }
+        // The store can change from outside this view — a panic wipe clears it —
+        // so follow it rather than trusting the value read at creation.
+        .onReceive(NotificationCenter.default.publisher(for: NostrRelaySettings.didChangeNotification)) { _ in
+            reloadCustomRelays()
+        }
+    }
+
+    /// A relay address: one line, truncated in the middle so the host's
+    /// both ends stay visible.
+    private func relayText(_ relay: String) -> some View {
+        Text(verbatim: relay)
+            .lineLimit(1)
+            .truncationMode(.middle)
+    }
+
+    /// Location notes (dead drops) and the location permission. Location
+    /// powers the channels list and the bridge cell, so its control lives
+    /// with the other connectivity settings. Platform reality shapes the
+    /// three states: the app may only prompt while never-asked;
+    /// granted/denied both flip in the system permission screen.
+    private var locationSection: some View {
+        Section {
+            // Turning notes on may need the location prompt; the permission
+            // rows below cover the denied path.
+            Toggle(isOn: Binding(
+                get: { locationNotesEnabled },
+                set: { newValue in
+                    locationNotesEnabled = newValue
+                    LocationNotesSettings.enabled = newValue
+                    if newValue {
+                        locationManager.enableLocationChannels()
+                    }
+                }
+            )) {
+                Strings.Location.notes.title
+                Strings.Location.notes.description
+            }
+
+            switch locationChannelsModel.permissionState {
+            case .authorized:
+                Button(role: .destructive, action: SystemSettings.location.open) {
+                    Text("location_channels.action.remove_access")
+                }
+            case .notDetermined:
+                Button(action: { locationChannelsModel.enableLocationChannels() }) {
+                    Text("location_channels.action.request_permissions")
+                }
+            case .denied, .restricted:
+                Text("location_channels.permission_denied")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Button("location_channels.action.open_settings", action: SystemSettings.location.open)
+            }
+        }
+    }
+
+    /// Privacy: what a locked, seized, or borrowed phone gives away without
+    /// being unlocked, and which images show without the blur. Two rows
+    /// share the section, so each explanation is its row's secondary text.
+    private var privacySection: some View {
+        Section {
+            Toggle(isOn: Binding(
+                get: { hideMessagePreviews },
+                set: { newValue in
+                    hideMessagePreviews = newValue
+                    NotificationPrivacySettings.hideMessagePreviews = newValue
+                }
+            )) {
+                Text(verbatim: Strings.Settings.hidePreviewsTitle)
+                Text(verbatim: Strings.Settings.hidePreviewsSubtitle)
+            }
+
+            Toggle(isOn: Binding(
+                get: { autoRevealFavoriteImages },
+                set: { newValue in
+                    autoRevealFavoriteImages = newValue
+                    MediaRevealSettings.autoRevealFavorites = newValue
+                }
+            )) {
+                Text(verbatim: Strings.Settings.autoRevealFavoritesTitle)
+                Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle)
+            }
+        } header: {
+            sectionHeader(Strings.Settings.privacyTitle)
+        }
+    }
+
+    private var dangerSection: some View {
+        Section {
+            Button(role: .destructive) {
+                showPanicConfirmation = true
+            } label: {
+                Text(Strings.Settings.panicButton)
+            }
+            .confirmationDialog(
+                Strings.Settings.panicConfirmTitle,
+                isPresented: $showPanicConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button(Strings.Settings.panicConfirmAction, role: .destructive) {
+                    onPanicWipe?()
+                }
+                Button("common.cancel", role: .cancel) {}
+            }
+        } header: {
+            sectionHeader(Strings.Settings.dangerTitle)
+        } footer: {
+            Text(Strings.Settings.panicNote)
+        }
     }
 
     private func selectLanguage(_ code: String?) {
@@ -546,106 +640,11 @@ struct AppInfoView: View {
         }
     }
 
-    private func menuItemLabel(_ title: String, isSelected: Bool) -> some View {
-        HStack {
-            Text(title)
-            if isSelected {
-                Image(systemName: "checkmark")
-            }
-        }
-    }
-
     private var bridgeToggleBinding: Binding<Bool> {
         Binding(
             get: { bridgeService.isEnabled },
             set: { bridgeService.setEnabled($0) }
         )
-    }
-
-    /// Relay list editor. The built-in relays are four well-known hostnames, so
-    /// a filter blocking four names ends internet-delivered private messages;
-    /// adding one here is the only fix that does not need a new build.
-    @ViewBuilder
-    private var relaySettingsCard: some View {
-        settingsCard {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: Strings.Settings.relaysTitle)
-                    .bitchatFont(size: 12, weight: .semibold)
-                    .foregroundColor(textColor)
-                Text(verbatim: Strings.Settings.relaysSubtitle)
-                    .bitchatFont(size: 11)
-                    .foregroundColor(secondaryTextColor)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            ForEach(NostrRelayManager.builtInRelayURLs.sorted(), id: \.self) { relay in
-                HStack(spacing: 6) {
-                    Text(verbatim: relay)
-                        .bitchatFont(size: 11)
-                        .foregroundColor(secondaryTextColor)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Spacer(minLength: 4)
-                    Text(verbatim: Strings.Settings.relayBuiltIn)
-                        .bitchatFont(size: 10)
-                        .foregroundColor(secondaryTextColor)
-                }
-            }
-
-            ForEach(customRelays, id: \.self) { relay in
-                HStack(spacing: 6) {
-                    Text(verbatim: relay)
-                        .bitchatFont(size: 11)
-                        .foregroundColor(textColor)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Spacer(minLength: 4)
-                    Button {
-                        NostrRelaySettings.remove(relay)
-                        reloadCustomRelays()
-                    } label: {
-                        Image(systemName: "minus.circle")
-                            .foregroundColor(palette.alertRed)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Strings.Settings.relayRemove)
-                }
-            }
-
-            if customRelays.count < NostrRelaySettings.maxCustomRelays {
-                HStack(spacing: 6) {
-                    TextField(Strings.Settings.relayPlaceholder, text: $relayInput)
-                        .textFieldStyle(.plain)
-                        .bitchatFont(size: 11)
-                        .foregroundColor(textColor)
-                        .autocorrectionDisabled(true)
-                        #if os(iOS)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.URL)
-                        #endif
-                        .onSubmit(addRelay)
-                    Button(action: addRelay) {
-                        Text(verbatim: Strings.Settings.relayAdd)
-                            .bitchatFont(size: 11, weight: .semibold)
-                            .foregroundColor(palette.accent)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(relayInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
-
-            if let relayError {
-                Text(verbatim: relayError)
-                    .bitchatFont(size: 11)
-                    .foregroundColor(palette.alertRed)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        // The store can change from outside this view — a panic wipe clears it —
-        // so follow it rather than trusting the value read at creation.
-        .onReceive(NotificationCenter.default.publisher(for: NostrRelaySettings.didChangeNotification)) { _ in
-            reloadCustomRelays()
-        }
     }
 
     private func addRelay() {
@@ -660,6 +659,11 @@ struct AppInfoView: View {
         }
     }
 
+    private func removeRelay(_ relay: String) {
+        NostrRelaySettings.remove(relay)
+        reloadCustomRelays()
+    }
+
     private func reloadCustomRelays() {
         customRelays = NostrRelaySettings.customRelays()
     }
@@ -669,68 +673,6 @@ struct AppInfoView: View {
             get: { locationChannelsModel.userTorEnabled },
             set: { locationChannelsModel.setUserTorEnabled($0) }
         )
-    }
-
-    /// Nickname editor. It lived in the main header until the header became
-    /// a native title bar, which shows the nickname as its subtitle.
-    private func nicknameSection(_ nickname: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(verbatim: Strings.Settings.nicknameTitle)
-
-            settingsCard {
-                HStack(spacing: 2) {
-                    Text(verbatim: "@")
-                        .foregroundColor(secondaryTextColor)
-                    TextField("content.input.nickname_placeholder", text: nickname)
-                        .textFieldStyle(.plain)
-                        .foregroundColor(textColor)
-                        .focused($isNicknameFocused)
-                        .autocorrectionDisabled(true)
-                        #if os(iOS)
-                        .textInputAutocapitalization(.never)
-                        #endif
-                        .submitLabel(.done)
-                        .onSubmit { onNicknameCommit?() }
-                }
-                .bitchatFont(size: 14)
-            }
-        }
-        .onChange(of: isNicknameFocused) { isFocused in
-            if !isFocused {
-                onNicknameCommit?()
-            }
-        }
-        .onDisappear { onNicknameCommit?() }
-    }
-
-    /// The padded card every connectivity setting sits in (moved look from
-    /// LocationChannelsSheet's toggle sections).
-    private func settingsCard<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8, content: content)
-            .padding(12)
-            .background(palette.secondary.opacity(0.12))
-            .cornerRadius(8)
-    }
-
-    /// A title+subtitle row with the system switch: the one toggle every
-    /// setting uses.
-    private func settingToggle(title: Text, subtitle: Text, isOn: Binding<Bool>) -> some View {
-        Toggle(isOn: isOn) {
-            VStack(alignment: .leading, spacing: 2) {
-                title
-                    .bitchatFont(size: 12, weight: .semibold)
-                    .foregroundColor(textColor)
-                subtitle
-                    .bitchatFont(size: 11)
-                    .foregroundColor(secondaryTextColor)
-            }
-            // macOS puts the switch right after its label. The label takes
-            // the spare width, so the switch sits on the trailing edge as it
-            // does on iOS.
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        // The default style on macOS is a checkbox; ask for the switch.
-        .toggleStyle(.switch)
     }
 
     // MARK: - Info pane
