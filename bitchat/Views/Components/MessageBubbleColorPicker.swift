@@ -7,7 +7,7 @@ struct MessageBubbleColorPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(String(localized: "app_info.settings.bubble_color.title", defaultValue: "my message color", comment: "Label for the global outgoing message bubble color picker"))
-            HStack(spacing: 12) {
+            HStack(spacing: 7) {
                 ForEach(MessageBubbleColor.allCases) { option in
                     Button {
                         selection = option.rawValue
@@ -20,7 +20,7 @@ struct MessageBubbleColorPicker: View {
                                     .foregroundStyle(.white)
                             }
                         }
-                        .frame(width: 27, height: 27)
+                        .frame(width: 24, height: 24)
                         .overlay(Circle().strokeBorder(.primary.opacity(0.18), lineWidth: 1))
                         .contentShape(Circle())
                     }
