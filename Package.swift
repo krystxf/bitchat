@@ -34,6 +34,8 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 "Assets.xcassets",
+                // Icon Composer app icons, compiled by the Xcode app targets.
+                "Icons",
                 "_PreviewHelpers/PreviewAssets.xcassets",
                 "bitchat.entitlements",
                 "bitchat-macOS.entitlements",
