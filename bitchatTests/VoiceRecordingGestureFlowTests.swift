@@ -228,7 +228,10 @@ struct VoiceRecordingGestureFlowTests {
     @Test func heldRecordingSendsAtTheTimeLimitAndTheLaterReleaseDoesNothing() async {
         viewModel.timeLimit = 0.05
         viewModel.sendAtTimeLimit = { _ in }
-        await beginHold()
+        // No wait for the recording state: under load the short limit can
+        // end the recording before a poll sees it.
+        viewModel.pressChanged(translation: .zero, canRecord: true)
+        #expect(viewModel.gesturePhase == .holding)
 
         await waitUntil { session.finishCount == 1 }
         #expect(viewModel.gesturePhase == .idle)
