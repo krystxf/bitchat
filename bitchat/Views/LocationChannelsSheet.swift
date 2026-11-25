@@ -121,65 +121,59 @@ struct LocationChannelsSheet: View {
     }
 
     var body: some View {
-        // NavigationStack, not NavigationView: on macOS a NavigationView is a
-        // two-column split view and squeezes this content into its sidebar.
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(Strings.description)
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            Text(Strings.description)
+                .bitchatFont(size: 12)
+                .foregroundColor(palette.secondary)
 
-                // The description's tor claim is only true while tor is on;
-                // when it's off, say what that exposes right where the person
-                // is about to join a channel, not just in settings.
-                if !locationChannelsModel.userTorEnabled {
-                    Text(verbatim: Strings.torOffWarning)
-                        .bitchatFont(size: 11)
-                        .foregroundColor(palette.alertRed)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            // The description's tor claim is only true while tor is on;
+            // when it's off, say what that exposes right where the person
+            // is about to join a channel, not just in settings.
+            if !locationChannelsModel.userTorEnabled {
+                Text(verbatim: Strings.torOffWarning)
+                    .bitchatFont(size: 11)
+                    .foregroundColor(palette.alertRed)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
-                Group {
-                    switch locationChannelsModel.permissionState {
-                    case .notDetermined:
-                        Button(action: { locationChannelsModel.enableLocationChannels() }) {
-                            Text(Strings.requestPermissions)
-                                .bitchatFont(size: 12)
-                                .foregroundColor(standardGreen)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 6)
-                                .background(standardGreen.opacity(0.12))
-                                .cornerRadius(6)
-                        }
-                        .buttonStyle(.plain)
-                    case .denied, .restricted:
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(Strings.permissionDenied)
-                                .bitchatFont(size: 12)
-                                .foregroundColor(palette.secondary)
-                            Button(Strings.openSettings, action: SystemSettings.location.open)
-                            .buttonStyle(.plain)
-                        }
-                    case .authorized:
-                        EmptyView()
+            Group {
+                switch locationChannelsModel.permissionState {
+                case .notDetermined:
+                    Button(action: { locationChannelsModel.enableLocationChannels() }) {
+                        Text(Strings.requestPermissions)
+                            .bitchatFont(size: 12)
+                            .foregroundColor(standardGreen)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background(standardGreen.opacity(0.12))
+                            .cornerRadius(6)
                     }
+                    .buttonStyle(.plain)
+                case .denied, .restricted:
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(Strings.permissionDenied)
+                            .bitchatFont(size: 12)
+                            .foregroundColor(palette.secondary)
+                        Button(Strings.openSettings, action: SystemSettings.location.open)
+                        .buttonStyle(.plain)
+                    }
+                case .authorized:
+                    EmptyView()
                 }
+            }
 
-                channelList
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .navigationTitle(Text(Strings.title))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                SheetCloseToolbarItem { isPresented = false }
-            }
+            channelList
+            Spacer()
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .sheetChrome(title: Text(Strings.title), onClose: { isPresented = false })
         #if os(macOS)
         .frame(minWidth: 420, minHeight: 520)
+        #else
+        // Picking a channel fits in half the screen, as in Maps; drag up
+        // for the full list.
+        .presentationDetents([.medium, .large])
         #endif
         .onAppear {
             // Refresh channels when opening
