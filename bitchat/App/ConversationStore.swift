@@ -156,6 +156,25 @@ final class Conversation: ObservableObject, Identifiable {
         return true
     }
 
+    /// Swaps the message with `messageID` for `replacement`, which may carry
+    /// a different ID. An equal timestamp keeps the timeline position; a
+    /// different one re-inserts in timestamp order. Returns `false` when
+    /// `messageID` is absent or another message already has the new ID.
+    fileprivate func replace(messageID: String, with replacement: BitchatMessage) -> Bool {
+        guard let index = physicalIndex(forMessageID: messageID) else { return false }
+        guard replacement.id == messageID || indexByMessageID[replacement.id] == nil else { return false }
+        if replacement.timestamp == messages[index].timestamp {
+            messages[index] = replacement
+            indexByMessageID.removeValue(forKey: messageID)
+            indexByMessageID[replacement.id] = indexOffset + index
+        } else {
+            _ = remove(messageID: messageID)
+            // One out, one in: the count is unchanged, so nothing trims.
+            _ = insert(replacement)
+        }
+        return true
+    }
+
     /// Removes a single message by ID. Returns the removed message, or
     /// `nil` when no message with that ID exists.
     fileprivate func remove(messageID: String) -> BitchatMessage? {
@@ -414,6 +433,29 @@ final class ConversationStore: ObservableObject {
         case .updated:
             changes.send(.updated(id, messageID: message.id))
         }
+    }
+
+    /// Swaps a message for one with a new ID, keeping its place: a pending
+    /// local echo becomes the signed message it stood for (a location
+    /// message that was still mining its proof of work). Emits
+    /// `.messageRemoved` for the old ID, then `.appended` for the new one.
+    /// Returns `false`, emitting nothing, when the old ID is not in the
+    /// conversation (cleared, wiped) or the new ID already is.
+    @discardableResult
+    func replaceMessage(withID messageID: String, by replacement: BitchatMessage, in id: ConversationID) -> Bool {
+        guard let conversation = conversationsByID[id],
+              conversation.replace(messageID: messageID, with: replacement) else {
+            return false
+        }
+        guard replacement.id != messageID else {
+            changes.send(.updated(id, messageID: messageID))
+            return true
+        }
+        unregisterMessageID(messageID, from: id)
+        registerMessageID(replacement.id, in: id)
+        changes.send(.messageRemoved(id, messageID: messageID))
+        changes.send(.appended(id, replacement))
+        return true
     }
 
     /// Applies a delivery status keyed by message ID. Returns `false` when
