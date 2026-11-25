@@ -147,7 +147,8 @@ struct TextMessageView: View {
             link: link,
             messageID: message.id,
             isFromMe: isSelf,
-            isFavoriteSender: !isSelf && conversationUIModel.isFavoriteSender(of: message)
+            isFavoriteSender: !isSelf && conversationUIModel.isFavoriteSender(of: message),
+            sentAt: message.timestamp
         )
         .frame(maxWidth: min(280, maxBubbleWidth))
     }

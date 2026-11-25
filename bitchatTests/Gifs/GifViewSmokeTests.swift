@@ -46,14 +46,18 @@ struct GifViewSmokeTests {
             body: try makeAnimatedGIF(width: 40, height: 20, frames: 3, delay: 0.1)
         )
         let store = GifMediaStore(directory: directory, resolver: GifResolver(fetcher: fetcher))
+        let suite = "GifViewSmokeTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let recents = GifRecentsStore(defaults: defaults)
         let link = try #require(URL(string: "https://media.tenor.com/3w0Our6WmXUAAAAC/brick.gif").flatMap(GifLinkParser.parse))
 
-        let placeholder = GifMessageView(link: link, messageID: "gif-1", isFromMe: false, isFavoriteSender: false, store: store)
+        let placeholder = GifMessageView(link: link, messageID: "gif-1", isFromMe: false, isFavoriteSender: false, sentAt: Date(), store: store, recents: recents)
         _ = placeholder.body
         mount(placeholder)
 
         let asset = try await store.load(link)
-        let loaded = GifMessageView(link: link, messageID: "gif-1", isFromMe: false, isFavoriteSender: false, store: store)
+        let loaded = GifMessageView(link: link, messageID: "gif-1", isFromMe: false, isFavoriteSender: false, sentAt: Date(), store: store, recents: recents)
         mount(loaded)
         mount(GifPlaybackView(asset: asset, isPlaying: true))
         mount(GifPlaybackView(asset: asset, isPlaying: false))

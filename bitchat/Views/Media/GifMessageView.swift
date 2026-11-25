@@ -44,7 +44,10 @@ struct GifMessageView: View {
     private let messageID: String
     private let isFromMe: Bool
     private let isFavoriteSender: Bool
+    /// When the message was sent; orders the picker's Recent tab.
+    private let sentAt: Date
     private let store: GifMediaStore
+    private let recents: GifRecentsStore
 
     private enum Phase: Equatable {
         case waitingForTap
@@ -84,13 +87,17 @@ struct GifMessageView: View {
         messageID: String,
         isFromMe: Bool,
         isFavoriteSender: Bool,
-        store: GifMediaStore = .shared
+        sentAt: Date,
+        store: GifMediaStore = .shared,
+        recents: GifRecentsStore = .shared
     ) {
         self.link = link
         self.messageID = messageID
         self.isFromMe = isFromMe
         self.isFavoriteSender = isFavoriteSender
+        self.sentAt = sentAt
         self.store = store
+        self.recents = recents
         let cached = store.cachedAsset(for: link)
         _phase = State(initialValue: cached.map(Phase.loaded) ?? .waitingForTap)
         _aspectRatio = State(initialValue: Self.displayAspectRatio(cached?.aspectRatio))
@@ -147,7 +154,9 @@ struct GifMessageView: View {
         }
         .onAppear {
             isOnScreen = true
-            if phase == .waitingForTap, shouldLoadWithoutTap {
+            if let asset = loadedAsset {
+                rememberAsRecent(asset)
+            } else if phase == .waitingForTap, shouldLoadWithoutTap {
                 load()
             }
         }
@@ -308,6 +317,12 @@ struct GifMessageView: View {
         }
     }
 
+    /// A GIF that showed (mine, or one I received and loaded) joins the
+    /// picker's Recent tab. Only the link and shape are kept.
+    private func rememberAsRecent(_ asset: GifAsset) {
+        recents.record(link: link.url.absoluteString, aspectRatio: asset.aspectRatio, date: sentAt)
+    }
+
     private func load() {
         phase = .loading
         store.markRevealed(messageID: messageID)
@@ -320,6 +335,7 @@ struct GifMessageView: View {
                 // height before anything plays in it.
                 aspectRatio = Self.displayAspectRatio(asset.aspectRatio ?? aspectRatio)
                 phase = .loaded(asset)
+                rememberAsRecent(asset)
             } catch is CancellationError {
                 // A wipe cancelled it; the row is about to go too.
                 phase = .waitingForTap
