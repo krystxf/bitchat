@@ -10,6 +10,10 @@ protocol VoiceAudioRecording: AnyObject {
     func prepareToRecord() -> Bool
     func record(forDuration duration: TimeInterval) -> Bool
     func stop()
+    /// Refreshes the meter values read by `averagePower(forChannel:)`.
+    func updateMeters()
+    /// Average loudness in dBFS since the last `updateMeters()`.
+    func averagePower(forChannel channelNumber: Int) -> Float
 }
 
 extension AVAudioRecorder: VoiceAudioRecording {}
@@ -244,6 +248,18 @@ actor VoiceRecorder {
         }
         recorder = nil
         currentURL = nil
+    }
+
+    /// Current input loudness in dBFS for the recording bar's waveform, or
+    /// nil when this owner is not recording. Cheap enough to poll at
+    /// display rate: metering is enabled when the recorder starts.
+    func averagePower(owner: RecordingOwner) -> Float? {
+        guard activeOwner === owner,
+              let recorder,
+              recorder.isRecording
+        else { return nil }
+        recorder.updateMeters()
+        return recorder.averagePower(forChannel: 0)
     }
 
     /// Panic is a synchronous security boundary: the caller must know the

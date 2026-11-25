@@ -59,6 +59,14 @@ final class VoiceRecordingViewModel: ObservableObject {
     /// composer switches its recording HUD to the LIVE treatment.
     @Published private(set) var isLiveStreaming = false
 
+    /// Input levels for the recording bar's live waveform. A separate
+    /// object so its display-rate updates reach only the waveform view, not
+    /// every view observing this model.
+    let levelMeter = VoiceLevelMeter()
+    /// How often the waveform polls the capture backend.
+    static let levelSampleInterval: Duration = .milliseconds(40)
+    private var levelSampling: Task<Void, Never>?
+
     /// Supplies the capture backend per press. `ChatViewModel` swaps in a
     /// live push-to-talk session when the current DM peer can hear it now.
     var sessionProvider: () -> VoiceCaptureSession = { VoiceNoteCaptureSession() }
@@ -84,6 +92,7 @@ final class VoiceRecordingViewModel: ObservableObject {
         let session = sessionProvider()
         SecureLogger.info("PTT: mic hold began (backend: \(session.isLive ? "live" : "classic"))", category: .session)
         activeSession = session
+        levelMeter.reset()
         state = .requestingPermission
         Task {
             let granted = await session.requestPermission()
@@ -108,6 +117,7 @@ final class VoiceRecordingViewModel: ObservableObject {
                 }
                 state = .recording(startDate: Date())
                 isLiveStreaming = session.isLive
+                startLevelSampling(from: session)
             } catch VoiceRecorder.RecorderError.recordingInProgress {
                 // The previous classic hold may still be in its intentional
                 // finalize-padding window. This press owns no recorder, so
@@ -148,6 +158,7 @@ final class VoiceRecordingViewModel: ObservableObject {
                         SecureLogger.warning("PTT: live capture failed — fell back to classic voice note", category: .session)
                         state = .recording(startDate: Date())
                         isLiveStreaming = false
+                        startLevelSampling(from: fallback)
                         return
                     } catch {
                         SecureLogger.error("Voice recording fallback failed to start: \(error)", category: .session)
@@ -173,6 +184,7 @@ final class VoiceRecordingViewModel: ObservableObject {
 
         state = .idle
         isLiveStreaming = false
+        stopLevelSampling()
         let session = activeSession
         let generation = holdGeneration
         activeSession = nil
@@ -227,11 +239,33 @@ final class VoiceRecordingViewModel: ObservableObject {
     /// down an active microphone before the panic transaction continues.
     func panicWipe() {
         holdGeneration &+= 1
+        stopLevelSampling()
         let session = activeSession
         activeSession = nil
         state = .idle
         isLiveStreaming = false
         session?.panicCancelSynchronously()
+    }
+
+    /// Polls the session's input level for the waveform until the hold
+    /// ends. The last levels stay in the meter so the bar can animate them
+    /// away; the next press clears them.
+    private func startLevelSampling(from session: VoiceCaptureSession) {
+        levelSampling?.cancel()
+        levelSampling = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self, self.activeSession === session else { return }
+                let levels = await session.drainInputLevels()
+                guard !Task.isCancelled, self.activeSession === session else { return }
+                self.levelMeter.ingest(decibels: levels)
+                try? await Task.sleep(for: Self.levelSampleInterval)
+            }
+        }
+    }
+
+    private func stopLevelSampling() {
+        levelSampling?.cancel()
+        levelSampling = nil
     }
 
     private func isValidRecording(at url: URL, duration: TimeInterval) -> Bool {

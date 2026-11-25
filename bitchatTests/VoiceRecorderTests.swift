@@ -126,6 +126,10 @@ private final class TestVoiceAudioRecorder: VoiceAudioRecording {
         }
     }
 
+    func updateMeters() {}
+
+    func averagePower(forChannel channelNumber: Int) -> Float { -20 }
+
     /// Models `record(forDuration:)` reaching its duration cap before the
     /// caller invokes `VoiceRecorder.stopRecording(owner:)`.
     func simulateAutomaticStop() {
@@ -308,6 +312,30 @@ struct VoiceRecorderTests {
         #expect(session.activationCalls == [true, false, true, false])
         #expect(FileManager.default.fileExists(atPath: firstURL.path))
         #expect(FileManager.default.fileExists(atPath: secondURL.path))
+    }
+
+    @Test func meterReadsOnlyForTheRecordingOwner() async throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let coordinator = AudioSessionCoordinator(session: VoiceRecorderTestSession())
+        let voiceRecorder = VoiceRecorder(
+            sessionCoordinator: coordinator,
+            recorderFactory: TestVoiceAudioRecorderFactory(plans: [.success]),
+            permissionGranted: { true },
+            paddingInterval: 0,
+            outputDirectory: directory
+        )
+        let owner = VoiceRecorder.RecordingOwner()
+
+        #expect(await voiceRecorder.averagePower(owner: owner) == nil)
+        _ = try await voiceRecorder.startRecording(owner: owner)
+        #expect(await voiceRecorder.averagePower(owner: owner) == -20)
+        #expect(await voiceRecorder.averagePower(owner: VoiceRecorder.RecordingOwner()) == nil)
+
+        _ = await voiceRecorder.stopRecording(owner: owner)
+        await coordinator.drain()
+        #expect(await voiceRecorder.averagePower(owner: owner) == nil)
     }
 
     @Test func rejectedNewHoldCancelCannotDeleteHoldFinishingDuringPadding() async throws {
