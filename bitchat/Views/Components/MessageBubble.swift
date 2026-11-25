@@ -171,11 +171,15 @@ struct MessageMetaView: View {
 struct MessageSenderNameView: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var conversationUIModel: ConversationUIModel
+    @ThemedPalette private var palette
 
     let message: BitchatMessage
 
     var body: some View {
         Text(conversationUIModel.formatSenderName(message, colorScheme: colorScheme))
+            // The name is a link; keep it in the label color wherever links
+            // would take the tint.
+            .tint(palette.secondary)
             .lineLimit(1)
             .truncationMode(.tail)
             .padding(.leading, MessageBubbleStyle.textInsets.leading)

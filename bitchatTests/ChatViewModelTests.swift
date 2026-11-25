@@ -815,6 +815,9 @@ struct ChatViewModelFormattingTests {
         // The same link the name in the full text carries, so a tap still
         // opens the sender's action sheet.
         #expect(name.runs.allSatisfy { $0.link == URL(string: "bitchat://user/\(senderPeerID.id)") })
+        // The secondary label color, never a palette hue: dark purples are
+        // unreadable on the dark backdrop.
+        #expect(name.runs.first?.swiftUI.foregroundColor == .secondary)
     }
 
     @Test @MainActor

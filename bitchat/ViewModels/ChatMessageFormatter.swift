@@ -200,9 +200,13 @@ final class ChatMessageFormatter {
         return result
     }
 
-    /// The sender's name for the label above someone else's bubble: in the
-    /// sender's color, with the verified mark on public rows, and linked to
-    /// the same `bitchat://user/` action as the name in the full text.
+    /// The sender's name for the label above someone else's bubble, with
+    /// the verified mark on public rows, linked to the same `bitchat://user/`
+    /// action as the name in the full text.
+    ///
+    /// It is in the secondary label color, as in Messages, not the sender's
+    /// palette color: dark hues such as purple fall short of a readable
+    /// contrast on the dark backdrop.
     func formatSenderName(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
         let isDark = colorScheme == .dark
         let isVerifiedSender = isVerifiedSender(of: message)
@@ -211,11 +215,11 @@ final class ChatMessageFormatter {
             return cachedName
         }
 
-        let baseColor = peerColor(for: message, isDark: isDark)
+        let baseColor = Color.secondary
         let (baseName, suffix) = message.sender.splitSuffix()
         var nameStyle = AttributeContainer()
         nameStyle.foregroundColor = baseColor
-        nameStyle.font = .bitchatSystem(size: 12, weight: .semibold)
+        nameStyle.font = .bitchatSystem(size: 12, weight: .medium)
         if let spid = message.senderPeerID, let url = peerURL(for: spid) {
             nameStyle.link = url
         }
@@ -226,7 +230,7 @@ final class ChatMessageFormatter {
             suffixStyle.foregroundColor = baseColor.opacity(0.6)
             result.append(AttributedString(suffix).mergingAttributes(suffixStyle))
         }
-        // Private rows show the filled seal beside the time instead.
+        // Private rows show the filled seal beside the bubble instead.
         if isVerifiedSender, !message.isPrivate {
             appendVerifiedSeal(to: &result, baseColor: baseColor, design: .default)
         }
