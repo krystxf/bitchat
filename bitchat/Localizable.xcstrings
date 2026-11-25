@@ -98719,19 +98719,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "أنشئ مجموعة مع %@"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@-এর সঙ্গে গ্রুপ তৈরি করুন"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "gruppe mit %@ erstellen"
           }
         },
         "en" : {
@@ -98743,157 +98743,157 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "crear grupo con %@"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "ایجاد گروه با %@"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "gumawa ng grupo kasama si %@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "créer un groupe avec %@"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "יצירת קבוצה עם %@"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@ के साथ समूह बनाएं"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "buat grup dengan %@"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "crea un gruppo con %@"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@とグループを作成"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@님과 그룹 만들기"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "cipta kumpulan dengan %@"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@ सँग समूह बनाउनुहोस्"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "groep maken met %@"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "utwórz grupę z %@"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "criar grupo com %@"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "criar grupo com %@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "создать группу с %@"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "skapa grupp med %@"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@ உடன் குழுவை உருவாக்கு"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "สร้างกลุ่มกับ %@"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@ ile grup oluştur"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "створити групу з %@"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "%@ کے ساتھ گروپ بنائیں"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "tạo nhóm với %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "与 %@ 创建群组"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "create group with %@"
+            "value" : "與 %@ 建立群組"
           }
         }
       }
