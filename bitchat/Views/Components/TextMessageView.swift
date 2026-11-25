@@ -56,6 +56,9 @@ struct TextMessageView: View {
         let text = conversationUIModel.formatMessageBody(message, isSelf: isSelf, colorScheme: colorScheme)
         let hasChips = !scan.lightningLinks.isEmpty || !scan.cashuLinks.isEmpty
         let showsDeliveryStatus = isSelf && message.isPrivate && deliveryStatus != .notSentYet
+        // A Giphy or Tenor link plays as a GIF, on every transport: it
+        // travels as plain text, so there is nothing else to tell it apart.
+        let gif = GifMessageDetector.content(in: message.content)
 
         VStack(alignment: isSelf ? .trailing : .leading, spacing: 3) {
             if showsSenderName && !isSelf {
@@ -64,7 +67,13 @@ struct TextMessageView: View {
             MessageBubbleLayout(isSelf: isSelf, maxBubbleWidth: maxBubbleWidth) {
                 // A message of payment tokens only has no text to bubble:
                 // its chips take the bubble's place.
-                if text.characters.isEmpty && hasChips {
+                if let gif, gif.isLinkOnly {
+                    // The link alone: the GIF stands in for the bubble, as
+                    // an image does.
+                    gifCard(gif.link, isSelf: isSelf)
+                        .padding(4)
+                        .messageBubbleBackground(isSelf: isSelf, palette: palette, hasTail: false, selfFill: bubbleColor.color)
+                } else if text.characters.isEmpty && hasChips {
                     paymentChips(scan)
                 } else {
                     bubble(text, isSelf: isSelf, scan: scan)
@@ -82,6 +91,10 @@ struct TextMessageView: View {
             }
             if hasChips && !text.characters.isEmpty {
                 paymentChips(scan)
+                    .padding(.top, 3)
+            }
+            if let gif, !gif.isLinkOnly {
+                gifCard(gif.link, isSelf: isSelf)
                     .padding(.top, 3)
             }
         }
@@ -127,6 +140,16 @@ struct TextMessageView: View {
         )
         // Links take the tint: white on my accent bubble.
         .tint(isSelf ? .white : palette.accentBlue)
+    }
+
+    private func gifCard(_ link: GifLink, isSelf: Bool) -> some View {
+        GifMessageView(
+            link: link,
+            messageID: message.id,
+            isFromMe: isSelf,
+            isFavoriteSender: !isSelf && conversationUIModel.isFavoriteSender(of: message)
+        )
+        .frame(maxWidth: min(280, maxBubbleWidth))
     }
 
     /// Lightning and Cashu payments as tappable chips.
