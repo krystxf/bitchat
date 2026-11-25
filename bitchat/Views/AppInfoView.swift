@@ -235,7 +235,6 @@ struct AppInfoView: View {
                     (icon, text.hasPrefix("• ") ? String(text.dropFirst(2)) : text)
                 }
                 return [
-                    item("person.crop.circle", String(localized: "app_info.how_to_use.set_nickname")),
                     item("number", String(localized: "app_info.how_to_use.change_channels")),
                     item("person.2", String(localized: "app_info.how_to_use.open_sidebar")),
                     item("bubble.left.and.bubble.right", String(localized: "app_info.how_to_use.start_dm")),
