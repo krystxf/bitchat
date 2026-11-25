@@ -20,21 +20,21 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "geteilter link",
+            "value" : "Geteilter link",
             "comment" : "Fallback title when saving a shared link"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "shared Link",
+            "value" : "Shared Link",
             "comment" : "Fallback title when saving a shared link"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "enlace compartido",
+            "value" : "Enlace compartido",
             "comment" : "Fallback title when saving a shared link"
           }
         },
@@ -47,13 +47,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "naibahaging link"
+            "value" : "Naibahaging link"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "lien partagé",
+            "value" : "Lien partagé",
             "comment" : "Fallback title when saving a shared link"
           }
         },
@@ -73,14 +73,14 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tautan dibagikan",
+            "value" : "Tautan dibagikan",
             "comment" : "Fallback title when saving a shared link"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "link condiviso",
+            "value" : "Link condiviso",
             "comment" : "Fallback title when saving a shared link"
           }
         },
@@ -101,7 +101,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "pautan dikongsi"
+            "value" : "Pautan dikongsi"
           }
         },
         "ne" : {
@@ -114,39 +114,39 @@
         "nl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "gedeelde link"
+            "value" : "Gedeelde link"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "udostępniony link"
+            "value" : "Udostępniony link"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "ligação partilhada"
+            "value" : "Ligação partilhada"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "link compartilhado",
+            "value" : "Link compartilhado",
             "comment" : "Fallback title when saving a shared link"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "поделился ссылкой",
+            "value" : "Поделился ссылкой",
             "comment" : "Fallback title when saving a shared link"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "delad länk"
+            "value" : "Delad länk"
           }
         },
         "ta" : {
@@ -164,14 +164,14 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "paylaşılan bağlantı",
+            "value" : "Paylaşılan bağlantı",
             "comment" : "Fallback title when saving a shared link"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "спільне посилання",
+            "value" : "Спільне посилання",
             "comment" : "Fallback title when saving a shared link"
           }
         },
@@ -184,7 +184,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "liên kết đã chia sẻ"
+            "value" : "Liên kết đã chia sẻ"
           }
         },
         "zh-Hans" : {
@@ -221,21 +221,21 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "kein teilbarer inhalt",
+            "value" : "Kein teilbarer inhalt",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "no shareable content",
+            "value" : "No shareable content",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "sin contenido que se pueda compartir",
+            "value" : "Sin contenido que se pueda compartir",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
@@ -248,13 +248,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "walang maibabahaging nilalaman"
+            "value" : "Walang maibabahaging nilalaman"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "aucun contenu partageable",
+            "value" : "Aucun contenu partageable",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
@@ -274,14 +274,14 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tidak ada konten yang bisa dibagikan",
+            "value" : "Tidak ada konten yang bisa dibagikan",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nessun contenuto condivisibile",
+            "value" : "Nessun contenuto condivisibile",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
@@ -302,7 +302,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "tiada kandungan yang boleh dikongsi"
+            "value" : "Tiada kandungan yang boleh dikongsi"
           }
         },
         "ne" : {
@@ -315,39 +315,39 @@
         "nl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "geen deelbare inhoud"
+            "value" : "Geen deelbare inhoud"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "brak treści do udostępnienia"
+            "value" : "Brak treści do udostępnienia"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "sem conteúdo partilhável"
+            "value" : "Sem conteúdo partilhável"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nenhum conteúdo compartilhável",
+            "value" : "Nenhum conteúdo compartilhável",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "нет подходящего контента",
+            "value" : "Нет подходящего контента",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "inget delbart innehåll"
+            "value" : "Inget delbart innehåll"
           }
         },
         "ta" : {
@@ -365,14 +365,14 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "paylaşılabilir içerik yok",
+            "value" : "Paylaşılabilir içerik yok",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "нема відповідного контенту",
+            "value" : "Нема відповідного контенту",
             "comment" : "Shown when provided content cannot be shared"
           }
         },
@@ -385,7 +385,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "không có nội dung có thể chia sẻ"
+            "value" : "Không có nội dung có thể chia sẻ"
           }
         },
         "zh-Hans" : {
@@ -422,21 +422,21 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nichts zum teilen",
+            "value" : "Nichts zum teilen",
             "comment" : "Shown when the share extension receives no content"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nothing to share",
+            "value" : "Nothing to share",
             "comment" : "Shown when the share extension receives no content"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nada que compartir",
+            "value" : "Nada que compartir",
             "comment" : "Shown when the share extension receives no content"
           }
         },
@@ -449,13 +449,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "walang maibabahagi"
+            "value" : "Walang maibabahagi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "rien à partager",
+            "value" : "Rien à partager",
             "comment" : "Shown when the share extension receives no content"
           }
         },
@@ -475,14 +475,14 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tidak ada yang bisa dibagikan",
+            "value" : "Tidak ada yang bisa dibagikan",
             "comment" : "Shown when the share extension receives no content"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "niente da condividere",
+            "value" : "Niente da condividere",
             "comment" : "Shown when the share extension receives no content"
           }
         },
@@ -503,7 +503,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "tiada apa-apa untuk dikongsi"
+            "value" : "Tiada apa-apa untuk dikongsi"
           }
         },
         "ne" : {
@@ -516,39 +516,39 @@
         "nl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "niets om te delen"
+            "value" : "Niets om te delen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "nie ma nic do udostępnienia"
+            "value" : "Nie ma nic do udostępnienia"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "nada para partilhar"
+            "value" : "Nada para partilhar"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "nada para compartilhar",
+            "value" : "Nada para compartilhar",
             "comment" : "Shown when the share extension receives no content"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "нечем поделиться",
+            "value" : "Нечем поделиться",
             "comment" : "Shown when the share extension receives no content"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "inget att dela"
+            "value" : "Inget att dela"
           }
         },
         "ta" : {
@@ -566,14 +566,14 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "paylaşılacak bir şey yok",
+            "value" : "Paylaşılacak bir şey yok",
             "comment" : "Shown when the share extension receives no content"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "нема чим ділитися",
+            "value" : "Нема чим ділитися",
             "comment" : "Shown when the share extension receives no content"
           }
         },
@@ -586,7 +586,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "không có gì để chia sẻ"
+            "value" : "Không có gì để chia sẻ"
           }
         },
         "zh-Hans" : {
@@ -632,7 +632,7 @@
         "sv" : { "stringUnit" : { "state" : "needs_review", "value" : "Kunde inte spara i bitchat" } },
         "ta" : { "stringUnit" : { "state" : "needs_review", "value" : "bitchat-இல் சேமிக்க முடியவில்லை" } },
         "th" : { "stringUnit" : { "state" : "needs_review", "value" : "บันทึกไปยัง bitchat ไม่ได้" } },
-        "tr" : { "stringUnit" : { "state" : "needs_review", "value" : "bitchat’e kaydedilemedi" } },
+        "tr" : { "stringUnit" : { "state" : "needs_review", "value" : "Bitchat’e kaydedilemedi" } },
         "uk" : { "stringUnit" : { "state" : "needs_review", "value" : "Не вдалося зберегти в bitchat" } },
         "ur" : { "stringUnit" : { "state" : "needs_review", "value" : "bitchat میں محفوظ نہیں ہو سکا" } },
         "vi" : { "stringUnit" : { "state" : "needs_review", "value" : "Không thể lưu vào bitchat" } },

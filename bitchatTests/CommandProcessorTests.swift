@@ -13,7 +13,7 @@ struct CommandProcessorTests {
         let result = processor.process("/slap @system")
         switch result {
         case .error(let message):
-            #expect(message == "cannot slap system: not found")
+            #expect(message == "Cannot slap system: not found")
         default:
             Issue.record("Expected error result")
         }
@@ -26,7 +26,7 @@ struct CommandProcessorTests {
         let result = processor.process("/hug @system")
         switch result {
         case .error(let message):
-            #expect(message == "cannot hug system: not found")
+            #expect(message == "Cannot hug system: not found")
         default:
             Issue.record("Expected error result")
         }
@@ -39,7 +39,7 @@ struct CommandProcessorTests {
         let result = processor.process("/slap")
         switch result {
         case .error(let message):
-            #expect(message == "usage: /slap <nickname>")
+            #expect(message == "Usage: /slap <nickname>")
         default:
             Issue.record("Expected error result for usage message")
         }
@@ -62,7 +62,7 @@ struct CommandProcessorTests {
 
         switch result {
         case .success(let message):
-            #expect(message == "online: alice, bob")
+            #expect(message == "Online: alice, bob")
         default:
             Issue.record("Expected success result")
         }
@@ -88,7 +88,7 @@ struct CommandProcessorTests {
 
         switch result {
         case .success(let message):
-            #expect(message == "online: bob")
+            #expect(message == "Online: bob")
         default:
             Issue.record("Expected success result")
         }
@@ -210,7 +210,7 @@ struct CommandProcessorTests {
 
         switch result {
         case .success(let message):
-            #expect(message == "blocked peers: bob | geohash blocks: carol")
+            #expect(message == "Blocked peers: bob | geohash blocks: carol")
         default:
             Issue.record("Expected success result")
         }
@@ -233,7 +233,7 @@ struct CommandProcessorTests {
         case .success(let message):
             // "no longer see" — blocking filters at display time; packets still
             // arrive and relay, so "receive" overpromised (UX audit fix).
-            #expect(message == "blocked bob. you will no longer see their messages")
+            #expect(message == "Blocked bob. You will no longer see their messages")
         default:
             Issue.record("Expected success result")
         }
@@ -244,7 +244,7 @@ struct CommandProcessorTests {
         }
         switch unblockResult {
         case .success(let message):
-            #expect(message == "unblocked bob")
+            #expect(message == "Unblocked bob")
         default:
             Issue.record("Expected success result")
         }
@@ -263,7 +263,7 @@ struct CommandProcessorTests {
         }
         switch blockResult {
         case .success(let message):
-            #expect(message == "blocked carol in geohash chats")
+            #expect(message == "Blocked carol in geohash chats")
         default:
             Issue.record("Expected success result")
         }
@@ -276,7 +276,7 @@ struct CommandProcessorTests {
         }
         switch unblockResult {
         case .success(let message):
-            #expect(message == "unblocked carol in geohash chats")
+            #expect(message == "Unblocked carol in geohash chats")
         default:
             Issue.record("Expected success result")
         }
@@ -291,7 +291,7 @@ struct CommandProcessorTests {
         let processor = makePayProcessor(context: MockCommandContextProvider())
         switch processor.process("/pay") {
         case .success(let message):
-            #expect(message?.contains("usage: /pay") == true)
+            #expect(message?.contains("Usage: /pay") == true)
         default:
             Issue.record("Expected success (usage) result")
         }
@@ -369,7 +369,7 @@ struct CommandProcessorTests {
         for bad in ["/pay \(truncatedV4)", "/pay \(junkV4)"] {
             switch processor.process(bad) {
             case .error(let message):
-                #expect(message.contains("invalid cashu token") == true)
+                #expect(message.contains("Invalid cashu token") == true)
             default:
                 Issue.record("Expected error for \(bad)")
             }

@@ -306,8 +306,8 @@ struct ChatViewModelCommandTests {
         viewModel.handleCommand("/bogus")
 
         let dmContents = viewModel.privateChats[peerID]?.map(\.content) ?? []
-        #expect(dmContents.contains { $0.hasPrefix("unknown command: /bogus") })
-        #expect(!viewModel.messages.contains { $0.content.hasPrefix("unknown command: /bogus") })
+        #expect(dmContents.contains { $0.hasPrefix("Unknown command: /bogus") })
+        #expect(!viewModel.messages.contains { $0.content.hasPrefix("Unknown command: /bogus") })
     }
 
     @Test @MainActor
@@ -316,7 +316,7 @@ struct ChatViewModelCommandTests {
 
         viewModel.handleCommand("/bogus")
 
-        #expect(viewModel.messages.last?.content.hasPrefix("unknown command: /bogus") == true)
+        #expect(viewModel.messages.last?.content.hasPrefix("Unknown command: /bogus") == true)
     }
 
 
