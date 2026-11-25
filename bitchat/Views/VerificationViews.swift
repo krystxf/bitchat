@@ -411,20 +411,13 @@ struct VerificationSheetView: View {
     private var boxColor: Color { palette.secondary.opacity(0.1) }
 
     var body: some View {
-        NavigationStack {
-            sheetContent
-                .navigationTitle(Text(verbatim: title))
-                #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                #endif
-                .toolbar {
-                    SheetCloseToolbarItem {
-                        showingScanner = false
-                        isPresented = false
-                    }
-                }
-        }
-        .onDisappear { showingScanner = false }
+        sheetContent
+            .sheetChrome(title: Text(verbatim: title), onClose: {
+                // Stop the camera before the sheet animates away.
+                showingScanner = false
+                isPresented = false
+            })
+            .onDisappear { showingScanner = false }
     }
 
     /// The catalog keeps this title in capitals; show it in lower case like
