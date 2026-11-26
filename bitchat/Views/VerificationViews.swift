@@ -20,42 +20,52 @@ struct MyQRView: View {
         static let copied: String = String(localized: "verification.copy.copied", comment: "Confirmation shown after copying a verification URL")
         static let copy: LocalizedStringKey = "common.copy"
         static let share: LocalizedStringKey = "verification.share.action"
+        static let shareShort = String(localized: "conversation_info.action.share", defaultValue: "Share", comment: "Short label of the button on a location channel's details page that shares an invite to the channel")
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            GeometryReader { proxy in
-                QRCodeImage(data: qrString, size: min(proxy.size.width, 680))
+        ScrollView {
+            VStack(spacing: 20) {
+                QRCodeImage(data: qrString, size: Self.codeSize)
                     .accessibilityLabel(Strings.accessibilityLabel)
-                    .frame(width: min(proxy.size.width, 680), height: min(proxy.size.width, 680))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .aspectRatio(1, contentMode: .fit)
-            .padding(.horizontal, 12)
+                    .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
 
-            Button(action: copyURL) {
-                HStack(alignment: .top, spacing: 8) {
-                    Text(copied ? Strings.copied : qrString)
-                        .font(.callout)
-                        .multilineTextAlignment(.center)
-                        .textSelection(.enabled)
-                    if !copied { Image(systemName: "doc.on.doc") }
+                HStack(spacing: 12) {
+                    Button(action: copyURL) {
+                        Label {
+                            Text(copied ? Strings.copied : String(localized: "common.copy"))
+                        } icon: {
+                            Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityHint(Text(verbatim: qrString))
+
+                    ShareLink(item: qrString) {
+                        // The short label fits beside Copy; VoiceOver
+                        // says what is shared.
+                        Label(Strings.shareShort, systemImage: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityLabel(Text(Strings.share))
                 }
-                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle())
+                .controlSize(.large)
+                .labelStyle(.titleAndIcon)
+                .lineLimit(1)
+                .frame(maxWidth: Self.codeSize)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(copied ? Text(Strings.copied) : Text(Strings.copy))
-            .accessibilityHint(Text(qrString))
-
-            ShareLink(item: qrString) {
-                Label(Strings.share, systemImage: "square.and.arrow.up")
-            }
-            .buttonStyle(.bordered)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
         }
-        .padding(.vertical, 8)
         .onDisappear { copyResetTask?.cancel() }
     }
+
+    /// The code's side: large enough to scan from a phone held at arm's
+    /// length, small enough to leave the buttons in view.
+    private static let codeSize: CGFloat = 264
 
     private func copyURL() {
         #if os(iOS)
@@ -92,17 +102,18 @@ struct QRCodeImage: View {
         Group {
             if let image = generateImage() {
                 ImageWrapper(image: image)
-                    .padding(12) // Preserve a white quiet zone around the QR modules.
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+                    // A white quiet zone around the modules, in both modes.
+                    .padding(16)
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                     .frame(width: size, height: size)
             } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(palette.secondary.opacity(0.5), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(palette.divider, lineWidth: 1)
                     .frame(width: size, height: size)
                     .overlay(
-                        Text(Strings.unavailable)
-                            .bitchatFont(size: 12)
-                            .foregroundColor(palette.secondary)
+                        Label(Strings.unavailable, systemImage: "qrcode")
+                            .font(.footnote)
+                            .foregroundStyle(.novaSecondaryText)
                     )
             }
         }
@@ -153,11 +164,24 @@ struct QRScanView: View {
     private enum Strings {
         static let pastePrompt: LocalizedStringKey = "verification.scan.paste_prompt"
         static let validate: LocalizedStringKey = "verification.scan.validate"
-        static let cameraUnavailable = String(
-            localized: "verification.scan.camera_unavailable",
-            defaultValue: "Camera unavailable — paste a QR below.",
-            comment: "Shown over the scanner preview when no camera is available or permission was denied"
+        static let cameraUnavailableTitle = String(
+            localized: "verification.scan.camera_unavailable.title",
+            defaultValue: "Camera Unavailable",
+            comment: "Title shown over the QR scanner preview when no camera is available or permission was denied"
         )
+        #if os(macOS)
+        static let cameraUnavailableMessage = String(
+            localized: "verification.scan.camera_unavailable.message_macos",
+            defaultValue: "Paste a friend's verification link below instead.",
+            comment: "Shown on Mac under 'Camera Unavailable' over the QR scanner preview; a paste field follows below it"
+        )
+        #else
+        static let cameraUnavailableMessage = String(
+            localized: "verification.scan.camera_unavailable.message",
+            defaultValue: "Allow camera access in Settings to scan a friend's code.",
+            comment: "Shown on iPhone under 'Camera Unavailable' over the QR scanner preview, above a button that opens Settings"
+        )
+        #endif
         static func requested(_ nickname: String) -> String {
             String(
                 format: String(localized: "verification.scan.status.requested", comment: "Status text when verification is requested for a nickname"),
@@ -170,41 +194,80 @@ struct QRScanView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             ZStack {
+                Color.black
                 CameraScannerView(isActive: isActive, onUnavailable: { cameraUnavailable = true }) { code in
                     handleScannedCode(code, announceResult: false)
                 }
                 if cameraUnavailable {
-                    Text(Strings.cameraUnavailable)
-                        .bitchatFont(size: 13, weight: .medium)
-                        .foregroundColor(palette.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(16)
+                    cameraUnavailableView
                 }
             }
-            .frame(height: 260)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: 360)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .frame(maxWidth: .infinity)
 
             #if os(macOS)
-            Text(Strings.pastePrompt)
-                .bitchatFont(size: 14, weight: .medium)
-            TextEditor(text: $input)
-                .frame(height: 100)
-                .border(palette.secondary.opacity(0.4))
-            Button(Strings.validate) {
-                handleScannedCode(input, announceResult: true)
-            }
-            .buttonStyle(.bordered)
-            if !result.isEmpty {
-                Text(result)
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(Strings.pastePrompt)
+                    .font(.headline)
+                TextEditor(text: $input)
+                    .font(.body.monospaced())
+                    .scrollContentBackground(.hidden)
+                    .padding(6)
+                    .frame(height: 96)
+                    .background(Color.novaSurface, in: RoundedRectangle(cornerRadius: 8))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.novaHairline))
+                HStack {
+                    if !result.isEmpty {
+                        Text(result)
+                            .font(.callout)
+                            .foregroundStyle(.novaSecondaryText)
+                    }
+                    Spacer()
+                    Button(Strings.validate) {
+                        handleScannedCode(input, announceResult: true)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
             }
             #endif
-            Spacer()
         }
-        .padding()
+        .padding(.horizontal, 24)
+    }
+
+    /// No camera, or no permission to use it: what to do instead, in the
+    /// dark viewfinder.
+    private var cameraUnavailableView: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "video.slash.fill")
+                .font(.largeTitle)
+                .foregroundStyle(.white.opacity(0.7))
+            Text(Strings.cameraUnavailableTitle)
+                .font(.headline)
+            Text(Strings.cameraUnavailableMessage)
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.7))
+            #if os(iOS)
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                Text("location_channels.action.open_settings")
+            }
+            .buttonStyle(.bordered)
+            .tint(.white)
+            .padding(.top, 4)
+            #endif
+        }
+        .foregroundStyle(.white)
+        .multilineTextAlignment(.center)
+        .padding(24)
+        .environment(\.colorScheme, .dark)
     }
 
     private func handleScannedCode(_ code: String, announceResult: Bool) {
@@ -445,14 +508,20 @@ struct VerificationSheetView: View {
 
     var body: some View {
         sheetContent
-            .sheetChrome(title: Text(verbatim: title), onClose: {
-                // Stop the camera before the sheet animates away.
-                showingScanner = false
-                isPresented = false
-            })
+            .sheetChrome(
+                title: Text(verbatim: title),
+                onClose: {
+                    // Stop the camera before the sheet animates away.
+                    showingScanner = false
+                    isPresented = false
+                },
+                // A segmented control in the title slot, as in the system
+                // apps; it replaces the title on screen.
+                principal: { pagePicker }
+            )
             .onDisappear { showingScanner = false }
             #if os(macOS)
-            .frame(minWidth: 700, minHeight: 850)
+            .frame(minWidth: 460, idealWidth: 480, minHeight: 600, idealHeight: 640)
             #endif
     }
 
@@ -461,31 +530,35 @@ struct VerificationSheetView: View {
         String(localized: "verification.sheet.title")
     }
 
-    private var sheetContent: some View {
-        VStack(spacing: 12) {
-            Picker("verification.sheet.title", selection: Binding(
-                get: { showingScanner ? Page.scan : Page.myCode },
-                set: { showingScanner = $0 == .scan }
-            )) {
-                Text("verification.sheet.my_code").tag(Page.myCode)
-                Text("verification.sheet.scan").tag(Page.scan)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-            .accessibilityLabel(Text("verification.sheet.title"))
+    private var pagePicker: some View {
+        Picker("verification.sheet.title", selection: Binding(
+            get: { showingScanner ? Page.scan : Page.myCode },
+            set: { showingScanner = $0 == .scan }
+        )) {
+            Text("verification.sheet.my_code").tag(Page.myCode)
+            Text("verification.sheet.scan").tag(Page.scan)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+        .accessibilityLabel(Text("verification.sheet.title"))
+    }
 
+    private var sheetContent: some View {
+        VStack(spacing: 16) {
             Group {
                 if showingScanner {
-                    VStack(spacing: 8) {
-                        Text("verification.scan.prompt_friend")
-                            .font(.headline)
-                            .multilineTextAlignment(.center)
+                    VStack(spacing: 12) {
                         QRScanView(isActive: showingScanner, onSuccess: {
                             showingScanner = false
                         })
                         .environmentObject(verificationModel)
-                        .frame(minHeight: 280)
+                        Text("verification.scan.prompt_friend")
+                            .font(.subheadline)
+                            .foregroundStyle(.novaSecondaryText)
+                            .multilineTextAlignment(.center)
                     }
+                    .padding(.top, 16)
                 } else {
                     MyQRView(qrString: verificationModel.myQRString())
                 }
@@ -494,12 +567,14 @@ struct VerificationSheetView: View {
 
             if let peerID = verificationModel.selectedPeerID,
                verificationModel.isVerified(peerID: peerID) {
-                Button(action: { verificationModel.unverifyFingerprint(for: peerID) }) {
-                    Label("remove verification", systemImage: "minus.circle")
+                Button(role: .destructive) {
+                    verificationModel.unverifyFingerprint(for: peerID)
+                } label: {
+                    Label("fingerprint.action.remove_verification", systemImage: "xmark.seal")
                 }
                 .buttonStyle(.bordered)
+                .padding(.bottom, 16)
             }
         }
-        .padding(.vertical, 12)
     }
 }

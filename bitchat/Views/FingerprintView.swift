@@ -13,34 +13,29 @@ struct FingerprintView: View {
     @EnvironmentObject private var verificationModel: VerificationModel
     let peerID: PeerID
     @Environment(\.dismiss) var dismiss
-    @ThemedPalette private var palette
     @State private var aliasDraft: String = ""
     @State private var didLoadAlias = false
 
-    private var textColor: Color { palette.primary }
-
     private enum Strings {
         static let title: LocalizedStringKey = "fingerprint.title"
-        static let theirFingerprint: LocalizedStringKey = "fingerprint.their_label"
+        static let theirFingerprintKey: String.LocalizationValue = "fingerprint.their_label"
         static let handshakePending: LocalizedStringKey = "fingerprint.handshake_pending"
-        static let yourFingerprint: LocalizedStringKey = "fingerprint.your_label"
+        static let yourFingerprintKey: String.LocalizationValue = "fingerprint.your_label"
         static let copy: LocalizedStringKey = "common.copy"
-        static let verifiedBadge: LocalizedStringKey = "fingerprint.badge.verified"
-        static let notVerifiedBadge: LocalizedStringKey = "fingerprint.badge.not_verified"
         static let verifiedMessage: LocalizedStringKey = "fingerprint.message.verified"
         static let localAlias = String(
             localized: "fingerprint.local_alias.label",
-            defaultValue: "local alias",
+            defaultValue: "Local Alias",
             comment: "Label for the local-only alias field on the fingerprint sheet"
         )
         static let localAliasPlaceholder = String(
             localized: "fingerprint.local_alias.placeholder",
-            defaultValue: "name for this person",
+            defaultValue: "Name for this person",
             comment: "Placeholder for the local alias field on the fingerprint sheet"
         )
         static let localAliasHint = String(
             localized: "fingerprint.local_alias.hint",
-            defaultValue: "only on this device. leave blank to use their claimed nickname.",
+            defaultValue: "Only on this device. Leave blank to use their claimed nickname.",
             comment: "Explanation under the local alias field"
         )
         static func verifyHint(_ nickname: String) -> String {
@@ -52,7 +47,7 @@ struct FingerprintView: View {
         }
         static let markVerified: LocalizedStringKey = "fingerprint.action.mark_verified"
         static let removeVerification: LocalizedStringKey = "fingerprint.action.remove_verification"
-        static let vouchedBadge: LocalizedStringKey = "fingerprint.badge.vouched"
+        static let vouchedBadgeKey: String.LocalizationValue = "fingerprint.badge.vouched"
         static func vouchedBy(_ count: Int) -> String {
             String(
                 format: String(localized: "fingerprint.message.vouched_by", comment: "How many people the user verified have vouched for this peer"),
@@ -65,212 +60,101 @@ struct FingerprintView: View {
     var body: some View {
         let fingerprintState = verificationModel.fingerprintPresentation(for: peerID)
 
-        VStack(spacing: 20) {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    if let icon = fingerprintState.encryptionStatus.icon {
-                        Image(systemName: icon)
-                            .font(.bitchatSystem(size: 20))
-                            .foregroundColor(fingerprintState.encryptionStatus == .noiseVerified ? Color.green : textColor)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(fingerprintState.peerNickname)
-                            .bitchatFont(size: 18, weight: .semibold)
-                            .foregroundColor(textColor)
-                        
-                        Text(fingerprintState.encryptionStatus.description)
-                            .bitchatFont(size: 12)
-                            .foregroundColor(textColor.opacity(0.7))
-                    }
-                    
-                    Spacer()
-                }
-                .padding()
-                .background(palette.secondary.opacity(0.1))
-                .cornerRadius(8)
+        NovaForm {
+            Section {
+                header(fingerprintState)
+                    .listRowBackground(Color.clear)
+            }
 
-                if fingerprintState.canEditLocalAlias {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(verbatim: Strings.localAlias)
-                            .bitchatFont(size: 12, weight: .bold)
-                            .foregroundColor(textColor.opacity(0.7))
-
-                        TextField(Strings.localAliasPlaceholder, text: $aliasDraft)
-                            .bitchatFont(size: 14)
-                            .foregroundColor(textColor)
-                            .padding(10)
-                            .background(palette.secondary.opacity(0.1))
-                            .cornerRadius(8)
-                            .onSubmit { commitAlias() }
-
-                        Text(verbatim: Strings.localAliasHint)
-                            .bitchatFont(size: 11)
-                            .foregroundColor(textColor.opacity(0.6))
-                    }
-                }
-                
-                // Their fingerprint
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(Strings.theirFingerprint)
-                        .bitchatFont(size: 12, weight: .bold)
-                        .foregroundColor(textColor.opacity(0.7))
-                    
-                    if let fingerprint = fingerprintState.theirFingerprint {
-                        Text(formatFingerprint(fingerprint))
-                            .bitchatFont(size: 14)
-                            .foregroundColor(textColor)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(nil)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(palette.secondary.opacity(0.1))
-                            .cornerRadius(8)
-                            .contextMenu {
-                                Button(Strings.copy) {
-                                    #if os(iOS)
-                                    UIPasteboard.general.string = fingerprint
-                                    #else
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(fingerprint, forType: .string)
-                                    #endif
-                                }
-                            }
-                    } else {
-                        Text(Strings.handshakePending)
-                            .bitchatFont(size: 14)
-                            .foregroundColor(Color.orange)
-                            .padding()
-                    }
-                }
-
-                // My fingerprint
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(Strings.yourFingerprint)
-                        .bitchatFont(size: 12, weight: .bold)
-                        .foregroundColor(textColor.opacity(0.7))
-                    
-                    Text(formatFingerprint(fingerprintState.myFingerprint))
-                        .bitchatFont(size: 14)
-                        .foregroundColor(textColor)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(nil)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(palette.secondary.opacity(0.1))
-                        .cornerRadius(8)
-                        .contextMenu {
-                            Button(Strings.copy) {
-                                #if os(iOS)
-                                UIPasteboard.general.string = fingerprintState.myFingerprint
-                                #else
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(fingerprintState.myFingerprint, forType: .string)
-                                #endif
-                            }
-                        }
-                }
-                
-                // Vouched (transitively verified) status: shown whenever the
-                // peer isn't explicitly verified but people I verified vouch
-                // for them, independent of the current session state.
-                if fingerprintState.isVouched && !fingerprintState.isVerified {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "checkmark.seal")
-                                .font(.bitchatSystem(size: 14))
-                                .foregroundColor(.teal)
-                            Text(Strings.vouchedBadge)
-                                .bitchatFont(size: 14, weight: .bold)
-                                .foregroundColor(.teal)
-                        }
-                        .frame(maxWidth: .infinity)
-
-                        Text(Strings.vouchedBy(fingerprintState.voucherCount))
-                            .bitchatFont(size: 12)
-                            .foregroundColor(textColor.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-
-                        if !fingerprintState.voucherNames.isEmpty {
-                            Text(fingerprintState.voucherNames.joined(separator: ", "))
-                                .bitchatFont(size: 12)
-                                .foregroundColor(textColor.opacity(0.7))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(nil)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(.top, 8)
-                    .accessibilityElement(children: .combine)
-                }
-
-                // Verification status
-                if fingerprintState.canToggleVerification {
-                    VStack(spacing: 12) {
-                        Text(fingerprintState.isVerified ? Strings.verifiedBadge : Strings.notVerifiedBadge)
-                            .bitchatFont(size: 14, weight: .bold)
-                            .foregroundColor(fingerprintState.isVerified ? Color.green : Color.orange)
-                            .frame(maxWidth: .infinity)
-                        
-                        Group {
-                            if fingerprintState.isVerified {
-                                Text(Strings.verifiedMessage)
-                            } else {
-                                Text(Strings.verifyHint(fingerprintState.peerNickname))
-                            }
-                        }
-                            .bitchatFont(size: 12)
-                            .foregroundColor(textColor.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .lineLimit(nil)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity)
-                        
-                        if !fingerprintState.isVerified {
-                            Button(action: {
-                                verificationModel.verifyFingerprint(for: peerID)
-                                dismiss()
-                            }) {
-                                Text(Strings.markVerified)
-                                    .bitchatFont(size: 14, weight: .bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 10)
-                                    .background(Color.green)
-                                    .cornerRadius(8)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        } else {
-                            Button(action: {
-                                verificationModel.unverifyFingerprint(for: peerID)
-                                dismiss()
-                            }) {
-                                Text(Strings.removeVerification)
-                                    .bitchatFont(size: 14, weight: .bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 10)
-                                    .background(Color.red)
-                                    .cornerRadius(8)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                    .padding(.top)
-                    .frame(maxWidth: .infinity)
+            if fingerprintState.canEditLocalAlias {
+                Section {
+                    TextField(Strings.localAliasPlaceholder, text: $aliasDraft)
+                        .autocorrectionDisabled(true)
+                        .onSubmit { commitAlias() }
+                } header: {
+                    Text(verbatim: Strings.localAlias)
+                        .novaSectionText()
+                } footer: {
+                    Text(verbatim: Strings.localAliasHint)
+                        .novaSectionText()
                 }
             }
-            .padding()
-            .frame(maxWidth: 500) // Constrain max width for better readability
-            
-            Spacer()
+
+            Section {
+                if let fingerprint = fingerprintState.theirFingerprint {
+                    fingerprintRow(fingerprint)
+                } else {
+                    Label {
+                        Text(Strings.handshakePending)
+                    } icon: {
+                        ProgressView()
+                    }
+                    .foregroundStyle(.novaSecondaryText)
+                }
+            } header: {
+                Text(verbatim: Self.sectionTitle(Strings.theirFingerprintKey))
+                    .novaSectionText()
+            }
+
+            Section {
+                fingerprintRow(fingerprintState.myFingerprint)
+            } header: {
+                Text(verbatim: Self.sectionTitle(Strings.yourFingerprintKey))
+                    .novaSectionText()
+            }
+
+            // Vouched (transitively verified) status: shown whenever the
+            // peer isn't explicitly verified but people I verified vouch
+            // for them, independent of the current session state.
+            if fingerprintState.isVouched && !fingerprintState.isVerified {
+                Section {
+                    Label {
+                        Text(verbatim: Self.badgeTitle(Strings.vouchedBadgeKey))
+                    } icon: {
+                        Image(systemName: "checkmark.seal")
+                    }
+                    .foregroundStyle(.teal)
+                } footer: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(Strings.vouchedBy(fingerprintState.voucherCount))
+                        if !fingerprintState.voucherNames.isEmpty {
+                            Text(verbatim: fingerprintState.voucherNames.joined(separator: ", "))
+                        }
+                    }
+                    .novaSectionText()
+                }
+                .accessibilityElement(children: .combine)
+            }
+
+            if fingerprintState.canToggleVerification {
+                Section {
+                    if fingerprintState.isVerified {
+                        Button(role: .destructive) {
+                            verificationModel.unverifyFingerprint(for: peerID)
+                            dismiss()
+                        } label: {
+                            Text(Strings.removeVerification)
+                        }
+                    } else {
+                        Button {
+                            verificationModel.verifyFingerprint(for: peerID)
+                            dismiss()
+                        } label: {
+                            Label(Strings.markVerified, systemImage: "checkmark.seal")
+                        }
+                    }
+                } footer: {
+                    Group {
+                        if fingerprintState.isVerified {
+                            Text(Strings.verifiedMessage)
+                        } else {
+                            Text(Strings.verifyHint(fingerprintState.peerNickname))
+                        }
+                    }
+                    .novaSectionText()
+                }
+            }
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         // The host supplies the way out: the system back button when this
         // view is pushed onto a navigation stack, or the sheet top bar's
         // close button when it is a sheet of its own (`FingerprintSheet`).
@@ -289,6 +173,73 @@ struct FingerprintView: View {
         .onDisappear {
             commitAlias()
         }
+    }
+
+    /// The person's avatar and name, with the encryption state under it:
+    /// green once verified, as the verified badge is elsewhere.
+    private func header(_ state: FingerprintPresentationState) -> some View {
+        VStack(spacing: 8) {
+            InitialsAvatar(name: state.peerNickname, peerID: peerID, size: 72)
+            Text(verbatim: state.peerNickname)
+                .font(.title3.weight(.semibold))
+                .multilineTextAlignment(.center)
+            Label {
+                Text(verbatim: state.encryptionStatus.description)
+            } icon: {
+                if let icon = state.encryptionStatus.icon {
+                    Image(systemName: icon)
+                }
+            }
+            .font(.subheadline)
+            .foregroundStyle(state.encryptionStatus == .noiseVerified ? Color.green : Color.novaSecondaryText)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// A fingerprint in groups of four, monospaced so the groups line up
+    /// for comparing, with a copy action.
+    private func fingerprintRow(_ fingerprint: String) -> some View {
+        Text(verbatim: formatFingerprint(fingerprint))
+            .font(.body.monospaced())
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 4)
+            .textSelection(.enabled)
+            .contextMenu {
+                Button {
+                    copyToPasteboard(fingerprint)
+                } label: {
+                    Label(Strings.copy, systemImage: "doc.on.doc")
+                }
+            }
+    }
+
+    private func copyToPasteboard(_ text: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #else
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
+    }
+
+    /// The catalog's fingerprint labels end in a colon ("Their
+    /// fingerprint:"); a section header has none.
+    static func sectionTitle(_ key: String.LocalizationValue) -> String {
+        String(localized: key)
+            .trimmingCharacters(in: .whitespaces)
+            .trimmingCharacters(in: CharacterSet(charactersIn: ":："))
+            .trimmingCharacters(in: .whitespaces)
+    }
+
+    /// The catalog's badge texts start with a symbol ("✓ Verified"); a
+    /// row draws the symbol as an SF Symbol instead.
+    static func badgeTitle(_ key: String.LocalizationValue) -> String {
+        let text = String(localized: key)
+        guard let first = text.firstIndex(where: { $0.isLetter }) else { return text }
+        return String(text[first...])
     }
 
     /// Populate `aliasDraft` from the persisted petname once we know the
