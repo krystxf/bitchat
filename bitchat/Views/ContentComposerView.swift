@@ -49,17 +49,16 @@ struct ContentComposerView: View {
                         }) {
                             HStack {
                                 Text(suggestion)
-                                    .bitchatFont(size: 11)
+                                    .font(.subheadline.weight(.medium))
                                     .foregroundColor(palette.primary)
-                                    .fontWeight(.medium)
                                 Spacer()
                             }
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 3)
+                            .padding(.vertical, 8)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
                                 index == conversationUIModel.selectedAutocompleteIndex
-                                    ? palette.secondary.opacity(0.15)
+                                    ? Color.novaSurfaceRaised
                                     : Color.clear
                             )
                         }
@@ -124,6 +123,12 @@ struct ContentComposerView: View {
     static let recorderSpring = Animation.spring(response: 0.32, dampingFraction: 0.8)
 }
 
+enum ComposerMetrics {
+    /// Height of the input capsule and side of the round buttons beside
+    /// it: the 44 pt minimum hit target.
+    static let controlSize: CGFloat = 44
+}
+
 private extension ContentComposerView {
     /// Text field plus the trailing scope toggle and send/mic button, on one
     /// glass surface.
@@ -152,9 +157,9 @@ private extension ContentComposerView {
             sendOrMicButton
         }
         .padding(.leading, 8)
-        .padding(.trailing, 2)
-        .padding(.vertical, 2)
-        .glassSurface(in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .padding(.trailing, 4)
+        .frame(minHeight: ComposerMetrics.controlSize)
+        .glassSurface(in: RoundedRectangle(cornerRadius: ComposerMetrics.controlSize / 2, style: .continuous))
     }
 
     var messageField: some View {
@@ -162,10 +167,10 @@ private extension ContentComposerView {
             "",
             text: $messageText,
             prompt: Text(placeholderText)
-                .foregroundColor(palette.secondary.opacity(0.6))
+                .foregroundColor(palette.secondary.opacity(0.8))
         )
         .textFieldStyle(.plain)
-        .bitchatFont(size: 15)
+        .font(.body)
         .foregroundColor(palette.primary)
         .focused(isTextFieldFocused)
         .autocorrectionDisabled(true)
@@ -244,8 +249,8 @@ private extension ContentComposerView {
     var nearbyOnlyToggle: some View {
         Button(action: { bridgeService.nearbyOnly.toggle() }) {
             Image(systemName: bridgeService.nearbyOnly ? "antenna.radiowaves.left.and.right" : "network")
-                .font(.bitchatSystem(size: 16))
-                .foregroundColor(bridgeService.nearbyOnly ? palette.secondary : Color.cyan.opacity(0.9))
+                .font(.system(size: 16))
+                .foregroundColor(bridgeService.nearbyOnly ? palette.secondary : palette.accent)
                 .frame(width: 28, height: 28)
                 .contentShape(Rectangle())
         }
@@ -351,7 +356,7 @@ private extension ContentComposerView {
         let isCancelArmed = showsRecorder && recorderPhase == .cancelArmed
         return ZStack(alignment: .trailing) {
             Text(recorderHintText)
-                .bitchatFont(size: 12, weight: .medium)
+                .font(.caption.weight(.medium))
                 .foregroundColor(isCancelArmed ? .red : palette.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -405,7 +410,7 @@ private extension ContentComposerView {
         let deleteLabel = String(localized: "voice.recorder.accessibility.delete", defaultValue: "Delete Recording", comment: "Accessibility label and tooltip for the trash button in the voice recording bar")
         return Button(action: voiceRecordingVM.discardRecording) {
             Image(systemName: isHighlighted ? "trash.fill" : "trash")
-                .font(.bitchatSystem(size: 17, weight: .medium))
+                .font(.system(size: 17, weight: .medium))
                 .foregroundColor(isHighlighted ? .red : palette.secondary)
                 .scaleEffect(isDiscarding ? 1.3 : 1 + 0.2 * cancelProgress)
                 .rotationEffect(.degrees(isDiscarding ? -14 : 0), anchor: .bottom)
@@ -438,12 +443,12 @@ private extension ContentComposerView {
                         comment: "Recording bar label while a voice message streams live to the recipient; the placeholder is the elapsed time"
                     )
                     .monospacedDigit()
-                    .bitchatFont(size: 13, weight: .bold)
+                    .font(.footnote.weight(.bold))
                     .foregroundColor(.red)
                 } else {
                     Text(verbatim: elapsed)
                         .monospacedDigit()
-                        .bitchatFont(size: 13, weight: .medium)
+                        .font(.footnote.weight(.medium))
                         .foregroundColor(palette.secondary)
                 }
             }
@@ -459,7 +464,7 @@ private extension ContentComposerView {
             voiceRecordingVM.sendHandsFree(completion: conversationUIModel.sendVoiceNote)
         } label: {
             Image(systemName: "arrow.up")
-                .font(.bitchatSystem(size: 16, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.white)
                 .frame(width: 30, height: 30)
                 .background(Circle().fill(recorderTint))
@@ -475,9 +480,8 @@ private extension ContentComposerView {
         .help(sendLabel)
     }
 
-    var composerAccentColor: Color {
-        privateConversationModel.selectedPeerID != nil ? Color.orange : palette.accent
-    }
+    /// One accent everywhere: private and public chats use the same tint.
+    var composerAccentColor: Color { palette.accent }
 
     var attachmentButton: some View {
         Menu {
@@ -512,16 +516,16 @@ private extension ContentComposerView {
             // The Mac has no camera option, so it shows a photo.
             #if os(iOS)
             Image(systemName: "camera")
-                .font(.bitchatSystem(size: 17, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundColor(composerAccentColor)
-                .frame(width: 40, height: 40)
+                .frame(width: ComposerMetrics.controlSize, height: ComposerMetrics.controlSize)
                 .glassSurface(in: Circle())
                 .contentShape(Circle())
             #else
             Image(systemName: "photo")
-                .font(.bitchatSystem(size: 17, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundColor(composerAccentColor)
-                .frame(width: 40, height: 40)
+                .frame(width: ComposerMetrics.controlSize, height: ComposerMetrics.controlSize)
                 .glassSurface(in: Circle())
                 .contentShape(Circle())
             #endif
@@ -564,9 +568,9 @@ private extension ContentComposerView {
             showsGifPicker = true
         } label: {
             Text(verbatim: "GIF")
-                .font(.bitchatSystem(size: 13, weight: .bold))
+                .font(.system(size: 13, weight: .bold, design: .rounded))
                 .foregroundColor(composerAccentColor)
-                .frame(width: 40, height: 40)
+                .frame(width: ComposerMetrics.controlSize, height: ComposerMetrics.controlSize)
                 .glassSurface(in: Circle())
                 .contentShape(Circle())
         }
@@ -651,7 +655,7 @@ private extension ContentComposerView {
                 .scaleEffect(isHolding ? 1.12 : 0.5)
                 .opacity(isHolding ? 1 : 0)
             Image(systemName: isHolding ? "mic.fill" : "mic.circle.fill")
-                .font(.bitchatSystem(size: isHolding ? 17 : 24, weight: isHolding ? .semibold : .regular))
+                .font(.system(size: isHolding ? 17 : 28, weight: isHolding ? .semibold : .regular))
                 .foregroundColor(isHolding ? .white : micColor)
         }
         .modifier(PulsingOpacityModifier(active: busyTalker != nil && !showsRecorder))
@@ -725,8 +729,8 @@ private extension ContentComposerView {
         let activeColor = composerAccentColor
         return Button(action: onSendMessage) {
             Image(systemName: "arrow.up.circle.fill")
-                .font(.bitchatSystem(size: 24))
-                .foregroundColor(enabled ? activeColor : Color.gray)
+                .font(.system(size: 28))
+                .foregroundColor(enabled ? activeColor : palette.secondary.opacity(0.5))
                 .frame(width: 36, height: 36)
         }
         .buttonStyle(.plain)

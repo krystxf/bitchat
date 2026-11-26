@@ -14,8 +14,8 @@ import UIKit
 
 /// A direct conversation (a DM or a private group) as the detail of the
 /// main window's split view: the messages under a native title bar with the
-/// person's name and status, and the orange privacy caption and the
-/// composer floating over them. The title (on macOS, the details button)
+/// person's name and status, and the privacy caption and the composer
+/// floating over them. The title (on macOS, the details button)
 /// opens the conversation's info page, which holds everything else
 /// (favorite, verify, background, group members). The split view supplies
 /// the way back.
@@ -196,20 +196,18 @@ struct PrivateChatDetailView: View {
     /// conversation, which otherwise renders like the public timeline.
     /// Claims end-to-end encryption only once the session is secured.
     private var privacyCaption: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 4) {
             Image(systemName: "lock.fill")
-                .font(.bitchatSystem(size: 9))
-                // Optical centering: lock.fill's ink is bottom-heavy, so
-                // geometric centering reads low next to the caption text.
-                .offset(y: -1)
+                .imageScale(.small)
             Text(verbatim: privacyCaptionText)
-                .bitchatFont(size: 11, weight: .medium)
         }
-        .foregroundColor(Color.orange)
+        .font(.caption2.weight(.medium))
+        .foregroundColor(palette.secondary)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
-        // The orange text is signature enough; the caption sits on the same
-        // surface as the rest of the bottom chrome.
+        .padding(.top, 4)
+        // A quiet caption, as Messages names the service above its
+        // composer; it sits on the same surface as the rest of the bottom
+        // chrome.
         .accessibilityElement(children: .combine)
     }
 
