@@ -6,6 +6,7 @@
 // For more information, see <https://unlicense.org>
 //
 
+import BitFoundation
 import SwiftUI
 
 /// Everyone the user blocked, opened from the Privacy section of settings,
@@ -65,23 +66,30 @@ struct BlockedAccountsSheet: View {
 
     private func row(for account: BlockedAccount) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: icon(for: account))
-                .foregroundStyle(.novaSecondaryText)
-                .frame(width: 24)
+            InitialsAvatar(name: account.name, peerID: avatarPeerID(for: account), size: 36)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: account.name)
                     .font(.body)
                     .lineLimit(1)
-                Text(verbatim: "\(kindLabel(for: account)) · \(account.shortKey)")
-                    .font(.footnote)
-                    .foregroundStyle(.novaSecondaryText)
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    Text(verbatim: kindLabel(for: account))
+                    Text(verbatim: "·")
+                    // A key: monospaced, so similar ones line up. It never
+                    // truncates; the kind does first.
+                    Text(verbatim: account.shortKey)
+                        .monospaced()
+                        .fixedSize()
+                }
+                .font(.footnote)
+                .foregroundStyle(.novaSecondaryText)
+                .lineLimit(1)
             }
             Spacer(minLength: 8)
             Button(Strings.unblock) {
                 unblock(account)
             }
             .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
             .controlSize(.small)
         }
         .accessibilityElement(children: .combine)
@@ -99,7 +107,7 @@ struct BlockedAccountsSheet: View {
     }
 
     private var emptyState: some View {
-        SheetEmptyState(title: Strings.empty, systemImage: "hand.raised.slash")
+        SheetEmptyState(title: Strings.empty, systemImage: "hand.raised.slash", message: Strings.footer)
     }
 
     private func unblock(_ account: BlockedAccount) {
@@ -109,10 +117,13 @@ struct BlockedAccountsSheet: View {
         }
     }
 
-    private func icon(for account: BlockedAccount) -> String {
+    /// The peer ID the rest of the app seeds this person's avatar with, so
+    /// the avatar matches the one beside their messages: a mesh peer's
+    /// short ID is the start of their fingerprint.
+    private func avatarPeerID(for account: BlockedAccount) -> PeerID {
         switch account.kind {
-        case .mesh: return "antenna.radiowaves.left.and.right"
-        case .nostr: return "number"
+        case .mesh(let fingerprint): return PeerID(str: fingerprint.prefix(16))
+        case .nostr(let pubkeyHex): return PeerID(nostr_: pubkeyHex)
         }
     }
 
