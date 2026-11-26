@@ -8,7 +8,7 @@ import UIKit
 import AppKit
 #endif
 
-/// Placeholder view to display the user's verification QR payload as text.
+/// The user's verification QR code across the full width, with Copy and Share.
 struct MyQRView: View {
     let qrString: String
     @State private var copied = false
@@ -26,7 +26,7 @@ struct MyQRView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                QRCodeImage(data: qrString, size: Self.codeSize)
+                QRCodeImage(data: qrString)
                     .accessibilityLabel(Strings.accessibilityLabel)
                     .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
 
@@ -54,18 +54,13 @@ struct MyQRView: View {
                 .controlSize(.large)
                 .labelStyle(.titleAndIcon)
                 .lineLimit(1)
-                .frame(maxWidth: Self.codeSize)
             }
             .frame(maxWidth: .infinity)
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
         .onDisappear { copyResetTask?.cancel() }
     }
-
-    /// The code's side: large enough to scan from a phone held at arm's
-    /// length, small enough to leave the buttons in view.
-    private static let codeSize: CGFloat = 264
 
     private func copyURL() {
         #if os(iOS)
@@ -88,7 +83,8 @@ struct MyQRView: View {
 // Render a QR code image for a given string using CoreImage
 struct QRCodeImage: View {
     let data: String
-    let size: CGFloat
+    /// A fixed side, or nil to fill the available width as a square.
+    var size: CGFloat? = nil
     @ThemedPalette private var palette
 
     private let context = CIContext()
@@ -102,14 +98,13 @@ struct QRCodeImage: View {
         Group {
             if let image = generateImage() {
                 ImageWrapper(image: image)
+                    .aspectRatio(1, contentMode: .fit)
                     // A white quiet zone around the modules, in both modes.
                     .padding(16)
                     .background(Color.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .frame(width: size, height: size)
             } else {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .strokeBorder(palette.divider, lineWidth: 1)
-                    .frame(width: size, height: size)
                     .overlay(
                         Label(Strings.unavailable, systemImage: "qrcode")
                             .font(.footnote)
@@ -117,14 +112,21 @@ struct QRCodeImage: View {
                     )
             }
         }
+        .frame(width: size, height: size)
+        .aspectRatio(1, contentMode: .fit)
     }
+
+    /// Pixel side the code renders at when it fills the width: sharp at
+    /// a full-width phone sheet on a 3x screen.
+    private static let fillRenderSide: CGFloat = 1200
 
     private func generateImage() -> CGImage? {
         let inputData = Data(data.utf8)
         filter.message = inputData
         filter.correctionLevel = "M"
         guard let outputImage = filter.outputImage else { return nil }
-        let scale = max(1, Int(size / max(outputImage.extent.width, outputImage.extent.height)))
+        let side = size ?? Self.fillRenderSide
+        let scale = max(1, Int(side / max(outputImage.extent.width, outputImage.extent.height)))
         let transformed = outputImage.transformed(by: CGAffineTransform(scaleX: CGFloat(scale), y: CGFloat(scale)))
         return context.createCGImage(transformed, from: transformed.extent)
     }
