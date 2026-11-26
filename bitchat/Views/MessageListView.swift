@@ -672,8 +672,9 @@ private extension MessageListView {
         Button {
             scrollToBottom(on: proxy, privatePeer: privatePeer)
         } label: {
-            // Same size as the composer's image button: a 40pt glass circle,
-            // stretching into a capsule when it also shows the new count.
+            // Same size as the composer's round buttons: a 44 pt glass
+            // circle, stretching into a capsule when it also shows the new
+            // count.
             HStack(spacing: 6) {
                 Image(systemName: "arrow.down")
                     .font(.callout.weight(.semibold))
@@ -690,7 +691,7 @@ private extension MessageListView {
             }
             .foregroundColor(palette.primary)
             .padding(.horizontal, unseenCount > 0 ? 14 : 0)
-            .frame(minWidth: 40, minHeight: 40)
+            .frame(minWidth: ComposerMetrics.controlSize, minHeight: ComposerMetrics.controlSize)
             .glassSurface(in: Capsule())
             .contentShape(Capsule())
         }

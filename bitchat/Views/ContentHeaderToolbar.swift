@@ -112,8 +112,9 @@ struct ContentHeaderToolbar: ViewModifier {
 
     private var unreadPrivateChatButton: some View {
         Button(action: { appChromeModel.openMostRelevantPrivateChat() }) {
+            // The highlight marks unread things across the app.
             Image(systemName: "envelope.fill")
-                .foregroundColor(.orange)
+                .foregroundStyle(Color.novaHighlight)
         }
         .accessibilityLabel(
             String(localized: "content.accessibility.open_unread_private_chat", comment: "Accessibility label for the unread private chat button")
