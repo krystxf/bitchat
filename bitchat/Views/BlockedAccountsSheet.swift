@@ -49,7 +49,12 @@ struct BlockedAccountsSheet: View {
             }
         }
         .sheetChrome(title: Text(verbatim: Strings.title), onClose: { dismiss() })
-        .onAppear { accounts = load() }
+        .onAppear {
+            accounts = load()
+            #if DEBUG
+            if SidebarSampleData.isEnabled { accounts = SidebarSampleData.blockedAccounts }
+            #endif
+        }
         #if os(macOS)
         .frame(minWidth: 420, idealWidth: 460, minHeight: 360, idealHeight: 480)
         #endif

@@ -272,6 +272,11 @@ struct ContentView: View {
                 chatBackgroundOption = ChatBackgroundStore.shared.option(for: activeDraftKey)
                 messageText = ComposerDraftStore.load(activeDraftKey)
                 sidebarSelection = currentSidebarItem
+                #if DEBUG
+                if SidebarSampleData.startsOnList, isCompact {
+                    showsDetailWhenCompact = false
+                }
+                #endif
             }
             .onChange(of: colorScheme) { newValue in
                 conversationUIModel.setCurrentColorScheme(newValue)

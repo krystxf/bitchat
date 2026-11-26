@@ -42,12 +42,7 @@ struct ContentSidebarView: View {
     @State private var showsProfile = false
 
     var body: some View {
-        let people = SidebarPeople(
-            meshPeers: peerListModel.meshRows,
-            geohashPeople: peerListModel.geohashPeople,
-            chats: peerListModel.recentChatRows,
-            bridgedPeople: bridgeService.bridgedParticipants
-        )
+        let people = sidebarPeople
 
         List(selection: $selection) {
             Section {
@@ -149,10 +144,10 @@ struct ContentSidebarView: View {
             )
         }
 
-        ForEach(locationChannelsModel.bookmarks, id: \.self) { geohash in
+        ForEach(bookmarks, id: \.self) { geohash in
             locationRow(
                 geohash: geohash,
-                name: locationChannelsModel.bookmarkNames[geohash],
+                name: bookmarkName(for: geohash),
                 systemImage: "bookmark"
             )
             .onAppear { locationChannelsModel.resolveBookmarkNameIfNeeded(for: geohash) }
@@ -165,7 +160,7 @@ struct ContentSidebarView: View {
             }
         }
 
-        ForEach(peerListModel.groupRows) { group in
+        ForEach(groupRows) { group in
             SidebarGroupRow(group: group)
                 .tag(SidebarItem.conversation(group.peerID))
         }
@@ -185,7 +180,7 @@ struct ContentSidebarView: View {
     }
 
     private func locationRow(geohash: String, name: String?, systemImage: String) -> some View {
-        let count = peerListModel.participantCount(for: geohash)
+        let count = participantCount(for: geohash)
         return Label {
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: "#\(geohash.lowercased())")
@@ -207,13 +202,66 @@ struct ContentSidebarView: View {
     }
 
     private func isBookmarked(_ geohash: String) -> Bool {
-        locationChannelsModel.bookmarks.contains(geohash.lowercased())
+        bookmarks.contains(geohash.lowercased())
     }
 
     /// One number for the whole room: radio-reachable peers plus people
     /// across the bridge, as the main chat's people button counts them.
     private var meshPeopleCount: Int {
-        peerListModel.reachableMeshPeerCount + bridgeService.bridgedPeerCount
+        #if DEBUG
+        if SidebarSampleData.isEnabled { return SidebarSampleData.meshPeopleCount }
+        #endif
+        return peerListModel.reachableMeshPeerCount + bridgeService.bridgedPeerCount
+    }
+
+    // MARK: - Sources
+
+    // Debug builds can show made-up rows instead: see `SidebarSampleData`.
+
+    private var sidebarPeople: SidebarPeople {
+        #if DEBUG
+        if SidebarSampleData.isEnabled {
+            return SidebarPeople(
+                meshPeers: SidebarSampleData.meshRows,
+                geohashPeople: SidebarSampleData.geohashPeople,
+                chats: SidebarSampleData.chats
+            )
+        }
+        #endif
+        return SidebarPeople(
+            meshPeers: peerListModel.meshRows,
+            geohashPeople: peerListModel.geohashPeople,
+            chats: peerListModel.recentChatRows,
+            bridgedPeople: bridgeService.bridgedParticipants
+        )
+    }
+
+    private var groupRows: [GroupChatRow] {
+        #if DEBUG
+        if SidebarSampleData.isEnabled { return SidebarSampleData.groupRows }
+        #endif
+        return peerListModel.groupRows
+    }
+
+    private var bookmarks: [String] {
+        #if DEBUG
+        if SidebarSampleData.isEnabled { return SidebarSampleData.bookmarks }
+        #endif
+        return locationChannelsModel.bookmarks
+    }
+
+    private func bookmarkName(for geohash: String) -> String? {
+        #if DEBUG
+        if SidebarSampleData.isEnabled { return SidebarSampleData.bookmarkNames[geohash] }
+        #endif
+        return locationChannelsModel.bookmarkNames[geohash]
+    }
+
+    private func participantCount(for geohash: String) -> Int {
+        #if DEBUG
+        if SidebarSampleData.isEnabled { return SidebarSampleData.participantCount(for: geohash) }
+        #endif
+        return peerListModel.participantCount(for: geohash)
     }
 
     // MARK: - People
