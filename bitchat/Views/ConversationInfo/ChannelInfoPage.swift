@@ -250,6 +250,7 @@ private struct ChannelPeopleList: View {
             bridged: bridgeService.bridgedParticipants
         )
         List {
+            Group {
             if roster.isEmpty {
                 PeopleEmptyRow()
             }
@@ -270,12 +271,15 @@ private struct ChannelPeopleList: View {
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text(verbatim: "\(person.displayName), \(PersonPresence.bridged.label)"))
             }
+            }
+            .novaRows()
         }
         #if os(iOS)
         .listStyle(.insetGrouped)
         #else
         .listStyle(.inset)
         #endif
+        .novaGroupedList()
         .navigationTitle(Text(verbatim: Strings.people))
         .personActionsHost()
     }

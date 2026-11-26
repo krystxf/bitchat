@@ -154,6 +154,7 @@ private struct GroupAddPeopleSheet: View {
             GroupAddPeoplePicker(people: candidates) { nickname in
                 _ = conversationUIModel.groupInvite(nickname: nickname)
             }
+            .novaRows()
         }
         #if os(iOS)
         .listStyle(.insetGrouped)
@@ -161,6 +162,7 @@ private struct GroupAddPeopleSheet: View {
         .listStyle(.inset)
         .frame(minWidth: 360, minHeight: 360)
         #endif
+        .novaGroupedList()
         .sheetChrome(
             title: Text(String(localized: "group.invite.title", comment: "Title of the list of people the group creator can add")),
             onClose: onClose

@@ -15,26 +15,38 @@ struct GroupMemberList: View {
     var actionTarget: (GroupMember) -> PersonActionTarget? = { _ in nil }
 
     var body: some View {
-        Section("group.members.title") {
+        Section {
             ForEach(members, id: \.fingerprint) { member in
-                HStack {
-                    VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: member.nickname)
+                            .lineLimit(1)
                         if member.fingerprint == creatorFingerprint {
-                            Text("group.members.creator").font(.caption).foregroundStyle(.secondary)
+                            Text("group.members.creator")
+                                .font(.footnote)
+                                .foregroundStyle(.novaSecondaryText)
                         }
                     }
-                    Spacer()
+                    Spacer(minLength: 8)
                     if canRemove && member.fingerprint != creatorFingerprint {
                         Button(role: .destructive) { pendingRemoval = member } label: {
-                            Image(systemName: "person.crop.circle.badge.minus")
+                            Image(systemName: "minus.circle.fill")
+                                .font(.title3)
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.white, .red)
+                                .frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
                         }
+                        .buttonStyle(.borderless)
                         .accessibilityLabel(Text(verbatim: "\(String(localized: "group.member.remove")) \(member.nickname)"))
                     }
                 }
                 .contentShape(Rectangle())
                 .personActions(for: actionTarget(member))
             }
+        } header: {
+            Text("group.members.title")
+                .foregroundColor(.novaSecondaryText)
         }
         .confirmationDialog("group.member.remove_confirm", isPresented: Binding(
             get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }
@@ -55,9 +67,10 @@ struct GroupAddPeoplePicker: View {
     let onInvite: (String) -> Void
 
     var body: some View {
-        Section("group.invite.title") {
+        Section {
             if people.isEmpty {
-                Text("group.invite.empty").foregroundStyle(.secondary)
+                Text("group.invite.empty")
+                    .foregroundStyle(.novaSecondaryText)
             }
             ForEach(people) { peer in
                 Button {
@@ -67,6 +80,9 @@ struct GroupAddPeoplePicker: View {
                 }
                 .accessibilityLabel(Text(verbatim: "\(String(localized: "group.invite.person")) \(peer.displayName)"))
             }
+        } header: {
+            Text("group.invite.title")
+                .foregroundColor(.novaSecondaryText)
         }
     }
 }

@@ -20,7 +20,7 @@ struct BlockedAccountsSheet: View {
 
     enum Strings {
         static let title = String(localized: "blocked_accounts.title", defaultValue: "Blocked Accounts", comment: "Title of the blocked accounts list, and of the settings row that opens it")
-        static let empty = String(localized: "blocked_accounts.empty", defaultValue: "No blocked accounts", comment: "Shown in the blocked accounts list when nobody is blocked")
+        static let empty = String(localized: "blocked_accounts.empty", defaultValue: "No Blocked Accounts", comment: "Shown in the blocked accounts list when nobody is blocked")
         static let footer = String(localized: "blocked_accounts.footer", defaultValue: "Blocked people can't message you and their messages stay hidden. Unblock someone to see them again.", comment: "Footer under the blocked accounts list explaining what blocking does")
         static let mesh = String(localized: "blocked_accounts.kind.mesh", defaultValue: "Mesh", comment: "Label for an account blocked on the Bluetooth mesh, in the blocked accounts list")
         static let location = String(localized: "blocked_accounts.kind.location", defaultValue: "Location channels", comment: "Label for an account blocked in location (geohash) channels, in the blocked accounts list")
@@ -39,13 +39,16 @@ struct BlockedAccountsSheet: View {
                         }
                     } footer: {
                         Text(verbatim: Strings.footer)
+                            .novaSectionText()
                     }
+                    .novaRows()
                 }
                 #if os(iOS)
                 .listStyle(.insetGrouped)
                 #else
                 .listStyle(.inset)
                 #endif
+                .novaGroupedList()
             }
         }
         .sheetChrome(title: Text(verbatim: Strings.title), onClose: { dismiss() })
@@ -63,7 +66,7 @@ struct BlockedAccountsSheet: View {
     private func row(for account: BlockedAccount) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon(for: account))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.novaSecondaryText)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: account.name)
@@ -71,7 +74,7 @@ struct BlockedAccountsSheet: View {
                     .lineLimit(1)
                 Text(verbatim: "\(kindLabel(for: account)) · \(account.shortKey)")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.novaSecondaryText)
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
@@ -90,23 +93,13 @@ struct BlockedAccountsSheet: View {
             Button(Strings.unblock) {
                 unblock(account)
             }
-            .tint(.blue)
+            .tint(.novaAccent)
         }
         #endif
     }
 
-    @ViewBuilder
     private var emptyState: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "hand.raised.slash")
-                .font(.system(size: 32))
-                .foregroundStyle(.secondary)
-            Text(verbatim: Strings.empty)
-                .font(.headline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
+        SheetEmptyState(title: Strings.empty, systemImage: "hand.raised.slash")
     }
 
     private func unblock(_ account: BlockedAccount) {
