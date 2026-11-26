@@ -444,7 +444,6 @@ private final class MockCommandContextProvider: CommandContextProvider {
     private(set) var startedPrivateChats: [PeerID] = []
     private(set) var sentPrivateMessages: [(content: String, peerID: PeerID)] = []
     private(set) var clearCurrentPublicTimelineCallCount = 0
-    private(set) var sentPublicRawMessages: [String] = []
     private(set) var localPrivateSystemMessages: [(content: String, peerID: PeerID)] = []
     private(set) var publicSystemMessages: [String] = []
     private(set) var commandOutputs: [String] = []
@@ -490,10 +489,6 @@ private final class MockCommandContextProvider: CommandContextProvider {
         privateChats[peerID] = []
     }
 
-    func sendPublicRaw(_ content: String) {
-        sentPublicRawMessages.append(content)
-    }
-
     private(set) var sentPublicMessages: [String] = []
     func sendPublicMessage(_ content: String) {
         sentPublicMessages.append(content)
@@ -518,8 +513,6 @@ private final class MockCommandContextProvider: CommandContextProvider {
         commandOutputs.append(content)
         commandOutputDestinations.append(destination)
     }
-
-
 
 
 

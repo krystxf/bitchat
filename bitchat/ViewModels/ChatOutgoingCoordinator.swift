@@ -65,11 +65,14 @@ extension ChatViewModel: ChatOutgoingContext {
     // `sendPrivateMessage(_:to:)`, `parseMentions(from:)`,
     // `appendPublicMessage(_:to:)`, `addSystemMessage(_:)`,
     // `normalizedContentKey(_:)`, `recordContentKey(_:timestamp:)`,
-    // `sendMeshMessage(_:mentions:messageID:timestamp:)`,
     // `sendGeohash(context:)`, and `deriveNostrIdentity(forGeohash:)` are
     // shared requirements with the other contexts or satisfied by existing
     // `ChatViewModel` members. The single-writer intent op below lives next to
     // its backing state's owner.
+
+    func sendMeshMessage(_ content: String, mentions: [String], messageID: String, timestamp: Date) {
+        meshService.sendMessage(content, mentions: mentions, messageID: messageID, timestamp: timestamp)
+    }
 
     func recordPublicActivity(forChannelKey key: String) {
         lastPublicActivityAt[key] = Date()

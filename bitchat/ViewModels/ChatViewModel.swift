@@ -2483,13 +2483,6 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         )
         appendGeohashMessageIfAbsent(systemMessage, toGeohash: geohash)
     }
-    // Send a public message without adding a local user echo.
-    // Used for emotes where we want a local system-style confirmation instead.
-    @MainActor
-    func sendPublicRaw(_ content: String) {
-        publicConversationCoordinator.sendPublicRaw(content)
-    }
-
     // Send a normal public message (with local echo) to the active channel.
     // CommandContextProvider hook for commands that post real messages
     // (`/pay`); only called when no private chat is selected.

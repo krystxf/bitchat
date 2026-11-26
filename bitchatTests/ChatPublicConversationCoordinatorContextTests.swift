@@ -7,11 +7,10 @@
 // `ChatViewModel`, following the `ChatDeliveryCoordinatorContextTests` /
 // `ChatPrivateConversationCoordinatorContextTests` exemplars.
 //
-// Scope note: haptics (UIApplication) and the geohash branch of
-// `sendPublicRaw` (NostrRelayManager.shared, GeoRelayDirectory.shared) are
-// intentionally not exercised here. `checkForMentions` posts through the
-// injected context (`notifyMention(from:message:)`) and is covered, as are
-// the mesh branch of `sendPublicRaw` and all timeline/store/blocking flows.
+// Scope note: haptics (UIApplication) are intentionally not exercised here.
+// `checkForMentions` posts through the injected context
+// (`notifyMention(from:message:)`) and is covered, as are all
+// timeline/store/blocking flows.
 //
 
 import Testing
@@ -177,14 +176,9 @@ private final class MockChatPublicConversationContext: ChatPublicConversationCon
 
     // Mesh transport
     var meshNicknames: [PeerID: String] = [:]
-    private(set) var sentMeshMessages: [(content: String, messageID: String)] = []
 
     func meshPeerNicknames() -> [PeerID: String] {
         meshNicknames
-    }
-
-    func sendMeshMessage(_ content: String, mentions: [String], messageID: String, timestamp: Date) {
-        sentMeshMessages.append((content, messageID))
     }
 
     // Inbound public message processing
@@ -510,17 +504,6 @@ struct ChatPublicConversationCoordinatorContextTests {
         // On mesh, geohash-only system messages are queued for the next geo visit.
         coordinator.addGeohashOnlySystemMessage("geo notice")
         #expect(context.queuedGeohashSystemMessages == ["geo notice"])
-    }
-
-    @Test @MainActor
-    func sendPublicRaw_onMeshChannel_sendsViaMeshTransport() async {
-        let context = MockChatPublicConversationContext()
-        let coordinator = ChatPublicConversationCoordinator(context: context)
-
-        coordinator.sendPublicRaw("raw mesh payload")
-
-        #expect(context.sentMeshMessages.count == 1)
-        #expect(context.sentMeshMessages.first?.content == "raw mesh payload")
     }
 
     @Test @MainActor

@@ -75,7 +75,6 @@ protocol ChatPublicConversationContext: AnyObject {
 
     // MARK: Mesh transport
     func meshPeerNicknames() -> [PeerID: String]
-    func sendMeshMessage(_ content: String, mentions: [String], messageID: String, timestamp: Date)
 
     // MARK: Inbound public message processing
     func processActionMessage(_ message: BitchatMessage) -> BitchatMessage
@@ -130,10 +129,6 @@ extension ChatViewModel: ChatPublicConversationContext {
 
     func meshPeerNicknames() -> [PeerID: String] {
         meshService.getPeerNicknames()
-    }
-
-    func sendMeshMessage(_ content: String, mentions: [String], messageID: String, timestamp: Date) {
-        meshService.sendMessage(content, mentions: mentions, messageID: messageID, timestamp: timestamp)
     }
 
     func allowPublicMessage(senderKey: String, contentKey: String, powBits: Int) -> Bool {
@@ -386,41 +381,6 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         } else {
             context.queueGeohashSystemMessage(content)
         }
-    }
-
-    func sendPublicRaw(_ content: String) {
-        if case .location(let channel) = context.activeChannel {
-            Task { @MainActor [weak context] in
-                guard let context else { return }
-                do {
-                    let identity = try context.deriveNostrIdentity(forGeohash: channel.geohash)
-                    let event = try await NostrProtocol.createMinedEphemeralGeohashEvent(
-                        content: content,
-                        geohash: channel.geohash,
-                        senderIdentity: identity,
-                        nickname: context.nickname,
-                        teleported: context.isTeleported,
-                        powTargetBits: LocationProofOfWorkSettings.sendTargetBits()
-                    )
-                    let targetRelays = GeoRelayDirectory.shared.closestRelays(toGeohash: channel.geohash, count: 5)
-                    if targetRelays.isEmpty {
-                        NostrRelayManager.shared.sendEvent(event)
-                    } else {
-                        NostrRelayManager.shared.sendEvent(event, to: targetRelays)
-                    }
-                } catch {
-                    SecureLogger.error("❌ Failed to send geohash raw message: \(error)", category: .session)
-                }
-            }
-            return
-        }
-
-        context.sendMeshMessage(
-            content,
-            mentions: [],
-            messageID: UUID().uuidString,
-            timestamp: Date()
-        )
     }
 
     /// - Parameter powBits: validated NIP-13 difficulty of the source Nostr

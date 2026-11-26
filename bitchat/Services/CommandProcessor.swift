@@ -58,7 +58,6 @@ protocol CommandContextProvider: AnyObject {
     func clearCurrentPublicTimeline()
     /// Empties the peer's chat (single-writer store intent for `/clear`).
     func clearPrivateChat(_ peerID: PeerID)
-    func sendPublicRaw(_ content: String)
     /// Sends a normal public message (with local echo) to the active channel.
     func sendPublicMessage(_ content: String)
 
