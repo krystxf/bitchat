@@ -21,8 +21,6 @@ struct MapKitGlobePickerView: View {
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 20, longitude: 0), span: MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360))
     @State private var selectedGeohash: String
     @State private var precision: Int
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.colorScheme) private var colorScheme
     @ThemedPalette private var palette
 
     private enum Strings {
@@ -100,6 +98,8 @@ struct MapKitGlobePickerView: View {
                     }
                 }
             }
+            // The imagery globe draws its own sky: real stars around the limb
+            // that track the camera. An overlay would duplicate them over Earth.
             .mapStyle(.imagery(elevation: .realistic))
             .onMapCameraChange(frequency: .continuous) { context in
                 camera = context.camera
@@ -110,12 +110,6 @@ struct MapKitGlobePickerView: View {
                     longitude: context.camera.centerCoordinate.longitude,
                     precision: precision
                 )
-            }
-            .overlay {
-                MapKitGlobeStarfield(color: colorScheme == .dark ? .white : .black,
-                                     camera: camera,
-                                     reduceMotion: reduceMotion)
-                    .allowsHitTesting(false)
             }
             .gesture(SpatialTapGesture().onEnded { event in
                 guard let coordinate = proxy.convert(event.location, from: .local) else { return }
