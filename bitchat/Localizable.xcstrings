@@ -25464,7 +25464,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No bluetooth on this device — mesh is unavailable. Location channels still work over the internet."
+            "value" : "No Bluetooth on this device — mesh is unavailable. Location channels still work over the internet."
           }
         },
         "es" : {
@@ -25818,79 +25818,79 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "المسح غير مكتمل — قد تبقى بعض البيانات. أغلق bitchat وأعد فتحه لإعادة المحاولة."
+            "value" : "المسح غير مكتمل — قد تبقى بعض البيانات. أغلق Nova Chat وأعد فتحه لإعادة المحاولة."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "মুছে ফেলা অসম্পূর্ণ — কিছু ডেটা থেকে যেতে পারে। আবার চেষ্টা করতে bitchat বন্ধ করে আবার খুলুন।"
+            "value" : "মুছে ফেলা অসম্পূর্ণ — কিছু ডেটা থেকে যেতে পারে। আবার চেষ্টা করতে Nova Chat বন্ধ করে আবার খুলুন।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Löschen unvollständig — einige daten könnten übrig sein. bitchat beenden und erneut öffnen, um es noch einmal zu versuchen."
+            "value" : "Löschen unvollständig — einige daten könnten übrig sein. Nova Chat beenden und erneut öffnen, um es noch einmal zu versuchen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wipe incomplete — some data may remain. Quit and reopen bitchat to retry."
+            "value" : "Wipe incomplete — some data may remain. Quit and reopen Nova Chat to retry."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Borrado incompleto — pueden quedar algunos datos. cierra y vuelve a abrir bitchat para reintentar."
+            "value" : "Borrado incompleto — pueden quedar algunos datos. cierra y vuelve a abrir Nova Chat para reintentar."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "پاک‌سازی ناقص است — ممکن است برخی داده‌ها باقی مانده باشند. برای تلاش دوباره bitchat را ببندید و دوباره باز کنید."
+            "value" : "پاک‌سازی ناقص است — ممکن است برخی داده‌ها باقی مانده باشند. برای تلاش دوباره Nova Chat را ببندید و دوباره باز کنید."
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hindi kumpleto ang pagbura — maaaring may natirang data. isara at buksan muli ang bitchat para subukan ulit."
+            "value" : "Hindi kumpleto ang pagbura — maaaring may natirang data. isara at buksan muli ang Nova Chat para subukan ulit."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Effacement incomplet — des données peuvent subsister. quittez et rouvrez bitchat pour réessayer."
+            "value" : "Effacement incomplet — des données peuvent subsister. quittez et rouvrez Nova Chat pour réessayer."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "המחיקה לא הושלמה — ייתכן שנשארו נתונים. סגרו ופתחו מחדש את bitchat כדי לנסות שוב."
+            "value" : "המחיקה לא הושלמה — ייתכן שנשארו נתונים. סגרו ופתחו מחדש את Nova Chat כדי לנסות שוב."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "मिटाना अधूरा रहा — कुछ डेटा बच सकता है। फिर से कोशिश करने के लिए bitchat बंद करके दोबारा खोलें।"
+            "value" : "मिटाना अधूरा रहा — कुछ डेटा बच सकता है। फिर से कोशिश करने के लिए Nova Chat बंद करके दोबारा खोलें।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Penghapusan belum selesai — sebagian data mungkin tersisa. tutup dan buka kembali bitchat untuk mencoba lagi."
+            "value" : "Penghapusan belum selesai — sebagian data mungkin tersisa. tutup dan buka kembali Nova Chat untuk mencoba lagi."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancellazione incompleta — alcuni dati potrebbero rimanere. chiudi e riapri bitchat per riprovare."
+            "value" : "Cancellazione incompleta — alcuni dati potrebbero rimanere. chiudi e riapri Nova Chat per riprovare."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "消去が完了していません — データが残っている可能性があります。bitchat を終了して開き直すと再試行します。"
+            "value" : "消去が完了していません — データが残っている可能性があります。Nova Chat を終了して開き直すと再試行します。"
           }
         },
         "ko" : {
@@ -25902,97 +25902,97 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pemadaman tidak lengkap — sebahagian data mungkin masih ada. tutup dan buka semula bitchat untuk mencuba lagi."
+            "value" : "Pemadaman tidak lengkap — sebahagian data mungkin masih ada. tutup dan buka semula Nova Chat untuk mencuba lagi."
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "मेटाउने काम अधूरो — केही डेटा बाँकी रहन सक्छ। पुनः प्रयास गर्न bitchat बन्द गरेर फेरि खोल्नुहोस्।"
+            "value" : "मेटाउने काम अधूरो — केही डेटा बाँकी रहन सक्छ। पुनः प्रयास गर्न Nova Chat बन्द गरेर फेरि खोल्नुहोस्।"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wissen onvolledig — er kunnen gegevens achterblijven. sluit bitchat en open het opnieuw om het nogmaals te proberen."
+            "value" : "Wissen onvolledig — er kunnen gegevens achterblijven. sluit Nova Chat en open het opnieuw om het nogmaals te proberen."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wymazywanie niekompletne — część danych może pozostać. zamknij i otwórz bitchat ponownie, aby spróbować jeszcze raz."
+            "value" : "Wymazywanie niekompletne — część danych może pozostać. zamknij i otwórz Nova Chat ponownie, aby spróbować jeszcze raz."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limpeza incompleta — alguns dados podem permanecer. feche e reabra o bitchat para tentar novamente."
+            "value" : "Limpeza incompleta — alguns dados podem permanecer. feche e reabra o Nova Chat para tentar novamente."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limpeza incompleta — alguns dados podem permanecer. feche e reabra o bitchat para tentar novamente."
+            "value" : "Limpeza incompleta — alguns dados podem permanecer. feche e reabra o Nova Chat para tentar novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Стирание не завершено — часть данных могла остаться. закройте и снова откройте bitchat, чтобы повторить."
+            "value" : "Стирание не завершено — часть данных могла остаться. закройте и снова откройте Nova Chat, чтобы повторить."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raderingen är ofullständig — viss data kan finnas kvar. avsluta och öppna bitchat igen för att försöka på nytt."
+            "value" : "Raderingen är ofullständig — viss data kan finnas kvar. avsluta och öppna Nova Chat igen för att försöka på nytt."
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "அழித்தல் முழுமையடையவில்லை — சில தரவு எஞ்சியிருக்கலாம். மீண்டும் முயற்சிக்க bitchat ஐ மூடி மீண்டும் திறக்கவும்."
+            "value" : "அழித்தல் முழுமையடையவில்லை — சில தரவு எஞ்சியிருக்கலாம். மீண்டும் முயற்சிக்க Nova Chat ஐ மூடி மீண்டும் திறக்கவும்."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "การล้างข้อมูลไม่สมบูรณ์ — อาจมีข้อมูลหลงเหลืออยู่ ปิดแล้วเปิด bitchat ใหม่เพื่อลองอีกครั้ง"
+            "value" : "การล้างข้อมูลไม่สมบูรณ์ — อาจมีข้อมูลหลงเหลืออยู่ ปิดแล้วเปิด Nova Chat ใหม่เพื่อลองอีกครั้ง"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Silme tamamlanmadı — bazı veriler kalmış olabilir. yeniden denemek için bitchat'i kapatıp tekrar açın."
+            "value" : "Silme tamamlanmadı — bazı veriler kalmış olabilir. yeniden denemek için Nova Chat'i kapatıp tekrar açın."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Стирання не завершено — частина даних могла залишитися. закрийте та знову відкрийте bitchat, щоб повторити."
+            "value" : "Стирання не завершено — частина даних могла залишитися. закрийте та знову відкрийте Nova Chat, щоб повторити."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "مٹانا مکمل نہیں ہوا — کچھ ڈیٹا باقی رہ سکتا ہے۔ دوبارہ کوشش کے لیے bitchat بند کر کے دوبارہ کھولیں۔"
+            "value" : "مٹانا مکمل نہیں ہوا — کچھ ڈیٹا باقی رہ سکتا ہے۔ دوبارہ کوشش کے لیے Nova Chat بند کر کے دوبارہ کھولیں۔"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Xoá chưa hoàn tất — một số dữ liệu có thể còn lại. thoát và mở lại bitchat để thử lại."
+            "value" : "Xoá chưa hoàn tất — một số dữ liệu có thể còn lại. thoát và mở lại Nova Chat để thử lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除未完成 — 可能仍有数据残留。请退出并重新打开 bitchat 重试。"
+            "value" : "清除未完成 — 可能仍有数据残留。请退出并重新打开 Nova Chat 重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除未完成 — 可能仍有資料殘留。請結束並重新開啟 bitchat 重試。"
+            "value" : "清除未完成 — 可能仍有資料殘留。請結束並重新開啟 Nova Chat 重試。"
           }
         }
       }
@@ -52143,25 +52143,25 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bluetooth متوقف. فعّل bluetooth في الإعدادات لاستخدام bitchat."
+            "value" : "bluetooth متوقف. فعّل bluetooth في الإعدادات لاستخدام Nova Chat."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ব্লুটুথ বন্ধ আছে। bitchat ব্যবহার করতে সেটিংসে ব্লুটুথ চালু করুন।"
+            "value" : "ব্লুটুথ বন্ধ আছে। Nova Chat ব্যবহার করতে সেটিংসে ব্লুটুথ চালু করুন।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth ist ausgeschaltet. aktiviere bluetooth in den einstellungen, um bitchat zu verwenden."
+            "value" : "Bluetooth ist ausgeschaltet. aktiviere bluetooth in den einstellungen, um Nova Chat zu verwenden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth is turned off. Please turn on bluetooth in settings to use bitchat."
+            "value" : "Bluetooth is turned off. Please turn on Bluetooth in settings to use Nova Chat."
           }
         },
         "es" : {
@@ -52173,43 +52173,43 @@
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "بلوتوث خاموش است. برای استفاده از bitchat لطفاً بلوتوث را در تنظیمات روشن کنید."
+            "value" : "بلوتوث خاموش است. برای استفاده از Nova Chat لطفاً بلوتوث را در تنظیمات روشن کنید."
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Naka-off ang bluetooth. pakibuksan sa settings para magamit ang bitchat."
+            "value" : "Naka-off ang bluetooth. pakibuksan sa settings para magamit ang Nova Chat."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth est désactivé. active le bluetooth dans réglages pour utiliser bitchat."
+            "value" : "Bluetooth est désactivé. active le bluetooth dans réglages pour utiliser Nova Chat."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bluetooth כבוי. הפעל bluetooth בהגדרות כדי להשתמש ב-bitchat."
+            "value" : "bluetooth כבוי. הפעל bluetooth בהגדרות כדי להשתמש ב-Nova Chat."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ब्लूटूथ बंद है। bitchat उपयोग करने के लिए सेटिंग्स में ब्लूटूथ चालू करें।"
+            "value" : "ब्लूटूथ बंद है। Nova Chat उपयोग करने के लिए सेटिंग्स में ब्लूटूथ चालू करें।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth dimatikan. aktifkan bluetooth di pengaturan untuk memakai bitchat."
+            "value" : "Bluetooth dimatikan. aktifkan bluetooth di pengaturan untuk memakai Nova Chat."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth è disattivato. attiva bluetooth nelle impostazioni per usare bitchat."
+            "value" : "Bluetooth è disattivato. attiva bluetooth nelle impostazioni per usare Nova Chat."
           }
         },
         "ja" : {
@@ -52227,97 +52227,97 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth dimatikan. Hidupkan Bluetooth dalam Tetapan untuk menggunakan bitchat."
+            "value" : "Bluetooth dimatikan. Hidupkan Bluetooth dalam Tetapan untuk menggunakan Nova Chat."
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bluetooth बन्द छ। bitchat प्रयोग गर्न bluetooth सेटिङमा अन गर।"
+            "value" : "bluetooth बन्द छ। Nova Chat प्रयोग गर्न bluetooth सेटिङमा अन गर।"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth staat uit. zet bluetooth aan in instellingen om bitchat te gebruiken."
+            "value" : "Bluetooth staat uit. zet bluetooth aan in instellingen om Nova Chat te gebruiken."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth jest wyłączony. włącz bluetooth w ustawieniach, aby używać bitchat."
+            "value" : "Bluetooth jest wyłączony. włącz bluetooth w ustawieniach, aby używać Nova Chat."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Bluetooth está desligado. Ativa o Bluetooth em Definições para usar o bitchat."
+            "value" : "O Bluetooth está desligado. Ativa o Bluetooth em Definições para usar o Nova Chat."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth está desligado. ative o bluetooth em ajustes para usar bitchat."
+            "value" : "Bluetooth está desligado. ative o bluetooth em ajustes para usar Nova Chat."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth выключен. включи bluetooth в настройках, чтобы использовать bitchat."
+            "value" : "Bluetooth выключен. включи bluetooth в настройках, чтобы использовать Nova Chat."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth är avstängt. slå på bluetooth i inställningar för att använda bitchat."
+            "value" : "Bluetooth är avstängt. slå på bluetooth i inställningar för att använda Nova Chat."
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth அணைக்கப்பட்டுள்ளது. bitchat பயன்படுத்த அமைப்பில் Bluetooth ஐ இயக்கவும்."
+            "value" : "Bluetooth அணைக்கப்பட்டுள்ளது. Nova Chat பயன்படுத்த அமைப்பில் Bluetooth ஐ இயக்கவும்."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ปิด Bluetooth อยู่ กรุณาเปิดในตั้งค่าเพื่อใช้ bitchat"
+            "value" : "ปิด Bluetooth อยู่ กรุณาเปิดในตั้งค่าเพื่อใช้ Nova Chat"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth kapalı. bitchat'i kullanmak için ayarlardan Bluetooth'u açın."
+            "value" : "Bluetooth kapalı. Nova Chat'i kullanmak için ayarlardan Bluetooth'u açın."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth вимкнений. увімкни bluetooth у налаштуваннях, щоб користуватися bitchat."
+            "value" : "Bluetooth вимкнений. увімкни bluetooth у налаштуваннях, щоб користуватися Nova Chat."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth بند ہے۔ bitchat استعمال کرنے کیلئے سیٹنگز میں Bluetooth آن کریں۔"
+            "value" : "Bluetooth بند ہے۔ Nova Chat استعمال کرنے کیلئے سیٹنگز میں Bluetooth آن کریں۔"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth đang tắt. hãy bật trong cài đặt để dùng bitchat."
+            "value" : "Bluetooth đang tắt. hãy bật trong cài đặt để dùng Nova Chat."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bluetooth 已关闭。请在设置中开启以使用 bitchat。"
+            "value" : "bluetooth 已关闭。请在设置中开启以使用 Nova Chat。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bluetooth 已關閉。請在設定中開啟以使用 bitchat。"
+            "value" : "bluetooth 已關閉。請在設定中開啟以使用 Nova Chat。"
           }
         }
       }
@@ -52328,25 +52328,25 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تحتاج bitchat إلى إذن bluetooth للاتصال بالأجهزة القريبة. فعّل الوصول في الإعدادات."
+            "value" : "تحتاج Nova Chat إلى إذن bluetooth للاتصال بالأجهزة القريبة. فعّل الوصول في الإعدادات."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "নিকটবর্তী ডিভাইসের সাথে যুক্ত হতে bitchat-এর ব্লুটুথ অনুমতি দরকার। দয়া করে সেটিংসে ব্লুটুথ অ্যাক্সেস সক্রিয় করুন।"
+            "value" : "নিকটবর্তী ডিভাইসের সাথে যুক্ত হতে Nova Chat-এর ব্লুটুথ অনুমতি দরকার। দয়া করে সেটিংসে ব্লুটুথ অ্যাক্সেস সক্রিয় করুন।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat benötigt bluetooth-berechtigung, um sich mit geräten in der nähe zu verbinden. erlaube den zugriff in den einstellungen."
+            "value" : "Nova Chat benötigt bluetooth-berechtigung, um sich mit geräten in der nähe zu verbinden. erlaube den zugriff in den einstellungen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat needs bluetooth permission to connect with nearby devices. Please enable bluetooth access in settings."
+            "value" : "Nova Chat needs Bluetooth permission to connect with nearby devices. Please enable Bluetooth access in settings."
           }
         },
         "es" : {
@@ -52358,43 +52358,43 @@
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bitchat برای اتصال به دستگاه‌های اطراف به مجوز بلوتوث نیاز دارد. لطفاً دسترسی بلوتوث را در تنظیمات فعال کنید."
+            "value" : "Nova Chat برای اتصال به دستگاه‌های اطراف به مجوز بلوتوث نیاز دارد. لطفاً دسترسی بلوتوث را در تنظیمات فعال کنید."
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kailangan ng bitchat ng pahintulot sa bluetooth upang kumonekta sa mga kalapit na device. pakiactivate sa settings."
+            "value" : "Kailangan ng Nova Chat ng pahintulot sa bluetooth upang kumonekta sa mga kalapit na device. pakiactivate sa settings."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat a besoin de l'autorisation bluetooth pour se connecter aux appareils proches. active l'accès dans réglages."
+            "value" : "Nova Chat a besoin de l'autorisation bluetooth pour se connecter aux appareils proches. active l'accès dans réglages."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bitchat צריכה הרשאת bluetooth כדי להתחבר למכשירים קרובים. אפשר גישה בהגדרות."
+            "value" : "Nova Chat צריכה הרשאת bluetooth כדי להתחבר למכשירים קרובים. אפשר גישה בהגדרות."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bitchat को पास के उपकरणों से जुड़ने के लिए ब्लूटूथ अनुमति चाहिए। कृपया सेटिंग्स में ब्लूटूथ एक्सेस सक्षम करें।"
+            "value" : "Nova Chat को पास के उपकरणों से जुड़ने के लिए ब्लूटूथ अनुमति चाहिए। कृपया सेटिंग्स में ब्लूटूथ एक्सेस सक्षम करें।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat memerlukan izin bluetooth untuk terhubung dengan perangkat dekat. aktifkan akses di pengaturan."
+            "value" : "Nova Chat memerlukan izin bluetooth untuk terhubung dengan perangkat dekat. aktifkan akses di pengaturan."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat richiede l'autorizzazione bluetooth per collegarsi ai dispositivi vicini. abilita l'accesso nelle impostazioni."
+            "value" : "Nova Chat richiede l'autorizzazione bluetooth per collegarsi ai dispositivi vicini. abilita l'accesso nelle impostazioni."
           }
         },
         "ja" : {
@@ -52412,97 +52412,97 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat memerlukan kebenaran Bluetooth untuk disambungkan kepada peranti berhampiran. Benarkan capaian dalam Tetapan."
+            "value" : "Nova Chat memerlukan kebenaran Bluetooth untuk disambungkan kepada peranti berhampiran. Benarkan capaian dalam Tetapan."
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bitchat लाई नजिकका उपकरणसँग जडान हुन bluetooth अनुमति चाहिन्छ। सेटिङमा पहुँच सक्षम गर।"
+            "value" : "Nova Chat लाई नजिकका उपकरणसँग जडान हुन bluetooth अनुमति चाहिन्छ। सेटिङमा पहुँच सक्षम गर।"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat heeft bluetooth-toegang nodig om verbinding te maken met apparaten in de buurt. schakel dit in bij instellingen."
+            "value" : "Nova Chat heeft bluetooth-toegang nodig om verbinding te maken met apparaten in de buurt. schakel dit in bij instellingen."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat potrzebuje uprawnień bluetooth, aby łączyć się z pobliskimi urządzeniami. włącz dostęp w ustawieniach."
+            "value" : "Nova Chat potrzebuje uprawnień bluetooth, aby łączyć się z pobliskimi urządzeniami. włącz dostęp w ustawieniach."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O bitchat precisa de autorização de Bluetooth para se ligar a dispositivos próximos. Ativa o acesso em Definições."
+            "value" : "O Nova Chat precisa de autorização de Bluetooth para se ligar a dispositivos próximos. Ativa o acesso em Definições."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat precisa de permissão de bluetooth para conectar com dispositivos próximos. habilite o acesso em ajustes."
+            "value" : "Nova Chat precisa de permissão de bluetooth para conectar com dispositivos próximos. habilite o acesso em ajustes."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat нужен доступ к bluetooth, чтобы соединяться с ближайшими устройствами. включи разрешение в настройках."
+            "value" : "Nova Chat нужен доступ к bluetooth, чтобы соединяться с ближайшими устройствами. включи разрешение в настройках."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat behöver bluetooth-behörighet för att ansluta till enheter i närheten. aktivera åtkomst i inställningar."
+            "value" : "Nova Chat behöver bluetooth-behörighet för att ansluta till enheter i närheten. aktivera åtkomst i inställningar."
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "அருகிலுள்ள சாதனங்களை இணைக்க bitchat க்கு Bluetooth அனுமதி தேவை. அமைப்பில் அனுமதி வழங்கவும்."
+            "value" : "அருகிலுள்ள சாதனங்களை இணைக்க Nova Chat க்கு Bluetooth அனுமதி தேவை. அமைப்பில் அனுமதி வழங்கவும்."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bitchat ต้องการสิทธิ์ Bluetooth เพื่อเชื่อมต่อกับอุปกรณ์ใกล้เคียง กรุณาเปิดสิทธิ์ในตั้งค่า"
+            "value" : "Nova Chat ต้องการสิทธิ์ Bluetooth เพื่อเชื่อมต่อกับอุปกรณ์ใกล้เคียง กรุณาเปิดสิทธิ์ในตั้งค่า"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat'in yakın cihazlara bağlanması için Bluetooth izni gerekir. lütfen ayarlardan Bluetooth erişimini etkinleştirin."
+            "value" : "Nova Chat'in yakın cihazlara bağlanması için Bluetooth izni gerekir. lütfen ayarlardan Bluetooth erişimini etkinleştirin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat потребує дозволу bluetooth для з'єднання з пристроями поруч. ввімкни доступ у налаштуваннях."
+            "value" : "Nova Chat потребує дозволу bluetooth для з'єднання з пристроями поруч. ввімкни доступ у налаштуваннях."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "قریب کے آلات سے جڑنے کیلئے bitchat کو Bluetooth اجازت درکار ہے۔ سیٹنگز میں رسائی فعال کریں۔"
+            "value" : "قریب کے آلات سے جڑنے کیلئے Nova Chat کو Bluetooth اجازت درکار ہے۔ سیٹنگز میں رسائی فعال کریں۔"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitchat cần quyền bluetooth để kết nối thiết bị gần. hãy bật quyền trong cài đặt."
+            "value" : "Nova Chat cần quyền bluetooth để kết nối thiết bị gần. hãy bật quyền trong cài đặt."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bitchat 需要 bluetooth 权限以连接附近设备。请在设置中启用访问。"
+            "value" : "Nova Chat 需要 bluetooth 权限以连接附近设备。请在设置中启用访问。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bitchat 需要 bluetooth 權限以連線至附近裝置。請在設定中啟用存取權限。"
+            "value" : "Nova Chat 需要 bluetooth 權限以連線至附近裝置。請在設定中啟用存取權限。"
           }
         }
       }
@@ -52883,25 +52883,25 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "هذا الجهاز لا يدعم bluetooth. يحتاج bitchat إلى bluetooth للعمل."
+            "value" : "هذا الجهاز لا يدعم bluetooth. يحتاج Nova Chat إلى bluetooth للعمل."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "এই ডিভাইস ব্লুটুথ সমর্থন করে না। bitchat চালাতে ব্লুটুথ দরকার।"
+            "value" : "এই ডিভাইস ব্লুটুথ সমর্থন করে না। Nova Chat চালাতে ব্লুটুথ দরকার।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dieses gerät unterstützt kein bluetooth. bitchat benötigt bluetooth zum funktionieren."
+            "value" : "Dieses gerät unterstützt kein bluetooth. Nova Chat benötigt bluetooth zum funktionieren."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This device does not support bluetooth. Bitchat requires bluetooth to function."
+            "value" : "This device does not support Bluetooth. Nova Chat requires Bluetooth to function."
           }
         },
         "es" : {
@@ -52913,43 +52913,43 @@
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "این دستگاه از بلوتوث پشتیبانی نمی‌کند. bitchat برای کار کردن به بلوتوث نیاز دارد."
+            "value" : "این دستگاه از بلوتوث پشتیبانی نمی‌کند. Nova Chat برای کار کردن به بلوتوث نیاز دارد."
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hindi sinusuportahan ng device na ito ang bluetooth. kailangan ito ng bitchat para gumana."
+            "value" : "Hindi sinusuportahan ng device na ito ang bluetooth. kailangan ito ng Nova Chat para gumana."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cet appareil ne prend pas en charge le bluetooth. bitchat en a besoin pour fonctionner."
+            "value" : "Cet appareil ne prend pas en charge le bluetooth. Nova Chat en a besoin pour fonctionner."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "המכשיר הזה לא תומך ב-bluetooth. bitchat זקוקה ל-bluetooth כדי לעבוד."
+            "value" : "המכשיר הזה לא תומך ב-bluetooth. Nova Chat זקוקה ל-bluetooth כדי לעבוד."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "यह डिवाइस ब्लूटूथ समर्थित नहीं है। bitchat चलाने के लिए ब्लूटूथ जरूरी है।"
+            "value" : "यह डिवाइस ब्लूटूथ समर्थित नहीं है। Nova Chat चलाने के लिए ब्लूटूथ जरूरी है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Perangkat ini tidak mendukung bluetooth. bitchat memerlukan bluetooth untuk berjalan."
+            "value" : "Perangkat ini tidak mendukung bluetooth. Nova Chat memerlukan bluetooth untuk berjalan."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Questo dispositivo non supporta bluetooth. bitchat richiede bluetooth per funzionare."
+            "value" : "Questo dispositivo non supporta bluetooth. Nova Chat richiede bluetooth per funzionare."
           }
         },
         "ja" : {
@@ -52967,97 +52967,97 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Peranti ini tidak menyokong Bluetooth. bitchat memerlukan Bluetooth untuk berfungsi."
+            "value" : "Peranti ini tidak menyokong Bluetooth. Nova Chat memerlukan Bluetooth untuk berfungsi."
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "यो उपकरणले bluetooth समर्थन गर्दैन। bitchat चलाउन bluetooth चाहिन्छ।"
+            "value" : "यो उपकरणले bluetooth समर्थन गर्दैन। Nova Chat चलाउन bluetooth चाहिन्छ।"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dit apparaat ondersteunt geen bluetooth. bitchat heeft bluetooth nodig om te werken."
+            "value" : "Dit apparaat ondersteunt geen bluetooth. Nova Chat heeft bluetooth nodig om te werken."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To urządzenie nie obsługuje bluetooth. bitchat wymaga bluetooth do działania."
+            "value" : "To urządzenie nie obsługuje bluetooth. Nova Chat wymaga bluetooth do działania."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este dispositivo não suporta Bluetooth. O bitchat precisa de Bluetooth para funcionar."
+            "value" : "Este dispositivo não suporta Bluetooth. O Nova Chat precisa de Bluetooth para funcionar."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este dispositivo não suporta bluetooth. bitchat precisa de bluetooth para funcionar."
+            "value" : "Este dispositivo não suporta bluetooth. Nova Chat precisa de bluetooth para funcionar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Это устройство не поддерживает bluetooth. bitchat нужен bluetooth для работы."
+            "value" : "Это устройство не поддерживает bluetooth. Nova Chat нужен bluetooth для работы."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Denna enhet stöder inte bluetooth. bitchat behöver bluetooth för att fungera."
+            "value" : "Denna enhet stöder inte bluetooth. Nova Chat behöver bluetooth för att fungera."
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "இந்த சாதனம் Bluetooth ஐ ஆதரிக்காது. bitchat இயங்க Bluetooth தேவை."
+            "value" : "இந்த சாதனம் Bluetooth ஐ ஆதரிக்காது. Nova Chat இயங்க Bluetooth தேவை."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "อุปกรณ์นี้ไม่รองรับ Bluetooth การใช้งาน bitchat ต้องใช้ Bluetooth"
+            "value" : "อุปกรณ์นี้ไม่รองรับ Bluetooth การใช้งาน Nova Chat ต้องใช้ Bluetooth"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bu cihaz Bluetooth'u desteklemiyor. bitchat'in çalışması için Bluetooth gerekli."
+            "value" : "Bu cihaz Bluetooth'u desteklemiyor. Nova Chat'in çalışması için Bluetooth gerekli."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Цей пристрій не підтримує bluetooth. bitchat потрібен bluetooth для роботи."
+            "value" : "Цей пристрій не підтримує bluetooth. Nova Chat потрібен bluetooth для роботи."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "یہ ڈیوائس Bluetooth کو سپورٹ نہیں کرتی۔ bitchat کو چلنے کیلئے Bluetooth چاہیے۔"
+            "value" : "یہ ڈیوائس Bluetooth کو سپورٹ نہیں کرتی۔ Nova Chat کو چلنے کیلئے Bluetooth چاہیے۔"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thiết bị này không hỗ trợ bluetooth. bitchat cần bluetooth để hoạt động."
+            "value" : "Thiết bị này không hỗ trợ bluetooth. Nova Chat cần bluetooth để hoạt động."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此设备不支持 bluetooth。bitchat 需要 bluetooth 才能运行。"
+            "value" : "此设备不支持 bluetooth。Nova Chat 需要 bluetooth 才能运行。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此裝置不支持 bluetooth。bitchat 需要 bluetooth 才能運行。"
+            "value" : "此裝置不支持 bluetooth。Nova Chat 需要 bluetooth 才能運行。"
           }
         }
       }
@@ -60323,7 +60323,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You're on #mesh — reaches people within bluetooth range"
+            "value" : "You're on #mesh — reaches people within Bluetooth range"
           }
         },
         "es" : {
