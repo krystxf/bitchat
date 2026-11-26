@@ -15,7 +15,6 @@ struct MeshTopologyDisplayModel {
 struct MeshTopologyView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @ThemedPalette private var palette
     let provider: @MainActor () -> MeshTopologyDisplayModel
     @State private var model: MeshTopologyDisplayModel = .empty
     @State private var layout = MeshGraphLayout()
@@ -56,7 +55,7 @@ struct MeshTopologyView: View {
 
     private var refreshButton: some View {
         HStack(spacing: 8) {
-            Button(action: fit) { Label("Fit", systemImage: "arrow.up.left.and.arrow.down.right") }
+            Button(action: fit) { Label(Strings.fit, systemImage: "arrow.up.left.and.arrow.down.right") }
             Button(action: refresh) { Label("topology.refresh", systemImage: "arrow.clockwise") }
         }
     }
@@ -64,7 +63,11 @@ struct MeshTopologyView: View {
     private var content: some View {
         VStack(spacing: 8) {
             if model.nodes.count <= 1 {
-                Spacer(); Text("topology.empty").bitchatFont(size: 14).foregroundColor(palette.secondary); Spacer()
+                SheetEmptyState(
+                    title: Strings.emptyTitle,
+                    systemImage: "point.3.connected.trianglepath.dotted",
+                    message: String(localized: "topology.empty")
+                )
             } else {
                 GeometryReader { proxy in
                     let size = proxy.size
@@ -79,7 +82,7 @@ struct MeshTopologyView: View {
                                     .onTapGesture { selectedID = node.id }
                                     .accessibilityElement()
                                     .accessibilityLabel("\(node.label), \(node.id)")
-                                    .accessibilityHint("Double tap for peer details. Drag to move.")
+                                    .accessibilityHint(Text(verbatim: Strings.nodeHint))
                                     .accessibilityAddTraits(.isButton)
                             }
                         }
@@ -102,8 +105,18 @@ struct MeshTopologyView: View {
                 }
                 .padding(.horizontal, 8)
             }
-            Text(summaryText).bitchatFont(size: 13, weight: .semibold).foregroundColor(palette.primary)
-            Text("topology.caption").bitchatFont(size: 11).foregroundColor(palette.secondary).multilineTextAlignment(.center).padding(.bottom, 12)
+            if model.nodes.count > 1 {
+                VStack(spacing: 4) {
+                    Text(summaryText)
+                        .font(.subheadline.weight(.semibold))
+                    Text("topology.caption")
+                        .font(.footnote)
+                        .foregroundStyle(.novaSecondaryText)
+                }
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+            }
         }
         .accessibilityElement(children: .contain)
     }
@@ -114,7 +127,7 @@ struct MeshTopologyView: View {
                 guard let p1 = layout.positions[a], let p2 = layout.positions[b] else { continue }
                 var path = Path(); path.move(to: CGPoint(x: p1.x, y: p1.y)); path.addLine(to: CGPoint(x: p2.x, y: p2.y))
                 let highlighted = selectedID == a || selectedID == b
-                context.stroke(path, with: .color(highlighted ? palette.accent : palette.secondary.opacity(0.48)), style: StrokeStyle(lineWidth: highlighted ? 2.5 : 1.2, dash: [5, 4]))
+                context.stroke(path, with: .color(highlighted ? Color.novaAccent : Color.novaSecondaryText.opacity(0.5)), style: StrokeStyle(lineWidth: highlighted ? 2.5 : 1.2, dash: [5, 4]))
             }
         }
     }
@@ -124,21 +137,39 @@ struct MeshTopologyView: View {
         ZStack {
             AvatarDisc(seed: node.id).frame(width: size, height: size)
                 .overlay(Text(AvatarIdentity.initials(for: node.label)).font(.system(size: size * 0.38, weight: .semibold, design: .rounded)).foregroundStyle(.white))
-            if node.isSelf { Circle().stroke(palette.accent, lineWidth: 2).frame(width: size + 7, height: size + 7) }
-            if selectedID == node.id { Circle().stroke(palette.accent.opacity(0.7), lineWidth: 2).frame(width: size + 12, height: size + 12) }
+            if node.isSelf { Circle().stroke(Color.novaAccent, lineWidth: 2).frame(width: size + 7, height: size + 7) }
+            if selectedID == node.id { Circle().stroke(Color.novaAccent.opacity(0.7), lineWidth: 2).frame(width: size + 12, height: size + 12) }
         }
-        .overlay(alignment: .bottom) { Text(verbatim: node.label).font(.system(size: 10)).foregroundStyle(palette.primary).lineLimit(1).fixedSize().offset(y: 15) }
+        .overlay(alignment: .bottom) {
+            Text(verbatim: node.label)
+                .font(.caption2)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .fixedSize()
+                .offset(y: 15)
+        }
         .frame(width: 58, height: 58)
         .contentShape(Circle())
     }
 
+    /// A peer's card: its avatar tile, name, and what the map knows of it.
     private func detail(_ node: MeshTopologyDisplayModel.Node) -> some View {
-        VStack(spacing: 12) {
-            InitialsAvatar(name: node.label, seed: node.id, size: 48)
-            Text(verbatim: node.label).font(.headline)
-            Text(node.isSelf ? "You" : "Peer ID · \(node.id.prefix(12))…").font(.subheadline).foregroundStyle(.secondary)
-            Text(node.isSelf ? "This device" : "Mesh peer · topology link information is advisory").font(.caption).foregroundStyle(.secondary)
-        }.padding(20).frame(minWidth: 220)
+        VStack(spacing: 8) {
+            InitialsAvatar(name: node.label, seed: node.id, size: 56)
+            Text(verbatim: node.label)
+                .font(.headline)
+            Text(verbatim: node.isSelf ? Strings.thisDevice : Strings.peerID(String(node.id.prefix(12)) + "…"))
+                .font(.subheadline)
+                .foregroundStyle(.novaSecondaryText)
+            if !node.isSelf {
+                Text(verbatim: Strings.advisory)
+                    .font(.footnote)
+                    .foregroundStyle(.novaSecondaryText)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(24)
+        .frame(minWidth: 240)
     }
 
     private var backgroundDrag: some Gesture {
@@ -159,6 +190,21 @@ struct MeshTopologyView: View {
     private func point(for node: MeshTopologyDisplayModel.Node, size: CGSize) -> CGPoint {
         let p = layout.positions[node.id] ?? .init(x: size.width/2, y: size.height/2)
         return CGPoint(x: p.x, y: p.y)
+    }
+
+    private enum Strings {
+        static let fit = String(localized: "topology.action.fit", defaultValue: "Fit to Screen", comment: "Button in the mesh topology sheet's top bar that resets zoom and pan so the whole map fits")
+        static let nodeHint = String(localized: "topology.accessibility.node_hint", defaultValue: "Double-tap for details. Drag to move.", comment: "VoiceOver hint on a peer in the mesh topology map")
+        static let thisDevice = String(localized: "topology.detail.this_device", defaultValue: "This Device", comment: "Shown in the detail card of the user's own node in the mesh topology map")
+        static let advisory = String(localized: "topology.detail.advisory", defaultValue: "Links come from what peers report and may be out of date.", comment: "Note in the detail card of a peer in the mesh topology map: the links are reported by peers and may be stale")
+        static let emptyTitle = String(localized: "topology.empty.title", defaultValue: "No Peers Yet", comment: "Title of the empty mesh topology map, above an explanation that it fills in as peers announce themselves")
+        static func peerID(_ id: String) -> String {
+            String(
+                format: String(localized: "topology.detail.peer_id", defaultValue: "Peer ID %@", comment: "Shown in the detail card of a peer in the mesh topology map; %@ is the start of the peer's ID"),
+                locale: .current,
+                id
+            )
+        }
     }
 
     private var summaryText: String {
