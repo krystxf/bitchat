@@ -372,14 +372,27 @@ struct ReactionChoicesRow: View {
     let selected: Set<String>
     let tint: MessageBubbleColor
     var emojiSize: CGFloat = 26
+    /// Pops the emojis in one after another, as the iOS overlay's bar
+    /// does; false keeps them small until the row shows.
+    var isRevealed = true
     let onSelect: (String) -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(MessageReaction.emojis, id: \.self) { emoji in
+            ForEach(Array(MessageReaction.emojis.enumerated()), id: \.element) { index, emoji in
                 ReactionChoiceButton(emoji: emoji, isSelected: selected.contains(emoji), tint: tint, size: emojiSize) {
                     onSelect(emoji)
                 }
+                .scaleEffect(isRevealed || reduceMotion ? 1 : 0.4)
+                .opacity(isRevealed ? 1 : 0)
+                .animation(
+                    reduceMotion
+                        ? .easeOut(duration: 0.15)
+                        : .spring(response: 0.32, dampingFraction: 0.6).delay(0.03 + Double(index) * 0.025),
+                    value: isRevealed
+                )
             }
         }
     }
@@ -455,11 +468,12 @@ struct ReactionQuickBar: View {
     let onSelect: (String) -> Void
 
     @State private var isHoveringMore = false
+    @State private var isRevealed = false
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 0) {
-                ReactionChoicesRow(selected: selected, tint: tint, emojiSize: 18, onSelect: onSelect)
+                ReactionChoicesRow(selected: selected, tint: tint, emojiSize: 18, isRevealed: isRevealed, onSelect: onSelect)
                 Button {
                     isPresentingChoices = true
                 } label: {
@@ -496,6 +510,7 @@ struct ReactionQuickBar: View {
             .reactionPickerPopover(isPresented: $isPresentingChoices, selected: selected, tint: tint, onSelect: onSelect)
         }
         .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+        .onAppear { isRevealed = true }
     }
 }
 
