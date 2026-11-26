@@ -26,9 +26,10 @@ enum SidebarItem: Hashable {
     }
 }
 
-/// The main window's sidebar, as in Messages: the channels, the contacts,
-/// and everyone else under a collapsed "unknown" group, so strangers and
-/// spam stay out of sight until the user asks for them.
+/// The main window's sidebar, as in Messages: the channels, the private
+/// groups, the contacts, and everyone else under a collapsed "unknown"
+/// section, so strangers and spam stay out of sight until the user asks
+/// for them.
 struct ContentSidebarView: View {
     @EnvironmentObject private var appChromeModel: AppChromeModel
     @EnvironmentObject private var verificationModel: VerificationModel
@@ -48,30 +49,34 @@ struct ContentSidebarView: View {
             Section {
                 channelRows
             } header: {
-                Text(verbatim: Strings.channels)
+                sectionHeader(Strings.channels)
+            }
+
+            if !groupRows.isEmpty {
+                Section {
+                    ForEach(groupRows) { group in
+                        SidebarGroupRow(group: group)
+                            .tag(SidebarItem.conversation(group.peerID))
+                    }
+                } header: {
+                    sectionHeader(Strings.groups)
+                }
             }
 
             if !people.contacts.isEmpty || people.unknown.isEmpty {
                 Section {
                     if people.contacts.isEmpty {
-                        PeopleEmptyRow()
+                        PeopleEmptyRow(text: Text(verbatim: Strings.noContacts))
                     } else {
                         personRows(people.contacts)
                     }
                 } header: {
-                    Text(verbatim: Strings.contacts)
+                    sectionHeader(Strings.contacts)
                 }
             }
 
             if !people.unknown.isEmpty {
-                Section {
-                    DisclosureGroup(isExpanded: $showsUnknownPeople) {
-                        personRows(people.unknown)
-                        SidebarBridgedPeopleRows(people: people.unknown.bridgedPeople)
-                    } label: {
-                        unknownLabel(people.unknown)
-                    }
-                }
+                unknownSection(people.unknown)
             }
         }
         .listStyle(.sidebar)
@@ -89,15 +94,19 @@ struct ContentSidebarView: View {
         }
     }
 
+    private func sectionHeader(_ title: String) -> some View {
+        Text(verbatim: title)
+    }
+
     private var profileButton: some View {
         Button(action: { showsProfile = true }) {
             Label {
-                Text(verbatim: String(localized: "profile.title", defaultValue: "Profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
+                Text(verbatim: Strings.profile)
             } icon: {
                 Image(systemName: "person.crop.circle")
             }
         }
-        .help(String(localized: "profile.title", defaultValue: "Profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it"))
+        .help(Strings.profile)
         .sheet(isPresented: $showsProfile) {
             ProfileSheet()
                 .environmentObject(appChromeModel)
@@ -160,11 +169,6 @@ struct ContentSidebarView: View {
             }
         }
 
-        ForEach(groupRows) { group in
-            SidebarGroupRow(group: group)
-                .tag(SidebarItem.conversation(group.peerID))
-        }
-
         Button {
             appChromeModel.isLocationChannelsSheetPresented = true
         } label: {
@@ -182,13 +186,13 @@ struct ContentSidebarView: View {
     private func locationRow(geohash: String, name: String?, systemImage: String) -> some View {
         let count = participantCount(for: geohash)
         return Label {
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: "#\(geohash.lowercased())")
                     .lineLimit(1)
                 if let name, !name.isEmpty {
                     Text(verbatim: name)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .rowColor(.secondary)
                         .lineLimit(1)
                 }
             }
@@ -273,32 +277,47 @@ struct ContentSidebarView: View {
         SidebarChatRows(chats: roster.chats, onOpen: open)
     }
 
-    private func unknownLabel(_ roster: SidebarRoster) -> some View {
-        Label {
-            HStack(spacing: 8) {
-                Text(verbatim: Strings.unknown)
-                Spacer(minLength: 8)
-                if roster.unreadCount > 0 {
-                    PeopleUnreadIndicator()
-                        .font(.subheadline)
-                }
-                // Format style, not Text("\(count)"): locale digits and
-                // grouping, and no letterless key for the catalog.
-                Text(roster.count, format: .number)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
+    /// A collapsible section, as Mail and Files collapse theirs. iOS 16 has
+    /// no collapsible sections and gets a disclosure row instead.
+    @ViewBuilder
+    private func unknownSection(_ roster: SidebarRoster) -> some View {
+        if #available(iOS 17, macOS 14, *) {
+            Section(isExpanded: $showsUnknownPeople) {
+                personRows(roster)
+                SidebarBridgedPeopleRows(people: roster.bridgedPeople)
+            } header: {
+                unknownHeader(roster)
             }
-        } icon: {
-            Image(systemName: "person.crop.circle.badge.questionmark")
+        } else {
+            Section {
+                DisclosureGroup(isExpanded: $showsUnknownPeople) {
+                    personRows(roster)
+                    SidebarBridgedPeopleRows(people: roster.bridgedPeople)
+                } label: {
+                    Label {
+                        unknownHeader(roster)
+                    } icon: {
+                        Image(systemName: "person.crop.circle.badge.questionmark")
+                    }
+                }
+            }
         }
-        #if os(macOS)
-        // A macOS outline row toggles only from its disclosure triangle;
-        // the whole label shows or hides the group, as the iOS row does.
-        .contentShape(Rectangle())
-        .onTapGesture {
-            withAnimation { showsUnknownPeople.toggle() }
+    }
+
+    /// "Unknown", how many people it holds, and a dot when one of them
+    /// wrote, so a collapsed section still shows new messages.
+    private func unknownHeader(_ roster: SidebarRoster) -> some View {
+        HStack(spacing: 8) {
+            Text(verbatim: Strings.unknown)
+            // Format style, not Text("\(count)"): locale digits and
+            // grouping, and no letterless key for the catalog.
+            Text(roster.count, format: .number)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            if roster.unreadCount > 0 {
+                PeopleUnreadIndicator()
+            }
         }
-        #endif
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Strings.unknown)
         .accessibilityValue(unknownAccessibilityValue(roster))
@@ -318,10 +337,13 @@ struct ContentSidebarView: View {
 private extension ContentSidebarView {
     enum Strings {
         static let appName = String(localized: "app_info.app_name", comment: "The app's name")
-        static let channels = String(localized: "sidebar.section.channels", defaultValue: "Channels", comment: "Sidebar section header above the public channels and private groups")
+        static let profile = String(localized: "profile.title", defaultValue: "Profile", comment: "Title of the sheet where the user edits their own profile, and the label of the sidebar button that opens it")
+        static let channels = String(localized: "sidebar.section.channels", defaultValue: "Channels", comment: "Sidebar section header above the public channels")
+        static let groups = String(localized: "sidebar.section.groups", defaultValue: "Groups", comment: "Sidebar section header above the private groups the user belongs to")
         static let contacts = String(localized: "sidebar.section.contacts", defaultValue: "Contacts", comment: "Sidebar section header above people the user knows: favorites, verified people and accepted conversations")
+        static let noContacts = String(localized: "sidebar.contacts.empty", defaultValue: "Favorites and people you message appear here.", comment: "Shown in the sidebar's contacts section when the user has no contacts yet")
         static let unknown = String(localized: "sidebar.unknown.title", defaultValue: "Unknown", comment: "Collapsed sidebar group holding people the user does not know yet and their message requests")
-        static let locationChannels = String(localized: "content.accessibility.location_channels", comment: "Accessibility label for the location channels button") + "…"
+        static let locationChannels = String(localized: "app_info.settings.location_channels.title", defaultValue: "Location Channels", comment: "Section header (uppercase) for location channel settings such as proof of work") + "…"
         static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")
 
