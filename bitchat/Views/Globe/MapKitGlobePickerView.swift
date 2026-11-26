@@ -65,6 +65,10 @@ struct MapKitGlobePickerView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         #endif
         .sheetChrome(title: Text(Strings.title), onClose: onCancel)
+        // Space around the globe is black in light mode too, so the title,
+        // the controls and the status bar always use dark mode here. It
+        // applies to this sheet only, not to the window under it.
+        .preferredColorScheme(.dark)
         #if os(macOS)
         .frame(minWidth: 560, minHeight: 640)
         #endif
