@@ -490,9 +490,15 @@ struct ContentView: View {
             ?? .blue
     }
 
+    /// Resolves from `chatBackgroundOption`, which the info page's picker
+    /// binds to, not from the store: the picker writes the store in its
+    /// `onChange`, after this view has already redrawn for the new value.
     private var resolvedChatBackground: ChatBackgroundOption {
-        let choice = ChatBackgroundStore.shared.option(for: activeDraftKey)
-        return choice == .default ? (ChatBackgroundOption(rawValue: defaultChatBackgroundRawValue) ?? .default) : choice
+        ChatBackgroundOption.resolved(
+            choice: chatBackgroundOption,
+            imageExists: ChatBackgroundImageStore.shared.exists(for: activeDraftKey),
+            defaultRawValue: defaultChatBackgroundRawValue
+        )
     }
 
     // MARK: - Split view

@@ -31,6 +31,18 @@ enum ChatBackgroundOption: String, CaseIterable, Identifiable {
     }
 }
 
+extension ChatBackgroundOption {
+    /// The background a conversation shows. Its own choice wins; "default",
+    /// or an image whose file is gone, falls back to the Settings default.
+    static func resolved(choice: ChatBackgroundOption, imageExists: Bool, defaultRawValue: String) -> ChatBackgroundOption {
+        if choice == .default || (choice == .image && !imageExists) {
+            let fallback = ChatBackgroundOption(rawValue: defaultRawValue) ?? .default
+            return fallback == .image ? .default : fallback
+        }
+        return choice
+    }
+}
+
 enum DefaultChatBackgroundSettings {
     static let key = "chat.defaultBackground"
     static var selected: ChatBackgroundOption {
@@ -91,6 +103,13 @@ struct ChatBackgroundStore {
     }
 }
 
+extension Notification.Name {
+    /// Posted on the main thread after a background image is saved or
+    /// removed. The file name stays the same for a conversation, so views
+    /// that show the image reload on this instead of on a new URL.
+    static let chatBackgroundImageDidChange = Notification.Name("chatBackgroundImageDidChange")
+}
+
 /// Private, device-local image storage. Filenames are opaque hashes of the
 /// conversation key; imported bytes are downsampled and re-encoded before save.
 struct ChatBackgroundImageStore {
@@ -125,6 +144,7 @@ struct ChatBackgroundImageStore {
         CGImageDestinationAddImage(destination, image, [kCGImageDestinationLossyCompressionQuality: 0.86] as CFDictionary)
         guard CGImageDestinationFinalize(destination) else { throw CocoaError(.fileWriteUnknown) }
         ChatBackgroundRasterCache.shared.clear()
+        Self.announceChange()
         return fileURL(for: conversation)
     }
 
@@ -134,9 +154,16 @@ struct ChatBackgroundImageStore {
     func remove(for conversation: ComposerDraftStore.Key) {
         try? FileManager.default.removeItem(at: fileURL(for: conversation))
         ChatBackgroundRasterCache.shared.clear()
+        Self.announceChange()
     }
     func removeAll() {
         try? FileManager.default.removeItem(at: directory)
         ChatBackgroundRasterCache.shared.clear()
+        Self.announceChange()
+    }
+
+    private static func announceChange() {
+        let post = { NotificationCenter.default.post(name: .chatBackgroundImageDidChange, object: nil) }
+        if Thread.isMainThread { post() } else { DispatchQueue.main.async(execute: post) }
     }
 }

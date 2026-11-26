@@ -163,9 +163,13 @@ struct PrivateChatDetailView: View {
         chatBackgroundOption = ChatBackgroundStore.shared.option(for: chatBackgroundConversationKey)
     }
 
+    /// From the picker's bound state, not the store; see ContentView.
     private var resolvedChatBackground: ChatBackgroundOption {
-        let choice = ChatBackgroundStore.shared.option(for: chatBackgroundConversationKey)
-        return choice == .default ? (ChatBackgroundOption(rawValue: defaultChatBackgroundRawValue) ?? .default) : choice
+        ChatBackgroundOption.resolved(
+            choice: chatBackgroundOption,
+            imageExists: ChatBackgroundImageStore.shared.exists(for: chatBackgroundConversationKey),
+            defaultRawValue: defaultChatBackgroundRawValue
+        )
     }
 
     /// The status under the name: how the peer is reachable and, once a

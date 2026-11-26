@@ -196,6 +196,8 @@ private struct ChatBackgroundImageView: View {
     let url: URL
     let isDark: Bool
     @State private var image: Image?
+    /// Bumped when a new image replaces the old one at the same URL.
+    @State private var revision = 0
     var body: some View {
         GeometryReader { proxy in
             ZStack {
@@ -206,11 +208,21 @@ private struct ChatBackgroundImageView: View {
                 (isDark ? Color.black.opacity(0.12) : Color.white.opacity(0.08)).blur(radius: 10)
             }
             .ignoresSafeArea()
-            .task(id: url) {
+            .task(id: ChatBackgroundImageLoadID(url: url, revision: revision)) {
                 image = await Task.detached(priority: .utility) { ChatBackgroundRasterCache.shared.image(at: url) }.value
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .chatBackgroundImageDidChange)) { _ in
+                revision &+= 1
             }
         }
     }
+}
+
+/// What a background image view loads: the file, and how many times it was
+/// replaced since the view appeared.
+struct ChatBackgroundImageLoadID: Hashable {
+    let url: URL
+    let revision: Int
 }
 
 /// Decoded rasters are shared by the full-screen backdrop and picker thumbnail.
