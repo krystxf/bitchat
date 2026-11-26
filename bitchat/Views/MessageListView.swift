@@ -454,6 +454,10 @@ struct MessageListView: View {
         }
         .onAppear { updateNotesCounterHold() }
         .onDisappear { releaseNotesCounterHold() }
+#if os(macOS)
+        // Where the Character Viewer types a reaction picked from it.
+        .background { CharacterViewerHost() }
+#endif
         .onChange(of: locationChannelsModel.selectedChannel) { _ in updateNotesCounterHold() }
         .onChange(of: privatePeer) { _ in updateNotesCounterHold() }
         .environment(\.openURL, OpenURLAction { url in

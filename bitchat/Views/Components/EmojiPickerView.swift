@@ -26,8 +26,11 @@ struct EmojiPickerView: View {
     @ObservedObject private var preferences = ReactionEmojiPreferences.shared
     @State private var query = ""
     @State private var currentSection = EmojiPickerSection.frequent
-    #if os(macOS)
+    #if os(iOS)
+    @State private var isKeyboardActive = false
+    #else
     @FocusState private var isSearchFocused: Bool
+    @Environment(\.dismiss) private var dismiss
     #endif
 
     private let catalog = EmojiCatalog.shared
@@ -50,15 +53,33 @@ struct EmojiPickerView: View {
                         .padding(.bottom, 8)
                 }
             }
+            // The system emoji keyboard, as an extra way to pick.
+            .background {
+                EmojiKeyboardInput(isActive: $isKeyboardActive) { emoji in
+                    onSelect(emoji)
+                }
+                .frame(width: 1, height: 1)
+                .opacity(0.01)
+            }
             .sheetChrome(
                 title: Text("content.reaction.add", comment: "Menu item or title for adding a reaction to a message"),
-                onClose: onClose
+                onClose: onClose,
+                trailing: {
+                    Button {
+                        isKeyboardActive = true
+                    } label: {
+                        Label(String(localized: "emoji.picker.keyboard", comment: "Button that opens the system emoji keyboard to pick a reaction"), systemImage: "keyboard")
+                    }
+                }
             )
         #else
         VStack(spacing: 0) {
-            searchField
-                .padding([.horizontal, .top], 10)
-                .padding(.bottom, 6)
+            HStack(spacing: 6) {
+                searchField
+                characterViewerButton
+            }
+            .padding([.horizontal, .top], 10)
+            .padding(.bottom, 6)
             if query.isEmpty {
                 categoryBar
                     .padding(.horizontal, 8)
@@ -189,6 +210,26 @@ struct EmojiPickerView: View {
     // MARK: macOS search
 
     #if os(macOS)
+    /// Opens the system Character Viewer; its first emoji is the pick.
+    private var characterViewerButton: some View {
+        Button {
+            dismiss()
+            // Once the popover is gone, so the chat window takes the focus.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                CharacterViewerBridge.shared.request { emoji in onSelect(emoji) }
+            }
+        } label: {
+            Image(systemName: "globe")
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(String(localized: "emoji.picker.character_viewer", comment: "Button that opens the system Emoji & Symbols viewer to pick a reaction"))
+        .accessibilityLabel(String(localized: "emoji.picker.character_viewer", comment: "Button that opens the system Emoji & Symbols viewer to pick a reaction"))
+    }
+
     private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
