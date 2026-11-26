@@ -25,18 +25,12 @@ struct PanicWipeBlockedBanner: View {
     }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .bitchatFont(size: 11, weight: .semibold)
+        ChatBanner(systemImage: "exclamationmark.triangle.fill", symbolColor: palette.alertRed) {
             Text(message)
-                .bitchatFont(size: 11)
+                .font(.footnote)
+                .foregroundStyle(palette.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .foregroundColor(palette.alertRed)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.red.opacity(0.12))
         .accessibilityElement(children: .combine)
     }
 }

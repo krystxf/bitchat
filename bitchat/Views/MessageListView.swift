@@ -565,19 +565,11 @@ private extension MessageListView {
         return Button {
             appChromeModel.presentNotices(geoTab: true)
         } label: {
-            HStack(spacing: 6) {
-                Text(verbatim: "📍 \(text)")
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.primary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.bitchatSystem(size: 10))
-                    .foregroundColor(palette.secondary)
+            ChatBanner(systemImage: "mappin.and.ellipse", symbolColor: palette.accent, showsChevron: true) {
+                Text(verbatim: text)
+                    .font(.footnote)
+                    .foregroundStyle(palette.primary)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(palette.secondary.opacity(0.08))
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
