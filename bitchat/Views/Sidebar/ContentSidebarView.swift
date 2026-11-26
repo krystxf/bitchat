@@ -82,15 +82,7 @@ struct ContentSidebarView: View {
         .listStyle(.sidebar)
         .navigationTitle(Text(verbatim: Strings.appName))
         .toolbar {
-            // .primaryAction keeps the buttons in the sidebar's own title bar
-            // on macOS; .navigation renders at the start of the detail
-            // column's toolbar instead.
-            ToolbarItem(placement: .primaryAction) {
-                profileButton
-            }
-            ToolbarItem(placement: .primaryAction) {
-                settingsButton
-            }
+            sidebarToolbar
         }
     }
 
@@ -98,14 +90,62 @@ struct ContentSidebarView: View {
         Text(verbatim: title)
     }
 
+    // MARK: - Toolbar
+
+    /// Settings, then the user's own avatar at the far end, as the App
+    /// Store and Music show the account. `.primaryAction` keeps both in
+    /// the sidebar's own title bar on macOS; `.navigation` renders at the
+    /// start of the detail column's toolbar instead.
+    @ToolbarContentBuilder
+    private var sidebarToolbar: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            settingsButton
+        }
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            // The avatar is the button: no glass capsule around it.
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+            ToolbarItem(placement: .primaryAction) {
+                profileButton
+            }
+            .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .primaryAction) {
+                profileButton
+            }
+        }
+        #else
+        ToolbarItem(placement: .primaryAction) {
+            profileButton
+        }
+        #endif
+    }
+
+    #if os(macOS)
+    private static let profileAvatarSize: CGFloat = 24
+    #else
+    private static let profileAvatarSize: CGFloat = 34
+    #endif
+
     private var profileButton: some View {
         Button(action: { showsProfile = true }) {
             Label {
                 Text(verbatim: Strings.profile)
             } icon: {
-                Image(systemName: "person.crop.circle")
+                InitialsAvatar(
+                    name: appChromeModel.nickname,
+                    peerID: appChromeModel.myPeerID,
+                    size: Self.profileAvatarSize
+                )
             }
+            .labelStyle(.iconOnly)
         }
+        .buttonStyle(.plain)
+        #if os(iOS)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
+        #endif
+        .accessibilityLabel(Text(verbatim: Strings.profile))
         .help(Strings.profile)
         .sheet(isPresented: $showsProfile) {
             ProfileSheet()
