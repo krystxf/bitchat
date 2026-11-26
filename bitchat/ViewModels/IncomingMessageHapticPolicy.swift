@@ -14,13 +14,12 @@ struct IncomingMessageHapticPolicy {
         isSystem: Bool,
         isBackfill: Bool = false,
         isForeground: Bool,
-        hasStrongerFeedback: Bool,
         isReaction: Bool = false,
         reactionTargetsOwnMessage: Bool? = nil,
         now: Date
     ) -> Bool {
         let shouldNotify = isReaction ? reactionTargetsOwnMessage == true : isIncoming
-        guard shouldNotify, !isSystem, !isBackfill, isForeground, !hasStrongerFeedback else { return false }
+        guard shouldNotify, !isSystem, !isBackfill, isForeground else { return false }
         if let lastTapAt, now.timeIntervalSince(lastTapAt) < interval { return false }
         lastTapAt = now
         return true

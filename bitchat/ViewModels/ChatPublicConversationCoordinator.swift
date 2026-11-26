@@ -573,41 +573,10 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
             return isOwnMessage(target)
         }
 
-        var tokens: [String] = [context.nickname]
-        switch context.activeChannel {
-        case .location(let channel):
-            if let identity = try? context.deriveNostrIdentity(forGeohash: channel.geohash) {
-                tokens.append(context.nickname + "#" + String(identity.publicKeyHex.suffix(4)))
-            }
-        case .mesh:
-            break
-        }
-
-        let hugsMe = tokens.contains { message.content.contains("hugs \($0)") } || message.content.contains("hugs you")
-        let slapsMe = tokens.contains { message.content.contains("slaps \($0) around") } || message.content.contains("slaps you around")
-        let isHugForMe = message.content.contains("🫂") && hugsMe
-        let isSlapForMe = message.content.contains("🐟") && slapsMe
-
-        if message.sender != "system", isHugForMe && !isOwnMessage(message) {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.prepare()
-
-            for i in 0..<8 {
-                DispatchQueue.main.asyncAfter(
-                    deadline: .now() + Double(i) * TransportConfig.uiBatchDispatchStaggerSeconds
-                ) {
-                    impactFeedback.impactOccurred()
-                }
-            }
-        } else if message.sender != "system", isSlapForMe && !isOwnMessage(message) {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-            impactFeedback.prepare()
-            impactFeedback.impactOccurred()
-        } else if incomingHapticPolicy.shouldTap(
+        if incomingHapticPolicy.shouldTap(
             isIncoming: !isOwnMessage(message),
             isSystem: message.sender == "system",
             isForeground: UIApplication.shared.applicationState == .active,
-            hasStrongerFeedback: false,
             isReaction: reaction != nil,
             reactionTargetsOwnMessage: reactionTargetsOwnMessage,
             now: Date()
@@ -658,7 +627,7 @@ private extension ChatPublicConversationCoordinator {
 
     /// Whether I wrote an inbound message (a gossip replay of my mesh text, or
     /// a relay echo of my geochat text), by its sender ID rather than its
-    /// display name, so a namesake's mention or hug still reaches me.
+    /// display name, so a namesake's mention still reaches me.
     func isOwnMessage(_ message: BitchatMessage) -> Bool {
         message.isOwn(
             myPeerID: context.myPeerID,

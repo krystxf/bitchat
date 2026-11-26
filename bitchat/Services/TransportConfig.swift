@@ -154,7 +154,6 @@ enum TransportConfig {
     static let uiStartupPhaseDurationSeconds: TimeInterval = 2.0
     static let uiReadReceiptRetryShortSeconds: TimeInterval = 0.1
     static let uiReadReceiptRetryLongSeconds: TimeInterval = 0.5
-    static let uiBatchDispatchStaggerSeconds: TimeInterval = 0.15
     static let uiScrollThrottleSeconds: TimeInterval = 0.5
     static let uiAnimationMediumSeconds: TimeInterval = 0.2
     static let uiRecentCutoffFiveMinutesSeconds: TimeInterval = 5 * 60
