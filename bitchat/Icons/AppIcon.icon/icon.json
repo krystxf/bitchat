@@ -1,0 +1,103 @@
+{
+  "fill-specializations": [
+    {
+      "value": {
+        "linear-gradient": [
+          "srgb:0.05490,0.04314,0.20392,1.00000",
+          "srgb:0.40000,0.22353,0.87843,1.00000"
+        ],
+        "orientation": {
+          "start": {
+            "x": 0.35,
+            "y": 0
+          },
+          "stop": {
+            "x": 0.6,
+            "y": 1
+          }
+        }
+      }
+    },
+    {
+      "appearance": "dark",
+      "value": {
+        "linear-gradient": [
+          "srgb:0.02745,0.02353,0.10196,1.00000",
+          "srgb:0.16471,0.09412,0.45098,1.00000"
+        ],
+        "orientation": {
+          "start": {
+            "x": 0.35,
+            "y": 0
+          },
+          "stop": {
+            "x": 0.6,
+            "y": 1
+          }
+        }
+      }
+    }
+  ],
+  "groups": [
+    {
+      "layers": [
+        {
+          "glass": false,
+          "image-name": "nova.svg",
+          "name": "nova"
+        },
+        {
+          "glass": false,
+          "image-name": "glow.svg",
+          "name": "glow"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    },
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "bubble.svg",
+          "name": "bubble"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "specular": true,
+      "translucency": {
+        "enabled": true,
+        "value": 0.2
+      }
+    },
+    {
+      "layers": [
+        {
+          "glass": false,
+          "image-name": "sky.svg",
+          "name": "sky"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  }
+}

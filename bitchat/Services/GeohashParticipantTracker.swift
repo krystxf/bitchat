@@ -175,7 +175,7 @@ final class GeohashParticipantTracker: ObservableObject {
 
     /// Refresh the visible people list. Publishes only when what the roster
     /// shows changed — who is present or how they're named — so subscribers
-    /// (the people sheet, the bootstrapper's prune) don't rebuild on
+    /// (the sidebar, the bootstrapper's prune) don't rebuild on
     /// activity that only moved timestamps.
     func refresh() {
         let people = getVisiblePeople()

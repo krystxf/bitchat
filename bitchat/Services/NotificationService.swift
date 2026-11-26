@@ -30,6 +30,11 @@ protocol NotificationCategoryRegistering {
     func setCategories(_ categories: Set<UNNotificationCategory>)
 }
 
+protocol NotificationClearing {
+    /// Removes every delivered alert and every request not yet shown.
+    func removeAllNotifications()
+}
+
 private final class NotificationCenterAuthorizerAdapter: NotificationAuthorizing {
     private let center: UNUserNotificationCenter
 
@@ -71,6 +76,19 @@ private final class NotificationCenterCategoryRegistrarAdapter: NotificationCate
     }
 }
 
+private final class NotificationCenterClearerAdapter: NotificationClearing {
+    private let center: UNUserNotificationCenter
+
+    init(center: UNUserNotificationCenter) {
+        self.center = center
+    }
+
+    func removeAllNotifications() {
+        center.removeAllDeliveredNotifications()
+        center.removeAllPendingNotificationRequests()
+    }
+}
+
 private struct NoopNotificationAuthorizer: NotificationAuthorizing {
     func requestAuthorization(
         options: UNAuthorizationOptions,
@@ -88,6 +106,10 @@ private struct NoopNotificationCategoryRegistrar: NotificationCategoryRegisterin
     func setCategories(_ categories: Set<UNNotificationCategory>) {}
 }
 
+private struct NoopNotificationClearer: NotificationClearing {
+    func removeAllNotifications() {}
+}
+
 final class NotificationService {
     static let shared = NotificationService()
 
@@ -100,16 +122,16 @@ final class NotificationService {
     /// or disclosing which geohash it came from.
     private enum Redacted {
         static var directMessageTitle: String {
-            String(localized: "notification.redacted.dm.title", defaultValue: "🔒 new dm", comment: "Lock-screen notification title for a received direct message when message previews are hidden; deliberately names neither the sender nor the content")
+            String(localized: "notification.redacted.dm.title", defaultValue: "🔒 New Dm", comment: "Lock-screen notification title for a received direct message when message previews are hidden; deliberately names neither the sender nor the content")
         }
         static var mentionTitle: String {
-            String(localized: "notification.redacted.mention.title", defaultValue: "🫵 you were mentioned", comment: "Lock-screen notification title telling someone they were mentioned when message previews are hidden; deliberately omits who mentioned them")
+            String(localized: "notification.redacted.mention.title", defaultValue: "🫵 You Were Mentioned", comment: "Lock-screen notification title telling someone they were mentioned when message previews are hidden; deliberately omits who mentioned them")
         }
         static var geohashActivityTitle: String {
-            String(localized: "notification.redacted.geohash.title", defaultValue: "📍 new activity nearby", comment: "Lock-screen notification title for activity in a location channel when message previews are hidden; deliberately omits the geohash")
+            String(localized: "notification.redacted.geohash.title", defaultValue: "📍 New Activity Nearby", comment: "Lock-screen notification title for activity in a location channel when message previews are hidden; deliberately omits the geohash")
         }
         static var body: String {
-            String(localized: "notification.redacted.body", defaultValue: "open bitchat to read", comment: "Lock-screen notification body shown in place of the message text when message previews are hidden")
+            String(localized: "notification.redacted.body", defaultValue: "Open bitchat to read", comment: "Lock-screen notification body shown in place of the message text when message previews are hidden")
         }
     }
 
@@ -128,6 +150,7 @@ final class NotificationService {
     private let authorizer: NotificationAuthorizing
     private let requestDeliverer: NotificationRequestDelivering
     private let categoryRegistrar: NotificationCategoryRegistering
+    private let clearer: NotificationClearing
 
     /// Returns true if running in test environment (XCTest, Swift Testing, or CI)
     private var isRunningTests: Bool {
@@ -148,11 +171,13 @@ final class NotificationService {
             self.authorizer = NoopNotificationAuthorizer()
             self.requestDeliverer = NoopNotificationRequestDeliverer()
             self.categoryRegistrar = NoopNotificationCategoryRegistrar()
+            self.clearer = NoopNotificationClearer()
         } else {
             let center = UNUserNotificationCenter.current()
             self.authorizer = NotificationCenterAuthorizerAdapter(center: center)
             self.requestDeliverer = NotificationCenterRequestDelivererAdapter(center: center)
             self.categoryRegistrar = NotificationCenterCategoryRegistrarAdapter(center: center)
+            self.clearer = NotificationCenterClearerAdapter(center: center)
         }
     }
 
@@ -161,12 +186,14 @@ final class NotificationService {
         authorizer: NotificationAuthorizing,
         requestDeliverer: NotificationRequestDelivering,
         categoryRegistrar: NotificationCategoryRegistering = NoopNotificationCategoryRegistrar(),
+        clearer: NotificationClearing = NoopNotificationClearer(),
         hidePreviewsProvider: @escaping () -> Bool = { NotificationPrivacySettings.hideMessagePreviews }
     ) {
         self.isRunningTestsProvider = isRunningTestsProvider
         self.authorizer = authorizer
         self.requestDeliverer = requestDeliverer
         self.categoryRegistrar = categoryRegistrar
+        self.clearer = clearer
         self.hidePreviewsProvider = hidePreviewsProvider
     }
 
@@ -228,6 +255,14 @@ final class NotificationService {
         requestDeliverer.add(request)
     }
     
+    /// Removes every alert this app delivered or queued. With previews on,
+    /// alerts quote messages and name senders, so the message wipe takes
+    /// them with the messages.
+    func removeAllNotifications() {
+        guard !isRunningTests else { return }
+        clearer.removeAllNotifications()
+    }
+
     func sendMentionNotification(from sender: String, message: String) {
         let title = hidePreviews ? Redacted.mentionTitle : "🫵 you were mentioned by \(sender)"
         let body = hidePreviews ? Redacted.body : message
@@ -260,7 +295,7 @@ final class NotificationService {
     }
 
     func sendNetworkAvailableNotification(peerCount: Int) {
-        let title = String(localized: "notification.nearby.title", defaultValue: "👥 bitchatters nearby!", comment: "Title of the local notification when mesh peers come into range")
+        let title = String(localized: "notification.nearby.title", defaultValue: "👥 Bitchatters Nearby!", comment: "Title of the local notification when mesh peers come into range")
         let body = peerCount == 1
             ? String(localized: "notification.nearby.body_one", defaultValue: "1 person around", comment: "Body of the nearby notification for exactly one peer")
             : String(format: String(localized: "notification.nearby.body_many", defaultValue: "%lld people around", comment: "Body of the nearby notification; placeholder is the peer count"), locale: .current, peerCount)

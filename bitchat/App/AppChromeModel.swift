@@ -28,12 +28,24 @@ final class AppChromeModel: ObservableObject {
     /// triggered it needs to know data may remain on the device.
     @Published private(set) var panicWipeBlocked = false
 
+    /// How much a wipe takes, so the composer knows how much of its own
+    /// state to drop.
+    enum WipeScope {
+        /// Extreme security mode: messages only; the open screen stays.
+        case messages
+        /// Panic: everything, and the app returns to the mesh channel.
+        case everything
+    }
+
     private let chatViewModel: ChatViewModel
-    private let onPanicWipe: () -> Void
+    /// Runs before every wipe of message content (it discards staged
+    /// share-extension content and its import offer).
+    private let onWipe: () -> Void
     private var cancellables = Set<AnyCancellable>()
-    /// The composer owns capture state above ChatViewModel. ContentView
-    /// installs this hook so both panic entry points synchronously stop it.
-    private var prepareForPanic: (@MainActor () -> Void)?
+    /// The composer owns capture and text state above ChatViewModel.
+    /// ContentView installs this hook so every wipe synchronously stops a
+    /// recording and drops composer text first.
+    private var prepareForWipe: (@MainActor (WipeScope) -> Void)?
 
     /// Bulletin-board coordinator, created on first use of the board sheet.
     private(set) lazy var boardManager = BoardManager(transport: chatViewModel.meshService)
@@ -41,10 +53,10 @@ final class AppChromeModel: ObservableObject {
     init(
         chatViewModel: ChatViewModel,
         privateInboxModel: PrivateInboxModel,
-        onPanicWipe: @escaping () -> Void = {}
+        onWipe: @escaping () -> Void = {}
     ) {
         self.chatViewModel = chatViewModel
-        self.onPanicWipe = onPanicWipe
+        self.onWipe = onWipe
         self.nickname = chatViewModel.nickname
 
         bind(privateInboxModel: privateInboxModel)
@@ -66,6 +78,21 @@ final class AppChromeModel: ObservableObject {
         if nickname != chatViewModel.nickname {
             nickname = chatViewModel.nickname
         }
+    }
+
+    /// Everyone the user blocked, for the blocked accounts list.
+    func blockedAccounts() -> [BlockedAccount] {
+        chatViewModel.blockedAccounts()
+    }
+
+    func unblock(_ account: BlockedAccount) {
+        chatViewModel.unblock(account)
+    }
+
+    /// This device's current mesh peer ID, which seeds my avatar's color the
+    /// same way it does for everyone who sees my messages.
+    var myPeerID: PeerID {
+        chatViewModel.meshService.myPeerID
     }
 
     func openMostRelevantPrivateChat() {
@@ -116,8 +143,8 @@ final class AppChromeModel: ObservableObject {
         showScreenshotPrivacyWarning = true
     }
 
-    func setPanicPreparation(_ preparation: (@MainActor () -> Void)?) {
-        prepareForPanic = preparation
+    func setWipePreparation(_ preparation: (@MainActor (WipeScope) -> Void)?) {
+        prepareForWipe = preparation
     }
 
     /// Entry point for the header triple-tap: confirm before destroying.
@@ -138,9 +165,20 @@ final class AppChromeModel: ObservableObject {
         isNoticesSheetPresented = false
         showingFingerprintFor = nil
 
-        prepareForPanic?()
-        onPanicWipe()
+        prepareForWipe?(.everything)
+        onWipe()
         chatViewModel.panicClearAllData()
+    }
+
+    /// Extreme security mode: the user left the app, so every message goes
+    /// (`ChatViewModel.wipeMessages()` lists what is deleted and kept).
+    /// Unlike the panic wipe, sheets stay where they were and the identity
+    /// does not change. Returns false when a media file may remain.
+    @discardableResult
+    func wipeMessagesOnExit() -> Bool {
+        prepareForWipe?(.messages)
+        onWipe()
+        return chatViewModel.wipeMessages()
     }
 
     private func bind(privateInboxModel: PrivateInboxModel) {

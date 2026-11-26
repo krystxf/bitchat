@@ -1,4 +1,5 @@
 import BitFoundation
+import BitLogger
 import Combine
 import Foundation
 import SwiftUI
@@ -99,7 +100,7 @@ final class AppRuntime: ObservableObject {
         self.appChromeModel = AppChromeModel(
             chatViewModel: self.chatViewModel,
             privateInboxModel: self.privateInboxModel,
-            onPanicWipe: { sharedContentImportModel.discardAll() }
+            onWipe: { sharedContentImportModel.discardAll() }
         )
         let chatViewModel = self.chatViewModel
         self.boardAlertsModel = BoardAlertsModel(
@@ -205,6 +206,7 @@ final class AppRuntime: ObservableObject {
             chatViewModel.endGeohashSampling()
             NostrRelayManager.shared.disconnect()
             didEnterBackground = true
+            handleAppExitEvent(.enteredBackground)
 
         case .active:
             guard chatViewModel.networkActivationAllowed else { return }
@@ -238,6 +240,7 @@ final class AppRuntime: ObservableObject {
 
         case .inactive:
             record(.scenePhaseChanged(.inactive))
+            handleAppExitEvent(.becameInactive)
 
         @unknown default:
             break
@@ -248,6 +251,37 @@ final class AppRuntime: ObservableObject {
     func applicationWillTerminate() {
         record(.terminationRequested)
         chatViewModel.applicationWillTerminate()
+        // After the mesh stops, so no message lands after the wipe.
+        handleAppExitEvent(.willTerminate)
+    }
+
+    /// Extreme security mode: deletes every message when the user leaves
+    /// the app. `ExtremeSecurityExitPolicy` decides which moments count.
+    func handleAppExitEvent(_ event: AppExitEvent) {
+        guard ExtremeSecurityExitPolicy.shouldWipeMessages(
+            on: event,
+            isEnabled: ExtremeSecuritySettings.isEnabled
+        ) else { return }
+
+        #if os(iOS)
+        // The wipe runs synchronously right here, but ask for background time
+        // anyway, so a large media folder cannot outlast the few seconds iOS
+        // grants before it suspends the app. The task ends when the wipe
+        // returns, before an expiration handler could ever run.
+        let application = UIApplication.shared
+        let backgroundTask = application.beginBackgroundTask(withName: "extreme-security-wipe")
+        defer {
+            if backgroundTask != .invalid {
+                application.endBackgroundTask(backgroundTask)
+            }
+        }
+        #endif
+
+        if appChromeModel.wipeMessagesOnExit() {
+            SecureLogger.info("Extreme security mode wiped messages on exit", category: .security)
+        } else {
+            SecureLogger.error("Extreme security mode could not delete every media file on exit", category: .security)
+        }
     }
 
     func handleNotificationResponse(

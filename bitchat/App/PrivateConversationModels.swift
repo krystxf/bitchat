@@ -164,6 +164,13 @@ final class PrivateConversationModel: ObservableObject {
         refreshSelectedConversation()
     }
 
+    /// Opens a geohash DM with the person behind a full Nostr pubkey (a
+    /// row of the location channel's roster).
+    func startGeohashConversation(withPubkeyHex pubkeyHex: String) {
+        chatViewModel.startGeohashDM(withPubkeyHex: pubkeyHex)
+        refreshSelectedConversation()
+    }
+
     func endConversation() {
         chatViewModel.endPrivateChat()
         refreshSelectedConversation()

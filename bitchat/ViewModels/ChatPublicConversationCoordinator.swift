@@ -32,6 +32,8 @@ protocol ChatPublicConversationContext: AnyObject {
     /// message with the same ID is already in that conversation.
     @discardableResult
     func appendPublicMessage(_ message: BitchatMessage, to conversationID: ConversationID) -> Bool
+    func publicMessage(withID messageID: String) -> BitchatMessage?
+    func privateMessage(withID messageID: String) -> BitchatMessage?
     func publicConversationContainsMessage(withID messageID: String, in conversationID: ConversationID) -> Bool
     /// Removes a message by ID from whichever public conversation contains it.
     @discardableResult
@@ -73,7 +75,6 @@ protocol ChatPublicConversationContext: AnyObject {
 
     // MARK: Mesh transport
     func meshPeerNicknames() -> [PeerID: String]
-    func sendMeshMessage(_ content: String, mentions: [String], messageID: String, timestamp: Date)
 
     // MARK: Inbound public message processing
     func processActionMessage(_ message: BitchatMessage) -> BitchatMessage
@@ -130,10 +131,6 @@ extension ChatViewModel: ChatPublicConversationContext {
         meshService.getPeerNicknames()
     }
 
-    func sendMeshMessage(_ content: String, mentions: [String], messageID: String, timestamp: Date) {
-        meshService.sendMessage(content, mentions: mentions, messageID: messageID, timestamp: timestamp)
-    }
-
     func allowPublicMessage(senderKey: String, contentKey: String, powBits: Int) -> Bool {
         publicRateLimiter.allow(senderKey: senderKey, contentKey: contentKey, powBits: powBits)
     }
@@ -155,7 +152,7 @@ extension ChatViewModel: ChatPublicConversationContext {
     }
 
     func prewarmMessageFormatting(_ message: BitchatMessage) {
-        _ = formatMessageAsText(message, colorScheme: currentColorScheme)
+        prewarmMessageRow(message, colorScheme: currentColorScheme)
     }
 
     func notifyMention(from sender: String, message: String) {
@@ -166,6 +163,10 @@ extension ChatViewModel: ChatPublicConversationContext {
 @MainActor
 final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
     private unowned let context: any ChatPublicConversationContext
+    private var incomingHapticPolicy = IncomingMessageHapticPolicy()
+    /// Reaction lines skip the message rate limits for a budget of their
+    /// own (see `ReactionIntakeGate`).
+    private(set) var reactionGate = ReactionIntakeGate()
 
     init(context: any ChatPublicConversationContext) {
         self.context = context
@@ -382,40 +383,6 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         }
     }
 
-    func sendPublicRaw(_ content: String) {
-        if case .location(let channel) = context.activeChannel {
-            Task { @MainActor [weak context] in
-                guard let context else { return }
-                do {
-                    let identity = try context.deriveNostrIdentity(forGeohash: channel.geohash)
-                    let event = try await NostrProtocol.createMinedEphemeralGeohashEvent(
-                        content: content,
-                        geohash: channel.geohash,
-                        senderIdentity: identity,
-                        nickname: context.nickname,
-                        teleported: context.isTeleported
-                    )
-                    let targetRelays = GeoRelayDirectory.shared.closestRelays(toGeohash: channel.geohash, count: 5)
-                    if targetRelays.isEmpty {
-                        NostrRelayManager.shared.sendEvent(event)
-                    } else {
-                        NostrRelayManager.shared.sendEvent(event, to: targetRelays)
-                    }
-                } catch {
-                    SecureLogger.error("❌ Failed to send geohash raw message: \(error)", category: .session)
-                }
-            }
-            return
-        }
-
-        context.sendMeshMessage(
-            content,
-            mentions: [],
-            messageID: UUID().uuidString,
-            timestamp: Date()
-        )
-    }
-
     /// - Parameter powBits: validated NIP-13 difficulty of the source Nostr
     ///   event (0 for mesh messages). Sufficient PoW relaxes the per-sender
     ///   rate limit; low/no-PoW events keep the strict limits so old clients
@@ -433,6 +400,17 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         archivedEchoKeys.insert(Self.archivedEchoKey(senderPeerID: senderPeerID, timestamp: timestamp, content: content))
     }
 
+    /// Message wipe: the echoes are gone from the timeline and the archive,
+    /// and each key holds a message's text, so the keys go too. The
+    /// watermark stops peers' older copies from coming back as echoes, the
+    /// same way clearing the mesh timeline does. The reaction gate forgets
+    /// who reacted to what.
+    func forgetArchivedEchoes() {
+        archivedEchoKeys.removeAll()
+        reactionGate.reset()
+        MeshEchoSettings.clearedThrough = Date()
+    }
+
     static func archivedEchoKey(senderPeerID: PeerID?, timestamp: Date, content: String) -> String {
         // The timestamp is peer-chosen: a wire value near UInt64.max comes
         // back from Date as 2^64, so a trapping UInt64(_:) here would be a
@@ -444,7 +422,7 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         return "\(senderPeerID?.id ?? "")|\(msKey)|\(content)"
     }
 
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int = 0) {
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int = 0, allowHaptic: Bool = true) {
         let finalMessage = context.processActionMessage(message)
         if context.isMessageBlocked(finalMessage) { return }
 
@@ -453,9 +431,17 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         let shouldRateLimit = !isSystem || finalMessage.senderPeerID != nil
         if shouldRateLimit {
             let senderKey = normalizedSenderKey(for: finalMessage)
-            let contentKey = context.normalizedContentKey(finalMessage.content)
-            if !context.allowPublicMessage(senderKey: senderKey, contentKey: contentKey, powBits: powBits) {
-                return
+            if let reaction = MessageReaction.event(in: finalMessage.content) {
+                // A reaction never spends the sender's message budget: it
+                // has its own, and a repeat of the same state is a no-op.
+                guard reactionGate.admit(reaction, senderKey: senderKey, timestamp: finalMessage.timestamp) == .accept else {
+                    return
+                }
+            } else {
+                let contentKey = context.normalizedContentKey(finalMessage.content)
+                if !context.allowPublicMessage(senderKey: senderKey, contentKey: contentKey, powBits: powBits) {
+                    return
+                }
             }
         }
 
@@ -508,9 +494,13 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
             // batch for; they land in the store immediately.
             context.appendPublicMessage(finalMessage, to: destination)
         }
+        if allowHaptic { sendHapticFeedback(for: finalMessage) }
     }
 
     func checkForMentions(_ message: BitchatMessage) {
+        // A reaction line quotes its target, so it can carry the target's
+        // @mention; that is no new mention of me.
+        guard !message.isReactionLine else { return }
         let myNickname = context.nickname.normalizedNickname
         var myTokens: Set<String> = [myNickname]
         let meshPeers = context.meshPeerNicknames()
@@ -531,34 +521,27 @@ final class ChatPublicConversationCoordinator: PublicMessagePipelineDelegate {
         #if os(iOS)
         guard UIApplication.shared.applicationState == .active else { return }
 
-        var tokens: [String] = [context.nickname]
-        switch context.activeChannel {
-        case .location(let channel):
-            if let identity = try? context.deriveNostrIdentity(forGeohash: channel.geohash) {
-                tokens.append(context.nickname + "#" + String(identity.publicKeyHex.suffix(4)))
-            }
-        case .mesh:
-            break
+        let reaction = MessageReaction.parse(message.content)
+        let reactionTargetsOwnMessage: Bool? = reaction.flatMap { event in
+            let target = message.isPrivate
+                ? context.privateMessage(withID: event.targetID)
+                : context.publicMessage(withID: event.targetID)
+            guard let target,
+                  target.id != message.id,
+                  MessageReaction.format(emoji: event.emoji, target: target, removes: event.removes) == message.content
+            else { return false }
+            return isOwnMessage(target)
         }
 
-        let hugsMe = tokens.contains { message.content.contains("hugs \($0)") } || message.content.contains("hugs you")
-        let slapsMe = tokens.contains { message.content.contains("slaps \($0) around") } || message.content.contains("slaps you around")
-        let isHugForMe = message.content.contains("🫂") && hugsMe
-        let isSlapForMe = message.content.contains("🐟") && slapsMe
-
-        if isHugForMe && !isOwnMessage(message) {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.prepare()
-
-            for i in 0..<8 {
-                DispatchQueue.main.asyncAfter(
-                    deadline: .now() + Double(i) * TransportConfig.uiBatchDispatchStaggerSeconds
-                ) {
-                    impactFeedback.impactOccurred()
-                }
-            }
-        } else if isSlapForMe && !isOwnMessage(message) {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+        if incomingHapticPolicy.shouldTap(
+            isIncoming: !isOwnMessage(message),
+            isSystem: message.sender == "system",
+            isForeground: UIApplication.shared.applicationState == .active,
+            isReaction: reaction != nil,
+            reactionTargetsOwnMessage: reactionTargetsOwnMessage,
+            now: Date()
+        ) {
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
             impactFeedback.prepare()
             impactFeedback.impactOccurred()
         }
@@ -604,7 +587,7 @@ private extension ChatPublicConversationCoordinator {
 
     /// Whether I wrote an inbound message (a gossip replay of my mesh text, or
     /// a relay echo of my geochat text), by its sender ID rather than its
-    /// display name, so a namesake's mention or hug still reaches me.
+    /// display name, so a namesake's mention still reaches me.
     func isOwnMessage(_ message: BitchatMessage) -> Bool {
         message.isOwn(
             myPeerID: context.myPeerID,

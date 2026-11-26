@@ -507,6 +507,59 @@ struct AppArchitectureTests {
         #expect(chromeModel.showingFingerprintFor == nil)
     }
 
+    @Test("Exit wipe deletes messages but leaves sheets and the screen alone")
+    @MainActor
+    func exitWipeKeepsChromePresentation() {
+        let viewModel = makeArchitectureViewModel()
+        let privateInboxModel = PrivateInboxModel(conversations: ConversationStore())
+        var wipesRun = 0
+        let chromeModel = AppChromeModel(
+            chatViewModel: viewModel,
+            privateInboxModel: privateInboxModel,
+            onWipe: { wipesRun += 1 }
+        )
+        var preparedScopes: [AppChromeModel.WipeScope] = []
+        chromeModel.setWipePreparation { preparedScopes.append($0) }
+        viewModel.seedPublicMessages([
+            BitchatMessage(
+                id: "exit-1",
+                sender: "Tester",
+                content: "gone on exit",
+                timestamp: Date(),
+                isRelay: false
+            )
+        ])
+        // Leaving the app with settings open: coming back finds them open.
+        chromeModel.presentAppInfo()
+
+        chromeModel.wipeMessagesOnExit()
+
+        #expect(viewModel.messages.isEmpty)
+        #expect(chromeModel.isAppInfoPresented)
+        #expect(preparedScopes == [.messages])
+        #expect(wipesRun == 1)
+    }
+
+    @Test("Panic wipe prepares the composer for a full wipe")
+    @MainActor
+    func panicWipePreparesForEverything() {
+        let viewModel = makeArchitectureViewModel()
+        let privateInboxModel = PrivateInboxModel(conversations: ConversationStore())
+        var wipesRun = 0
+        let chromeModel = AppChromeModel(
+            chatViewModel: viewModel,
+            privateInboxModel: privateInboxModel,
+            onWipe: { wipesRun += 1 }
+        )
+        var preparedScopes: [AppChromeModel.WipeScope] = []
+        chromeModel.setWipePreparation { preparedScopes.append($0) }
+
+        chromeModel.panicClearAllData()
+
+        #expect(preparedScopes == [.everything])
+        #expect(wipesRun == 1)
+    }
+
     @Test("Recent chats list direct conversations with people absent from the rosters")
     @MainActor
     func peerListModelSurfacesRecentChatsForAbsentPeers() async {

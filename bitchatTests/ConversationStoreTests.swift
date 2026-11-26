@@ -591,6 +591,74 @@ struct ConversationStoreTests {
         }
     }
 
+    // MARK: - Replace
+
+    @Test("replaceMessage swaps the ID in place and keeps the index exact")
+    @MainActor
+    func replaceMessageKeepsPosition() {
+        let store = ConversationStore()
+        let id = ConversationID.geohash("u4pruy")
+        store.append(makeMessage(id: "before", timestamp: 10), to: id)
+        store.append(makeMessage(id: "pending", timestamp: 20, content: "hi"), to: id)
+        store.append(makeMessage(id: "after", timestamp: 30), to: id)
+        var received: [ConversationChange] = []
+        let cancellable = store.changes.sink { received.append($0) }
+        defer { cancellable.cancel() }
+
+        let signed = makeMessage(id: "event", timestamp: 20, content: "hi")
+        #expect(store.replaceMessage(withID: "pending", by: signed, in: id))
+
+        let conversation = store.conversation(for: id)
+        #expect(conversation.messages.map(\.id) == ["before", "event", "after"])
+        #expect(conversation.message(withID: "pending") == nil)
+        #expect(conversation.message(withID: "event") === signed)
+        #expect(store.conversationIDs(forMessageID: "pending").isEmpty)
+        #expect(store.conversationIDs(forMessageID: "event") == [id])
+        #expect(store.auditInvariants().isEmpty)
+
+        #expect(received.count == 2)
+        guard case .messageRemoved(id, let removedID) = received[0], removedID == "pending",
+              case .appended(id, let appended) = received[1], appended.id == "event" else {
+            Issue.record("unexpected change sequence: \(received)")
+            return
+        }
+    }
+
+    @Test("replaceMessage re-sorts a replacement with another timestamp")
+    @MainActor
+    func replaceMessageResortsOnNewTimestamp() {
+        let store = ConversationStore()
+        store.append(makeMessage(id: "pending", timestamp: 10), to: .mesh)
+        store.append(makeMessage(id: "later", timestamp: 20), to: .mesh)
+
+        #expect(store.replaceMessage(withID: "pending", by: makeMessage(id: "event", timestamp: 25), in: .mesh))
+
+        #expect(store.conversation(for: .mesh).messages.map(\.id) == ["later", "event"])
+        #expect(store.auditInvariants().isEmpty)
+    }
+
+    @Test("replaceMessage leaves the store alone when it cannot swap")
+    @MainActor
+    func replaceMessageRefusesMissingOrDuplicate() {
+        let store = ConversationStore()
+        store.append(makeMessage(id: "a", timestamp: 10), to: .mesh)
+        store.append(makeMessage(id: "b", timestamp: 20), to: .mesh)
+        var received: [ConversationChange] = []
+        let cancellable = store.changes.sink { received.append($0) }
+        defer { cancellable.cancel() }
+
+        // The pending row is gone (cleared, wiped): nothing comes back.
+        #expect(!store.replaceMessage(withID: "missing", by: makeMessage(id: "c", timestamp: 30), in: .mesh))
+        // The new ID is already present: no duplicate row.
+        #expect(!store.replaceMessage(withID: "a", by: makeMessage(id: "b", timestamp: 10), in: .mesh))
+        // Unknown conversation.
+        #expect(!store.replaceMessage(withID: "a", by: makeMessage(id: "c", timestamp: 10), in: .geohash("nowhere")))
+
+        #expect(store.conversation(for: .mesh).messages.map(\.id) == ["a", "b"])
+        #expect(received.isEmpty)
+        #expect(store.auditInvariants().isEmpty)
+    }
+
     // MARK: - Delivery status
 
     @Test("setDeliveryStatus never downgrades read and skips equal statuses")

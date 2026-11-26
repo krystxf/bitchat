@@ -6,9 +6,9 @@
 // For more information, see <https://unlicense.org>
 //
 
-/// Row ordering for the people sheet's rosters.
+/// Row ordering for the sidebar's rosters.
 ///
-/// Rows stay where they are while the sheet is open: ids already on screen
+/// Rows stay where they are while the sidebar shows them: ids already on screen
 /// keep their relative order (minus anyone who left) and newcomers append in
 /// the producer's order. Without this, recency-sorted rosters reshuffle on
 /// every heartbeat and rows move out from under a tap.
@@ -28,5 +28,25 @@ enum PeopleListOrdering {
             ordered.append(id)
         }
         return ordered
+    }
+}
+
+/// Remembers the order a roster was last shown in, so a section keeps its
+/// rows in place without lifecycle callbacks.
+///
+/// A `List` builds rows lazily, so `onAppear` on a section runs once per
+/// row as rows scroll into view. It can't seed the order once, and
+/// reseeding mid-scroll moved rows under the user's finger. Asking this
+/// memory for the order on every render needs no callback: the result
+/// depends only on the previous result and the current ids, so repeated
+/// renders with the same ids return the same order.
+@MainActor
+final class PeopleListOrderMemory {
+    private var shownIDs: [String] = []
+
+    /// Returns `current` in stable order and remembers that order.
+    func order(_ current: [String]) -> [String] {
+        shownIDs = PeopleListOrdering.stableOrder(previous: shownIDs, current: current)
+        return shownIDs
     }
 }

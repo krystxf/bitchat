@@ -60,6 +60,7 @@ protocol ChatPrivateConversationContext: AnyObject {
     func handOffSelectedPrivateChat(from oldPeerIDs: [PeerID], to newPeerID: PeerID)
     /// Signals that message state changed so observers refresh (e.g. `objectWillChange.send()`).
     func notifyUIChanged()
+    func sendHapticFeedback(for message: BitchatMessage)
 
     // MARK: Peers & identity
     var myPeerID: PeerID { get }
@@ -487,7 +488,8 @@ final class ChatPrivateConversationCoordinator {
         senderPubkey: String,
         convKey: PeerID,
         id: NostrIdentity,
-        messageTimestamp: Date
+        messageTimestamp: Date,
+        allowHaptic: Bool = true
     ) {
         guard let pm = PrivateMessagePacket.decode(from: payload.data) else { return }
         let messageId = pm.messageID
@@ -548,13 +550,16 @@ final class ChatPrivateConversationCoordinator {
             deliveryStatus: .delivered(to: context.nickname, at: Date())
         )
 
-        context.appendPrivateMessage(message, to: conversationPeerID)
+        guard context.appendPrivateMessage(message, to: conversationPeerID) else { return }
+        if allowHaptic { context.sendHapticFeedback(for: message) }
 
         let isViewing = context.selectedPrivateChatPeer == conversationPeerID
         let wasReadBefore = context.sentReadReceipts.contains(messageId)
         let isRecentMessage = Date().timeIntervalSince(messageTimestamp) < 30
-        let shouldMarkUnread = !wasReadBefore && !isViewing && isRecentMessage
-        if shouldMarkUnread {
+        let shouldAlert = !wasReadBefore && !isViewing && isRecentMessage
+        // A reaction line is no unread message; it alerts only as a
+        // reaction to one of mine.
+        if shouldAlert && !message.isReactionLine {
             context.markPrivateChatUnread(conversationPeerID)
         }
 
@@ -562,8 +567,8 @@ final class ChatPrivateConversationCoordinator {
             sendReadReceiptIfNeeded(to: messageId, senderPubKey: senderPubkey, from: id)
         }
 
-        if !isViewing && shouldMarkUnread {
-            context.notifyPrivateMessage(from: senderName, message: pm.content, peerID: conversationPeerID)
+        if shouldAlert {
+            notifyPrivateMessageOrReaction(message, from: senderName, peerID: conversationPeerID)
         }
 
         context.notifyUIChanged()
@@ -684,6 +689,7 @@ final class ChatPrivateConversationCoordinator {
         }
 
         addMessageToPrivateChatsIfNeeded(message, targetPeerID: peerID)
+        context.sendHapticFeedback(for: message)
         let noiseKey = peerID.noiseKey ?? context.noisePublicKey(for: peerID)
         mirrorToEphemeralIfNeeded(message, targetPeerID: peerID, key: noiseKey)
 
@@ -696,12 +702,32 @@ final class ChatPrivateConversationCoordinator {
             )
             context.sendMeshReadReceipt(receipt, to: peerID)
             context.markReadReceiptSent(message.id)
+        } else if message.isReactionLine {
+            notifyPrivateMessageOrReaction(message, from: message.sender, peerID: peerID)
         } else {
             context.markPrivateChatUnread(peerID)
             context.notifyPrivateMessage(from: message.sender, message: message.content, peerID: peerID)
         }
 
         context.notifyUIChanged()
+    }
+
+    /// Alerts for a private message that arrived while its chat is not on
+    /// screen. A reaction line alerts only when it adds a reaction to one
+    /// of my messages ("Alice Reacted 👍 to Your Message"); its raw text
+    /// never shows.
+    func notifyPrivateMessageOrReaction(_ message: BitchatMessage, from senderName: String, peerID: PeerID) {
+        guard message.isReactionLine else {
+            context.notifyPrivateMessage(from: senderName, message: message.content, peerID: peerID)
+            return
+        }
+        let myPeerID = context.myPeerID
+        guard let alert = MessageReaction.alertText(
+            for: message,
+            in: context.privateMessages(for: peerID),
+            isMine: { $0.isOwn(myPeerID: myPeerID, myGeoChatPeerID: nil) }
+        ) else { return }
+        context.notifyPrivateMessage(from: senderName, message: alert, peerID: peerID)
     }
 
     /// O(1)-per-conversation dedup via the store's message-ID indexes
@@ -767,7 +793,8 @@ final class ChatPrivateConversationCoordinator {
         senderNickname: String,
         messageContent: String
     ) {
-        guard shouldMarkAsUnread else { return }
+        // Reaction lines never mark a chat unread or alert with their text.
+        guard shouldMarkAsUnread, MessageReaction.event(in: messageContent) == nil else { return }
 
         context.markPrivateChatUnread(targetPeerID)
         if let key,

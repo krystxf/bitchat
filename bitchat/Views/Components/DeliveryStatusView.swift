@@ -66,6 +66,8 @@ struct DeliveryStatusView: View {
 
     var body: some View {
         statusGlyph
+            .font(.caption2.weight(.semibold))
+            .imageScale(.small)
             .help(status.bitchatDescription)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(status.bitchatDescription)
@@ -78,30 +80,24 @@ struct DeliveryStatusView: View {
             // Normally hidden by callers; shown as a hollow dotted circle if
             // it ever surfaces so the state is visible rather than invisible.
             Image(systemName: "circle.dotted")
-                .font(.bitchatSystem(size: 10))
                 .foregroundColor(secondaryTextColor.opacity(0.6))
 
         case .sending:
             Image(systemName: "circle")
-                .font(.bitchatSystem(size: 10))
                 .foregroundColor(secondaryTextColor.opacity(0.6))
 
         case .sent:
             Image(systemName: "checkmark")
-                .font(.bitchatSystem(size: 10))
                 .foregroundColor(secondaryTextColor.opacity(0.6))
 
         case .carried:
             Image(systemName: "figure.walk")
-                .font(.bitchatSystem(size: 10))
                 .foregroundColor(secondaryTextColor.opacity(0.8))
 
         case .delivered:
             HStack(spacing: -2) {
                 Image(systemName: "checkmark")
-                    .font(.bitchatSystem(size: 10))
                 Image(systemName: "checkmark")
-                    .font(.bitchatSystem(size: 10))
             }
             .foregroundColor(textColor.opacity(0.8))
 
@@ -109,23 +105,18 @@ struct DeliveryStatusView: View {
             // Filled variant so read vs delivered is legible without color.
             HStack(spacing: 0) {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.bitchatSystem(size: 9, weight: .bold))
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.bitchatSystem(size: 9, weight: .bold))
             }
             .foregroundColor(palette.accentBlue)
 
         case .failed:
             Image(systemName: "exclamationmark.triangle")
-                .font(.bitchatSystem(size: 10))
-                .foregroundColor(Color.red.opacity(0.8))
+                .foregroundColor(palette.alertRed)
 
         case .partiallyDelivered(let reached, let total):
             HStack(spacing: 1) {
                 Image(systemName: "checkmark")
-                    .font(.bitchatSystem(size: 10))
                 Text(verbatim: "\(reached)/\(total)")
-                    .bitchatFont(size: 10)
             }
             .foregroundColor(secondaryTextColor.opacity(0.6))
         }

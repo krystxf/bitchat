@@ -147,3 +147,28 @@ enum GlobeMath {
         return min(max(targetRadius / baseRadius, minZoom), maxZoom)
     }
 }
+
+/// Sky drift for the local globe's starfield. The stars sit on a far sky
+/// sphere, so moving the camera swings them the other way on both axes,
+/// as the MapKit globe's own sky does.
+enum GlobeParallax {
+    /// Field widths the sky drifts per full turn of longitude. A whole number
+    /// keeps the wrap seamless; two keep the drift a little slower than the
+    /// finger while the globe is zoomed out.
+    static let widthsPerTurn = 2
+
+    static func offset(longitude: Double, latitude: Double, size: CGSize, reduceMotion: Bool) -> CGSize {
+        guard !reduceMotion, longitude.isFinite, latitude.isFinite,
+              size.width.isFinite, size.width > 0 else { return .zero }
+        let pointsPerDegree = Double(size.width) * Double(widthsPerTurn) / 360
+        // East slides Earth left and the sky right; north slides Earth down and the sky up.
+        return CGSize(width: wrapped(longitude) * pointsPerDegree,
+                      height: -min(max(latitude, -90), 90) * pointsPerDegree)
+    }
+
+    static func wrapped(_ degrees: Double) -> Double {
+        guard degrees.isFinite else { return 0 }
+        let value = degrees.truncatingRemainder(dividingBy: 360)
+        return value < 0 ? value + 360 : value
+    }
+}

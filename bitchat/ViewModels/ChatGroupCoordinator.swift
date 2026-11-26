@@ -47,6 +47,8 @@ protocol ChatGroupContext: AnyObject {
     @discardableResult
     func appendPrivateMessage(_ message: BitchatMessage, to peerID: PeerID) -> Bool
     func markPrivateChatUnread(_ peerID: PeerID)
+    /// A group chat's timeline, which a reaction's target is looked up in.
+    func privateMessages(for peerID: PeerID) -> [BitchatMessage]
     func removePrivateChat(_ peerID: PeerID)
     func startPrivateChat(with peerID: PeerID)
     func endPrivateChat()
@@ -54,6 +56,7 @@ protocol ChatGroupContext: AnyObject {
     func addLocalPrivateSystemMessage(_ content: String, to peerID: PeerID)
     func notifyUIChanged()
     func notifyPrivateMessage(from senderName: String, message: String, peerID: PeerID)
+    func sendHapticFeedback(for message: BitchatMessage)
 }
 
 extension ChatViewModel: ChatGroupContext {
@@ -120,27 +123,10 @@ extension ChatViewModel: ChatGroupContext {
         groupTransport?.broadcastGroupMessage(payload)
     }
 
-    // MARK: CommandContextProvider group commands (parsed by CommandProcessor)
-
-    func groupCreate(named name: String) -> CommandResult {
-        groupCoordinator.createGroup(named: name)
+    func groupRename(named name: String) -> CommandResult {
+        groupCoordinator.renameGroup(named: name)
     }
 
-    func groupInvite(nickname: String) -> CommandResult {
-        groupCoordinator.inviteMember(nickname: nickname)
-    }
-
-    func groupRemove(nickname: String) -> CommandResult {
-        groupCoordinator.removeMember(nickname: nickname)
-    }
-
-    func groupLeave() -> CommandResult {
-        groupCoordinator.leaveGroup()
-    }
-
-    func groupList() -> CommandResult {
-        groupCoordinator.listGroups()
-    }
 }
 
 /// Owns the private-groups feature: creating groups, creator-managed invites
@@ -157,12 +143,12 @@ final class ChatGroupCoordinator {
         self.context = context
     }
 
-    // MARK: - Commands
+    // MARK: - Group lifecycle and member controls
 
     func createGroup(named rawName: String) -> CommandResult {
         let name = rawName.trimmed
         guard !name.isEmpty else {
-            return .error(message: String(localized: "system.group.usage_create", comment: "Usage hint for /group create"))
+            return .error(message: String(localized: "system.group.usage_create", comment: "Prompt when a group name is missing"))
         }
         guard name.count <= Self.maxGroupNameLength else {
             return .error(message: String(localized: "system.group.name_too_long", comment: "Error when a group name exceeds the length cap"))
@@ -181,7 +167,7 @@ final class ChatGroupCoordinator {
 
         context.startPrivateChat(with: group.peerID)
         return .success(message: String(
-            format: String(localized: "system.group.created", comment: "System message after creating a group; placeholder is the group name"),
+            format: String(localized: "system.group.created", comment: "Confirmation after creating a group; placeholder is the group name"),
             locale: .current,
             name
         ))
@@ -190,10 +176,10 @@ final class ChatGroupCoordinator {
     func inviteMember(nickname rawNickname: String) -> CommandResult {
         let nickname = normalizedNickname(rawNickname)
         guard !nickname.isEmpty else {
-            return .error(message: String(localized: "system.group.usage_invite", comment: "Usage hint for /group invite"))
+            return .error(message: String(localized: "system.group.usage_invite", comment: "Prompt when an invite target is missing"))
         }
         guard let group = selectedGroup() else {
-            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
         guard group.creatorFingerprint == context.myNoiseFingerprint() else {
             return .error(message: String(localized: "system.group.creator_only", comment: "Error when a non-creator attempts a creator-only group action"))
@@ -266,10 +252,10 @@ final class ChatGroupCoordinator {
     func removeMember(nickname rawNickname: String) -> CommandResult {
         let nickname = normalizedNickname(rawNickname)
         guard !nickname.isEmpty else {
-            return .error(message: String(localized: "system.group.usage_remove", comment: "Usage hint for /group remove"))
+            return .error(message: String(localized: "system.group.usage_remove", comment: "Prompt when a removal target is missing"))
         }
         guard let group = selectedGroup() else {
-            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
         guard group.creatorFingerprint == context.myNoiseFingerprint() else {
             return .error(message: String(localized: "system.group.creator_only", comment: "Error when a non-creator attempts a creator-only group action"))
@@ -303,7 +289,7 @@ final class ChatGroupCoordinator {
 
     func leaveGroup() -> CommandResult {
         guard let group = selectedGroup() else {
-            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group command requires an open group chat"))
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
         // Close the chat window first so the confirmation message doesn't
         // resurrect the conversation we're about to remove.
@@ -318,23 +304,33 @@ final class ChatGroupCoordinator {
         ))
     }
 
-    func listGroups() -> CommandResult {
-        let groups = context.groupStore.groups
-        guard !groups.isEmpty else {
-            return .success(message: String(localized: "system.group.none", comment: "System message when the user is in no groups"))
+    func renameGroup(named rawName: String) -> CommandResult {
+        guard let group = selectedGroup() else {
+            return .error(message: String(localized: "system.group.not_in_group", comment: "Error when a group action requires an open group chat"))
         }
-        let myFingerprint = context.myNoiseFingerprint()
-        let lines = groups.map { group -> String in
-            let role = group.creatorFingerprint == myFingerprint ? " (creator)" : ""
-            return "#\(group.name)\(role) — \(group.members.count)/\(BitchatGroup.maxMembers)"
+        guard group.creatorFingerprint == context.myNoiseFingerprint() else {
+            return .error(message: String(localized: "system.group.creator_only", comment: "Error when a non-creator attempts a creator-only group action"))
         }
-        return .success(message: String(localized: "system.group.list_header", comment: "Header line for the /group list output") + "\n" + lines.joined(separator: "\n"))
+        let trimmed = rawName.trimmed
+        guard !trimmed.isEmpty else {
+            return .error(message: String(localized: "system.group.usage_create", comment: "Prompt when a group name is missing"))
+        }
+        guard let name = GroupManagementPolicy.validatedName(rawName) else {
+            return .error(message: String(localized: "system.group.name_too_long", comment: "Error when a group name exceeds the length cap"))
+        }
+        guard name != group.name else { return .success(message: nil) }
+        guard let (updated, key) = context.groupStore.rotateKey(groupID: group.groupID, members: group.members, name: name),
+              let payload = signedStatePayload(for: updated, key: key) else {
+            return .error(message: String(localized: "system.group.rotate_failed", comment: "Error when rotating the group key fails"))
+        }
+        distributeState(payload, group: updated, excluding: [], type: .keyUpdate)
+        return .success(message: String(
+            format: String(localized: "system.group.renamed", comment: "System message after the group creator renames a group; placeholder is the new group name"),
+            locale: .current,
+            name
+        ))
     }
 
-    // MARK: - Sending
-
-    /// Fire-and-flood send: local echo goes straight to `.sent` because group
-    /// messages have no per-member acknowledgments in v1.
     func sendGroupMessage(_ content: String, to groupPeerID: PeerID) {
         guard !content.isEmpty, content.count <= InputValidator.Limits.maxMessageLength else { return }
         guard let group = context.groupStore.group(for: groupPeerID),
@@ -447,15 +443,29 @@ final class ChatGroupCoordinator {
         )
 
         guard context.appendPrivateMessage(message, to: groupPeerID) else { return }
+        context.sendHapticFeedback(for: message)
 
         let isViewing = context.selectedPrivateChatPeer == groupPeerID
         if !isViewing {
-            context.markPrivateChatUnread(groupPeerID)
             let isRecent = Date().timeIntervalSince(messageDate) < 30
-            if isRecent {
+            // A reaction line is no unread message, and it alerts only as a
+            // reaction to one of my messages, never with its raw text.
+            let alert: String?
+            if message.isReactionLine {
+                let myPeerID = context.myPeerID
+                alert = isRecent ? MessageReaction.alertText(
+                    for: message,
+                    in: context.privateMessages(for: groupPeerID),
+                    isMine: { $0.isOwn(myPeerID: myPeerID, myGeoChatPeerID: nil) }
+                ) : nil
+            } else {
+                context.markPrivateChatUnread(groupPeerID)
+                alert = isRecent ? plaintext.content : nil
+            }
+            if let alert {
                 context.notifyPrivateMessage(
                     from: "\(senderName) @ \(group.name)",
-                    message: plaintext.content,
+                    message: alert,
                     peerID: groupPeerID
                 )
             }

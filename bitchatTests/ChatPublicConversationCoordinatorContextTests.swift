@@ -7,11 +7,10 @@
 // `ChatViewModel`, following the `ChatDeliveryCoordinatorContextTests` /
 // `ChatPrivateConversationCoordinatorContextTests` exemplars.
 //
-// Scope note: haptics (UIApplication) and the geohash branch of
-// `sendPublicRaw` (NostrRelayManager.shared, GeoRelayDirectory.shared) are
-// intentionally not exercised here. `checkForMentions` posts through the
-// injected context (`notifyMention(from:message:)`) and is covered, as are
-// the mesh branch of `sendPublicRaw` and all timeline/store/blocking flows.
+// Scope note: haptics (UIApplication) are intentionally not exercised here.
+// `checkForMentions` posts through the injected context
+// (`notifyMention(from:message:)`) and is covered, as are all
+// timeline/store/blocking flows.
 //
 
 import Testing
@@ -43,6 +42,15 @@ private final class MockChatPublicConversationContext: ChatPublicConversationCon
     func publicMessages(in conversationID: ConversationID) -> [BitchatMessage] {
         conversations[conversationID] ?? []
     }
+
+    func publicMessage(withID messageID: String) -> BitchatMessage? {
+        conversations.filter { key, _ in
+            if case .direct = key { return false }
+            return true
+        }.values.flatMap { $0 }.first { $0.id == messageID }
+    }
+
+    func privateMessage(withID messageID: String) -> BitchatMessage? { nil }
 
     @discardableResult
     func appendPublicMessage(_ message: BitchatMessage, to conversationID: ConversationID) -> Bool {
@@ -168,14 +176,9 @@ private final class MockChatPublicConversationContext: ChatPublicConversationCon
 
     // Mesh transport
     var meshNicknames: [PeerID: String] = [:]
-    private(set) var sentMeshMessages: [(content: String, messageID: String)] = []
 
     func meshPeerNicknames() -> [PeerID: String] {
         meshNicknames
-    }
-
-    func sendMeshMessage(_ content: String, mentions: [String], messageID: String, timestamp: Date) {
-        sentMeshMessages.append((content, messageID))
     }
 
     // Inbound public message processing
@@ -504,17 +507,6 @@ struct ChatPublicConversationCoordinatorContextTests {
     }
 
     @Test @MainActor
-    func sendPublicRaw_onMeshChannel_sendsViaMeshTransport() async {
-        let context = MockChatPublicConversationContext()
-        let coordinator = ChatPublicConversationCoordinator(context: context)
-
-        coordinator.sendPublicRaw("raw mesh payload")
-
-        #expect(context.sentMeshMessages.count == 1)
-        #expect(context.sentMeshMessages.first?.content == "raw mesh payload")
-    }
-
-    @Test @MainActor
     func pipelineDelegate_readsAndWritesContextState() async {
         let context = MockChatPublicConversationContext()
         let coordinator = ChatPublicConversationCoordinator(context: context)
@@ -668,4 +660,139 @@ struct ChatPublicConversationCoordinatorContextTests {
         #expect(context.mentionNotifications.map(\.message) == ["hi @me", "yo @me"])
     }
 
+}
+
+// MARK: - Reaction spam filtering
+
+struct PublicReactionIntakeTests {
+    private static let target = BitchatMessage(id: "target", sender: "ada", content: "a message worth a reaction", timestamp: Date(), isRelay: false)
+
+    @MainActor
+    private func reactionLine(_ emoji: String = "👍", removes: Bool = false, sender: String = "aabbccddeeff0011", at timestamp: Date = Date()) -> BitchatMessage {
+        BitchatMessage(
+            id: UUID().uuidString,
+            sender: "bo",
+            content: MessageReaction.format(emoji: emoji, target: Self.target, removes: removes),
+            timestamp: timestamp,
+            isRelay: false,
+            isPrivate: false,
+            senderPeerID: PeerID(str: sender)
+        )
+    }
+
+    @Test @MainActor
+    func reactionsSkipTheMessageLimitsForABudgetOfTheirOwn() {
+        let context = MockChatPublicConversationContext()
+        context.rateLimitAllowed = false // the sender's message budget is spent
+        let coordinator = ChatPublicConversationCoordinator(context: context)
+        let start = Date()
+
+        // Alternating add and remove: every line is a real change.
+        var accepted = 0
+        for index in 0..<40 {
+            let line = reactionLine(removes: index % 2 == 1, at: start.addingTimeInterval(Double(index) * 0.001))
+            coordinator.handlePublicMessage(line)
+            accepted = context.enqueuedMessages.count
+        }
+        #expect(context.rateLimitChecks.isEmpty)
+        #expect(accepted == Int(ReactionIntakeGate.defaultCapacity))
+
+        // Another sender has a budget of their own.
+        coordinator.handlePublicMessage(reactionLine(sender: "1122334455667788"))
+        #expect(context.enqueuedMessages.count == accepted + 1)
+    }
+
+    @Test @MainActor
+    func ordinaryMessagesStillSpendTheMessageBudget() {
+        let context = MockChatPublicConversationContext()
+        let coordinator = ChatPublicConversationCoordinator(context: context)
+        coordinator.handlePublicMessage(reactionLine())
+        coordinator.handlePublicMessage(makePublicMessage(content: "👍 reacted to \"plain text\""))
+        #expect(context.rateLimitChecks.count == 1)
+    }
+
+    @Test @MainActor
+    func aRepeatedReactionIsANoOpAndNoStrike() {
+        let context = MockChatPublicConversationContext()
+        let coordinator = ChatPublicConversationCoordinator(context: context)
+        let start = Date()
+        coordinator.handlePublicMessage(reactionLine(at: start))
+        for index in 1...100 {
+            coordinator.handlePublicMessage(reactionLine(at: start.addingTimeInterval(Double(index))))
+        }
+        #expect(context.enqueuedMessages.count == 1)
+        #expect(context.rateLimitChecks.isEmpty)
+
+        // The repeats cost nothing: a real change still gets through.
+        coordinator.handlePublicMessage(reactionLine(removes: true, at: start.addingTimeInterval(200)))
+        #expect(context.enqueuedMessages.count == 2)
+    }
+
+    @Test @MainActor
+    func blockedSendersStayBlockedForReactions() {
+        let context = MockChatPublicConversationContext()
+        let coordinator = ChatPublicConversationCoordinator(context: context)
+        let line = reactionLine()
+        context.blockedMessageIDs = [line.id]
+        coordinator.handlePublicMessage(line)
+        #expect(context.enqueuedMessages.isEmpty)
+    }
+
+    @Test func gateRefillsAboutOneReactionASecond() {
+        var gate = ReactionIntakeGate(capacity: 2, refillPerSecond: 1)
+        let start = Date()
+        func event(_ index: Int) -> MessageReaction.Event {
+            .init(emoji: "👍", targetID: "t\(index)", removes: false)
+        }
+        #expect(gate.admit(event(0), senderKey: "s", timestamp: start, now: start) == .accept)
+        #expect(gate.admit(event(1), senderKey: "s", timestamp: start, now: start) == .accept)
+        #expect(gate.admit(event(2), senderKey: "s", timestamp: start, now: start) == .rateLimited)
+        let later = start.addingTimeInterval(1)
+        #expect(gate.admit(event(3), senderKey: "s", timestamp: later, now: later) == .accept)
+    }
+
+    @Test func aLateOlderLineIsNoRepeat() {
+        var gate = ReactionIntakeGate()
+        let start = Date()
+        let add = MessageReaction.Event(emoji: "👍", targetID: "t", removes: false)
+        let remove = MessageReaction.Event(emoji: "👍", targetID: "t", removes: true)
+        #expect(gate.admit(add, senderKey: "s", timestamp: start.addingTimeInterval(10)) == .accept)
+        // History sync brings an older add and removal: both go to the
+        // timeline, which orders them by time.
+        #expect(gate.admit(remove, senderKey: "s", timestamp: start.addingTimeInterval(5)) == .accept)
+        #expect(gate.admit(add, senderKey: "s", timestamp: start) == .accept)
+        #expect(gate.admit(add, senderKey: "s", timestamp: start.addingTimeInterval(20)) == .duplicate)
+    }
+}
+
+struct PublicPipelineReactionDedupTests {
+    @Test @MainActor
+    func identicalReactionLinesFromDifferentPeopleAllLand() {
+        let target = BitchatMessage(id: "target", sender: "ada", content: "hello", timestamp: Date(), isRelay: false)
+        let line = MessageReaction.format(emoji: "❤️", target: target)
+        let delegate = RecordingPipelineDelegate()
+        let pipeline = PublicMessagePipeline()
+        pipeline.delegate = delegate
+        let now = Date()
+        for sender in ["bo", "cy", "di"] {
+            pipeline.enqueue(BitchatMessage(sender: sender, content: line, timestamp: now, isRelay: false), to: .mesh)
+        }
+        pipeline.flushIfNeeded()
+        #expect(delegate.committed.count == 3)
+        #expect(delegate.recordedKeys.isEmpty)
+    }
+}
+
+@MainActor
+private final class RecordingPipelineDelegate: PublicMessagePipelineDelegate {
+    private(set) var committed: [String] = []
+    private(set) var recordedKeys: [String] = []
+    func pipeline(_: PublicMessagePipeline, normalizeContent content: String) -> String { content }
+    func pipeline(_: PublicMessagePipeline, contentTimestampForKey key: String) -> Date? { nil }
+    func pipeline(_: PublicMessagePipeline, recordContentKey key: String, timestamp: Date) { recordedKeys.append(key) }
+    func pipeline(_: PublicMessagePipeline, commit message: BitchatMessage, to conversationID: ConversationID) -> Bool {
+        committed.append(message.id)
+        return true
+    }
+    func pipelinePrewarmMessage(_: PublicMessagePipeline, message: BitchatMessage) {}
 }

@@ -28,6 +28,14 @@ protocol VoiceCaptureSession: AnyObject {
     func cancel() async
     /// Stops capture and suppresses every later send before returning.
     func panicCancelSynchronously()
+    /// Input loudness samples in dBFS captured since the last call, oldest
+    /// first, for the recording bar's live waveform. Empty when the backend
+    /// has nothing new (or does not meter).
+    func drainInputLevels() async -> [Float]
+}
+
+extension VoiceCaptureSession {
+    func drainInputLevels() async -> [Float] { [] }
 }
 
 /// The classic record-then-send backend, wrapping the shared `VoiceRecorder`.
@@ -61,6 +69,13 @@ final class VoiceNoteCaptureSession: VoiceCaptureSession {
     func panicCancelSynchronously() {
         recorder.panicCancelSynchronously(owner: owner)
     }
+
+    /// One meter reading per poll: `AVAudioRecorder` averages over the time
+    /// since the previous read, so the poll rate sets the bar rate.
+    func drainInputLevels() async -> [Float] {
+        guard let level = await recorder.averagePower(owner: owner) else { return [] }
+        return [level]
+    }
 }
 
 /// Testable surface of the live capture engine. Production uses
@@ -72,6 +87,12 @@ protocol PTTCapturing: AnyObject {
     func start(outputURL: URL) async throws
     func stop() -> (url: URL?, encodedFrames: Int)
     func cancel()
+    /// Input loudness in dBFS per short chunk since the last call.
+    func drainInputLevels() -> [Float]
+}
+
+extension PTTCapturing {
+    func drainInputLevels() -> [Float] { [] }
 }
 
 extension PTTCaptureEngine: PTTCapturing {}
@@ -220,6 +241,10 @@ final class PTTLiveVoiceSession: VoiceCaptureSession {
         if !alreadyCompleted {
             sendControlPacket(.canceled)
         }
+    }
+
+    func drainInputLevels() async -> [Float] {
+        capture.drainInputLevels()
     }
 
     func panicCancelSynchronously() {

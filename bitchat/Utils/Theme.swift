@@ -7,61 +7,159 @@
 //
 
 import SwiftUI
+#if os(iOS)
+import UIKit
+#else
+import AppKit
+#endif
 
-/// A user-selectable app-wide visual theme. Persisted by raw value.
-enum AppTheme: String, CaseIterable, Identifiable {
-    case matrix
-    case liquidGlass
+// MARK: - Nova palette
 
-    var id: String { rawValue }
+/// Nova's colors: warm neutrals with one vivid blue. Each swatch has a light
+/// and a dark value; `Color` resolves them per color scheme (see the
+/// `ShapeStyle` tokens below).
+///
+/// Contrast (WCAG 2, checked by `NovaPaletteTests`):
+/// - `secondaryText` and `accent` reach AA (4.5:1) as text on `background`,
+///   `surface` and `surfaceRaised`, except `accent` on `surfaceRaised` in
+///   dark mode; bubbles use their own link color there.
+/// - White on `accent` reaches AA in light mode. In dark mode it reaches
+///   3:1, which suits icons and bold labels, as the system blue does.
+enum NovaPalette {
+    struct Swatch: Equatable {
+        let light: UInt32
+        let dark: UInt32
+    }
 
-    /// UserDefaults key backing the theme selection.
-    static let storageKey = "appTheme"
+    /// The window and list backdrop: warm off-white, soft charcoal.
+    static let background = Swatch(light: 0xFBF9F4, dark: 0x1F2022)
+    /// Cards and grouped rows: cream, warm gray.
+    static let surface = Swatch(light: 0xF5F0E4, dark: 0x2A2B30)
+    /// Fills on a surface: chips, pills, other people's bubbles.
+    static let surfaceRaised = Swatch(light: 0xEDE5D2, dark: 0x3C3E43)
+    /// Separators and chip borders: soft beige, subtle gray.
+    static let hairline = Swatch(light: 0xE4DBC7, dark: 0x3A3C41)
+    /// De-emphasized text: warm gray, light gray.
+    static let secondaryText = Swatch(light: 0x6A665D, dark: 0xA8AEB3)
+    /// Primary actions, links and selection: a vivid blue.
+    static let accent = Swatch(light: 0x0062D1, dark: 0x3796FF)
+    /// Small highlights such as unread dots and badges: gold.
+    static let highlight = Swatch(light: 0xB07A00, dark: 0xFBD740)
+}
 
-    var displayNameKey: LocalizedStringKey {
-        switch self {
-        case .matrix: return "app_info.appearance.matrix"
-        case .liquidGlass: return "app_info.appearance.liquid_glass"
+// MARK: - Nova type
+
+/// Nova's type: SF Pro Rounded for all text, through the usual Dynamic Type
+/// styles. Only fingerprints, keys and code stay monospaced.
+enum NovaType {
+    static let design: Font.Design = .rounded
+
+    #if os(iOS)
+    /// Navigation bar titles are UIKit, so the SwiftUI font design does not
+    /// reach them. Call once at launch, before the first bar appears.
+    @MainActor
+    static func applyToNavigationBars() {
+        let bar = UINavigationBar.appearance()
+        bar.titleTextAttributes = [.font: roundedFont(.headline)]
+        bar.largeTitleTextAttributes = [.font: roundedFont(.largeTitle, bold: true)]
+    }
+
+    private static func roundedFont(_ style: UIFont.TextStyle, bold: Bool = false) -> UIFont {
+        var descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
+        if bold, let boldDescriptor = descriptor.withSymbolicTraits(.traitBold) {
+            descriptor = boldDescriptor
         }
-    }
-
-    /// Font design used for themed text. Matrix keeps the terminal monospace;
-    /// liquid glass uses the system default.
-    var bodyFontDesign: Font.Design {
-        switch self {
-        case .matrix: return .monospaced
-        case .liquidGlass: return .default
+        if let rounded = descriptor.withDesign(.rounded) {
+            descriptor = rounded
         }
+        return UIFont(descriptor: descriptor, size: 0)
     }
+    #endif
+}
 
-    /// Whether chrome surfaces (header/composer bars, input field) render as
-    /// translucent glass/material instead of the flat matrix background.
-    var usesGlassChrome: Bool {
-        self == .liquidGlass
-    }
-
-    /// Discriminator mixed into per-message formatting caches so cached
-    /// AttributedStrings from one theme are never served under another.
-    /// Empty for matrix to keep its historical cache keys.
-    var formatCacheVariant: String {
-        switch self {
-        case .matrix: return ""
-        case .liquidGlass: return "lg:"
-        }
-    }
-
-    /// Resolves the semantic color palette for this theme under the given color scheme.
-    func palette(for colorScheme: ColorScheme) -> ThemePalette {
-        switch self {
-        case .matrix:
-            return .matrix(colorScheme)
-        case .liquidGlass:
-            return .liquidGlass(colorScheme)
+extension View {
+    /// Draws every text style below this view in Nova's rounded design.
+    /// iOS 16.0 keeps the default design.
+    @ViewBuilder
+    func novaFontDesign() -> some View {
+        if #available(iOS 16.1, macOS 13.0, *) {
+            fontDesign(NovaType.design)
+        } else {
+            self
         }
     }
 }
 
-/// Semantic colors for the active theme, resolved against the current color scheme.
+extension ShapeStyle where Self == Color {
+    /// Window and list backdrop (`NovaPalette.background`).
+    static var novaBackground: Color { Color(NovaPalette.background) }
+    /// Cards and grouped rows (`NovaPalette.surface`).
+    static var novaSurface: Color { Color(NovaPalette.surface) }
+    /// Chips, pills and other people's bubbles (`NovaPalette.surfaceRaised`).
+    static var novaSurfaceRaised: Color { Color(NovaPalette.surfaceRaised) }
+    /// Separators and chip borders (`NovaPalette.hairline`).
+    static var novaHairline: Color { Color(NovaPalette.hairline) }
+    /// De-emphasized text (`NovaPalette.secondaryText`).
+    static var novaSecondaryText: Color { Color(NovaPalette.secondaryText) }
+    /// Primary actions and links (`NovaPalette.accent`). It is also the
+    /// app's tint (the `AccentColor` asset).
+    static var novaAccent: Color { Color(NovaPalette.accent) }
+    /// Unread dots and badges (`NovaPalette.highlight`).
+    static var novaHighlight: Color { Color(NovaPalette.highlight) }
+}
+
+extension Color {
+    /// A dynamic color: the swatch's light or dark value, by the color
+    /// scheme of the view that draws it.
+    init(_ swatch: NovaPalette.Swatch) {
+        #if os(iOS)
+        self.init(uiColor: UIColor { traits in
+            UIColor(novaHex: traits.userInterfaceStyle == .dark ? swatch.dark : swatch.light)
+        })
+        #else
+        self.init(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            return NSColor(novaHex: isDark ? swatch.dark : swatch.light)
+        })
+        #endif
+    }
+}
+
+#if os(iOS)
+private extension UIColor {
+    convenience init(novaHex hex: UInt32) {
+        self.init(
+            red: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+}
+#else
+private extension NSColor {
+    convenience init(novaHex hex: UInt32) {
+        self.init(
+            srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+}
+#endif
+
+extension View {
+    /// Nova's backdrop behind a List or Form: hides the system's grouped
+    /// gray so `novaBackground` shows. Give rows `novaSurface` with
+    /// `.listRowBackground(Color.novaSurface)`.
+    func novaListBackground() -> some View {
+        scrollContentBackground(.hidden)
+            .background(Color.novaBackground.ignoresSafeArea())
+    }
+}
+
+/// Semantic colors for the app's Liquid Glass look.
 /// Views should consume these via `@ThemedPalette` rather than computing colors inline.
 struct ThemePalette {
     /// Primary window/sheet background.
@@ -81,130 +179,200 @@ struct ThemePalette {
     /// Hairline separators.
     let divider: Color
 
-    static func matrix(_ colorScheme: ColorScheme) -> ThemePalette {
-        let isDark = colorScheme == .dark
-        let green = isDark ? Color.green : Color(red: 0, green: 0.5, blue: 0)
-        return ThemePalette(
-            background: isDark ? Color.black : Color.white,
-            primary: green,
-            secondary: green.opacity(0.8),
-            accent: green,
-            locationAccent: green,
-            accentBlue: Color(red: 0.0, green: 0.478, blue: 1.0),
-            alertRed: Color(red: 0.75, green: 0.1, blue: 0.1),
-            divider: isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08)
-        )
+    static let liquidGlass = ThemePalette(
+        background: .novaBackground,
+        primary: .primary,
+        secondary: .novaSecondaryText,
+        accent: .novaAccent,
+        locationAccent: .green,
+        accentBlue: .novaAccent,
+        alertRed: .red,
+        divider: .novaHairline
+    )
+}
+
+/// Resolves the app's color palette. The colors are dynamic system colors,
+/// so they follow the view's color scheme on their own.
+///
+///     @ThemedPalette private var palette
+///     var body: some View { Text("hi").foregroundColor(palette.primary) }
+@propertyWrapper
+struct ThemedPalette: DynamicProperty {
+    var wrappedValue: ThemePalette { .liquidGlass }
+}
+
+// MARK: - Themed view helpers
+
+/// Root backdrop: Nova's flat warm background, full-bleed. Liquid Glass
+/// controls float over it, as they float over the plain backdrop in
+/// Messages.
+struct ThemedRootBackground: View {
+    var body: some View {
+        // Full-bleed: passed to .background(_:) as a view, a backdrop stops
+        // at the safe area. In a sheet, the sheet's own background would then
+        // show through the home-indicator inset.
+        Color.novaBackground
+            .ignoresSafeArea()
+    }
+}
+
+/// Conversation-specific backdrop. OLED mode is pure black in dark mode and
+/// the system window background in light mode so foreground controls retain
+/// their normal contrast.
+struct ChatConversationBackground: View {
+    let option: ChatBackgroundOption
+    var conversationKey: ComposerDraftStore.Key? = nil
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var isDark: Bool { colorScheme == .dark }
+
+    var body: some View {
+        Group {
+            if option == .image, let conversationKey, ChatBackgroundImageStore.shared.exists(for: conversationKey) {
+                ChatBackgroundImageView(url: ChatBackgroundImageStore.shared.fileURL(for: conversationKey), isDark: isDark)
+            } else if option == .default || option == .image {
+                ThemedRootBackground()
+            } else if option == .oled {
+                (isDark ? Color.black : systemBackground).ignoresSafeArea()
+            } else {
+                ZStack {
+                    LinearGradient(
+                        colors: gradientColors,
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    RadialGradient(
+                        colors: [glowColor.opacity(isDark ? 0.22 : 0.12), .clear],
+                        center: .topLeading,
+                        startRadius: 0,
+                        endRadius: 600
+                    )
+                    RadialGradient(
+                        colors: [secondaryGlow.opacity(isDark ? 0.14 : 0.08), .clear],
+                        center: .bottomTrailing,
+                        startRadius: 0,
+                        endRadius: 500
+                    )
+                }
+                .ignoresSafeArea()
+            }
+        }
     }
 
-    static func liquidGlass(_: ColorScheme) -> ThemePalette {
-        ThemePalette(
-            background: systemBackground,
-            primary: .primary,
-            secondary: .secondary,
-            accent: .blue,
-            locationAccent: .green,
-            accentBlue: .blue,
-            alertRed: .red,
-            divider: separator
-        )
+    private var gradientColors: [Color] {
+        switch option {
+        case .default, .oled, .image: []
+        case .dusk:
+            isDark
+                ? [Color(red: 0.13, green: 0.09, blue: 0.16), Color(red: 0.05, green: 0.04, blue: 0.08)]
+                : [Color(red: 0.97, green: 0.92, blue: 0.97), Color(red: 0.99, green: 0.96, blue: 0.97)]
+        case .ocean:
+            isDark
+                ? [Color(red: 0.06, green: 0.12, blue: 0.17), Color(red: 0.03, green: 0.05, blue: 0.09)]
+                : [Color(red: 0.88, green: 0.95, blue: 0.98), Color(red: 0.96, green: 0.98, blue: 0.99)]
+        case .forest:
+            isDark
+                ? [Color(red: 0.07, green: 0.13, blue: 0.12), Color(red: 0.03, green: 0.06, blue: 0.06)]
+                : [Color(red: 0.90, green: 0.96, blue: 0.92), Color(red: 0.97, green: 0.99, blue: 0.97)]
+        }
     }
 
-    private static var systemBackground: Color {
+    private var glowColor: Color {
+        switch option {
+        case .dusk: .purple
+        case .ocean: .cyan
+        case .forest: .green
+        case .default, .oled, .image: .blue
+        }
+    }
+
+    private var secondaryGlow: Color {
+        switch option {
+        case .dusk: .pink
+        case .ocean: .blue
+        case .forest: .mint
+        case .default, .oled, .image: .purple
+        }
+    }
+
+    private var systemBackground: Color {
         #if os(iOS)
         Color(UIColor.systemBackground)
         #else
         Color(NSColor.windowBackgroundColor)
         #endif
     }
-
-    private static var separator: Color {
-        #if os(iOS)
-        Color(UIColor.separator)
-        #else
-        Color(NSColor.separatorColor)
-        #endif
-    }
 }
 
-private struct AppThemeKey: EnvironmentKey {
-    static let defaultValue: AppTheme = .matrix
-}
-
-extension EnvironmentValues {
-    var appTheme: AppTheme {
-        get { self[AppThemeKey.self] }
-        set { self[AppThemeKey.self] = newValue }
-    }
-}
-
-/// Resolves the active theme's palette against the view's color scheme.
-///
-///     @ThemedPalette private var palette
-///     var body: some View { Text("hi").foregroundColor(palette.primary) }
-@propertyWrapper
-struct ThemedPalette: DynamicProperty {
-    @Environment(\.appTheme) private var theme
-    @Environment(\.colorScheme) private var colorScheme
-
-    var wrappedValue: ThemePalette { theme.palette(for: colorScheme) }
-}
-
-// MARK: - Themed view helpers
-
-/// Themed replacement for `.font(.bitchatSystem(size:weight:design: .monospaced))`:
-/// monospaced under matrix, system default under liquid glass.
-private struct ThemedFontModifier: ViewModifier {
-    @Environment(\.appTheme) private var theme
-    let size: CGFloat
-    let weight: Font.Weight
-
-    func body(content: Content) -> some View {
-        content.font(.bitchatSystem(size: size, weight: weight, design: theme.bodyFontDesign))
-    }
-}
-
-/// Root backdrop. Matrix gets its flat background; glass gets a subtle static
-/// gradient with a soft tinted glow — glass panels need visual texture behind
-/// them to refract, and collapse to flat gray over a solid color.
-struct ThemedRootBackground: View {
-    @Environment(\.appTheme) private var theme
-    @Environment(\.colorScheme) private var colorScheme
-    @ThemedPalette private var palette
-
+private struct ChatBackgroundImageView: View {
+    let url: URL
+    let isDark: Bool
+    @State private var image: Image?
+    /// Bumped when a new image replaces the old one at the same URL.
+    @State private var revision = 0
     var body: some View {
-        if theme.usesGlassChrome {
-            let isDark = colorScheme == .dark
-            ZStack {
-                LinearGradient(
-                    colors: isDark
-                        ? [Color(red: 0.09, green: 0.10, blue: 0.15), Color(red: 0.04, green: 0.04, blue: 0.07)]
-                        : [Color(red: 0.93, green: 0.95, blue: 1.0), Color(red: 0.98, green: 0.97, blue: 0.99)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                RadialGradient(
-                    colors: [Color.blue.opacity(isDark ? 0.22 : 0.12), .clear],
-                    center: .topLeading,
-                    startRadius: 0,
-                    endRadius: 600
-                )
-                RadialGradient(
-                    colors: [Color.purple.opacity(isDark ? 0.14 : 0.08), .clear],
-                    center: .bottomTrailing,
-                    startRadius: 0,
-                    endRadius: 500
-                )
+        // A clear frame that ignores every safe area (bars, home indicator,
+        // keyboard) sets the size, and the photo fills it. A GeometryReader
+        // here measured only the safe area, so the photo was framed smaller
+        // than the screen and the edges showed through.
+        Color.clear
+            .overlay {
+                if let image {
+                    image.resizable().scaledToFill()
+                } else {
+                    Color.black
+                }
+            }
+            .clipped()
+            .overlay {
+                ZStack {
+                    (isDark ? Color.black.opacity(0.34) : Color.white.opacity(0.42))
+                    (isDark ? Color.black.opacity(0.12) : Color.white.opacity(0.08)).blur(radius: 10)
+                }
             }
             .ignoresSafeArea()
-        } else {
-            // Full-bleed like the gradient above. Passed to .background(_:)
-            // as a view, a backdrop stops at the safe area (a bare Color
-            // passed as a ShapeStyle would not). In a sheet, the sheet's own
-            // background (#1C1C1E in dark mode) then shows through the
-            // home-indicator inset and under the navigation bar.
-            palette.background
-                .ignoresSafeArea()
-        }
+            .accessibilityHidden(true)
+            .task(id: ChatBackgroundImageLoadID(url: url, revision: revision)) {
+                image = await Task.detached(priority: .utility) { ChatBackgroundRasterCache.shared.image(at: url) }.value
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .chatBackgroundImageDidChange)) { _ in
+                revision &+= 1
+            }
+    }
+}
+
+/// What a background image view loads: the file, and how many times it was
+/// replaced since the view appeared.
+struct ChatBackgroundImageLoadID: Hashable {
+    let url: URL
+    let revision: Int
+}
+
+/// Decoded rasters are shared by the full-screen backdrop and picker thumbnail.
+final class ChatBackgroundRasterCache {
+    static let shared = ChatBackgroundRasterCache()
+    #if os(iOS)
+    private let images = NSCache<NSString, UIImage>()
+    #else
+    private let images = NSCache<NSString, NSImage>()
+    #endif
+
+    func clear() { images.removeAllObjects() }
+
+    func image(at url: URL) -> Image? {
+        let stamp = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate?.timeIntervalSince1970) ?? 0
+        let key = "\(url.path):\(stamp)" as NSString
+        #if os(iOS)
+        if let cached = images.object(forKey: key) { return Image(uiImage: cached) }
+        guard let data = try? Data(contentsOf: url), let decoded = UIImage(data: data) else { return nil }
+        images.setObject(decoded, forKey: key)
+        return Image(uiImage: decoded)
+        #else
+        if let cached = images.object(forKey: key) { return Image(nsImage: cached) }
+        guard let data = try? Data(contentsOf: url), let decoded = NSImage(data: data) else { return nil }
+        images.setObject(decoded, forKey: key)
+        return Image(nsImage: decoded)
+        #endif
     }
 }
 
@@ -233,113 +401,25 @@ private struct GlassPanel<S: Shape>: ViewModifier {
     }
 }
 
-/// Chrome surface for the header and composer. Matrix keeps the original flat
-/// edge-to-edge wash; glass floats the content as an inset Liquid Glass panel
-/// (content is expected to scroll underneath via safe-area insets).
-private struct ThemedChromePanelModifier: ViewModifier {
-    @Environment(\.appTheme) private var theme
-    @ThemedPalette private var palette
-    let edge: VerticalEdge
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if theme.usesGlassChrome {
-            content
-                .modifier(GlassPanel(shape: RoundedRectangle(cornerRadius: 18, style: .continuous)))
-                .padding(.horizontal, 8)
-                .padding(edge == .top ? .top : .bottom, 4)
-        } else {
-            content.background(palette.background.opacity(0.95))
-        }
-    }
-}
-
-/// Background for the composer input field. Matrix keeps its translucent fill;
-/// glass leaves it clear — the field sits inside the composer's glass panel,
-/// and glass cannot sample other glass.
-private struct ThemedInputBackgroundModifier: ViewModifier {
-    @Environment(\.appTheme) private var theme
-    @Environment(\.colorScheme) private var colorScheme
-
-    private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-    }
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if theme.usesGlassChrome {
-            content
-        } else {
-            content.background(
-                shape.fill(colorScheme == .dark ? Color.black.opacity(0.35) : Color.white.opacity(0.7))
-            )
-        }
-    }
-}
-
 extension View {
-    func bitchatFont(size: CGFloat, weight: Font.Weight = .regular) -> some View {
-        modifier(ThemedFontModifier(size: size, weight: weight))
-    }
-
+    /// Chrome surface for the header: floats the content as an inset Liquid
+    /// Glass panel (content is expected to scroll underneath via safe-area
+    /// insets).
     func themedChromePanel(edge: VerticalEdge) -> some View {
-        modifier(ThemedChromePanelModifier(edge: edge))
+        modifier(GlassPanel(shape: RoundedRectangle(cornerRadius: 18, style: .continuous)))
+            .padding(.horizontal, 8)
+            .padding(edge == .top ? .top : .bottom, 4)
     }
 
-    func themedInputBackground() -> some View {
-        modifier(ThemedInputBackgroundModifier())
+    /// Liquid Glass in an arbitrary shape, for standalone controls such as
+    /// the composer's input capsule and attachment button.
+    func glassSurface<S: Shape>(in shape: S) -> some View {
+        modifier(GlassPanel(shape: shape))
     }
 
     /// Floating surface for popover-style boxes (autocomplete, command
-    /// suggestions): glass panel under liquid glass, the original flat
-    /// background + hairline stroke under matrix.
+    /// suggestions).
     func themedOverlayPanel() -> some View {
-        modifier(ThemedOverlayPanelModifier())
-    }
-
-    /// Root background for sheets — same backdrop as the main window so every
-    /// surface speaks one visual language.
-    func themedSheetBackground() -> some View {
-        background(ThemedRootBackground())
-    }
-
-    /// Flat background wash for bars/headers inside sheets. Matrix keeps its
-    /// opaque wash; glass goes transparent so the backdrop gradient shows.
-    func themedSurface(opacity: Double = 1.0) -> some View {
-        modifier(ThemedSurfaceModifier(opacity: opacity))
-    }
-}
-
-private struct ThemedSurfaceModifier: ViewModifier {
-    @Environment(\.appTheme) private var theme
-    @ThemedPalette private var palette
-    let opacity: Double
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if theme.usesGlassChrome {
-            content
-        } else {
-            content.background(palette.background.opacity(opacity))
-        }
-    }
-}
-
-private struct ThemedOverlayPanelModifier: ViewModifier {
-    @Environment(\.appTheme) private var theme
-    @ThemedPalette private var palette
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if theme.usesGlassChrome {
-            content.modifier(GlassPanel(shape: RoundedRectangle(cornerRadius: 12, style: .continuous)))
-        } else {
-            content
-                .background(palette.background)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(palette.secondary.opacity(0.3), lineWidth: 1)
-                )
-        }
+        modifier(GlassPanel(shape: RoundedRectangle(cornerRadius: 12, style: .continuous)))
     }
 }

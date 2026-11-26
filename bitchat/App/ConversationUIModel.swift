@@ -54,12 +54,14 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.currentColorScheme = colorScheme
     }
 
-    func setCurrentTheme(_ theme: AppTheme) {
-        chatViewModel.currentTheme = theme
-    }
-
     func sendMessage(_ message: String) {
         chatViewModel.sendMessage(message)
+    }
+
+    /// "send now" on the mining strip: location messages still doing their
+    /// proof of work go out with the work done so far.
+    func sendPendingLocationMessagesNow() {
+        chatViewModel.expeditePendingGeohashMining()
     }
 
     /// Resends a failed private message through the normal send path,
@@ -70,22 +72,59 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.sendMessage(message.content)
     }
 
+    /// Resends a location message that never went out (it was still mining
+    /// when I left the channel), replacing its failed bubble.
+    func resendFailedLocationMessage(_ message: BitchatMessage) {
+        chatViewModel.removePublicMessage(withID: message.id)
+        chatViewModel.sendMessage(message.content)
+    }
+
     func clearCurrentConversation() {
         chatViewModel.sendMessage("/clear")
     }
 
-    func sendHug(to sender: String) {
-        chatViewModel.sendMessage("/hug @\(sender)")
+    func createGroup(named name: String, inviting peerID: PeerID? = nil) -> CommandResult {
+        let result = chatViewModel.groupCoordinator.createGroup(named: name)
+        guard case .success(_) = result else { return result }
+        if let peerID {
+            let nickname = chatViewModel.resolveNickname(for: peerID)
+            let invite = chatViewModel.groupCoordinator.inviteMember(nickname: nickname)
+            if case .error = invite { return invite }
+        }
+        return result
     }
 
-    func sendSlap(to sender: String) {
-        chatViewModel.sendMessage("/slap @\(sender)")
+    func selectedGroup() -> BitchatGroup? {
+        guard let peerID = privateConversationModel.selectedPeerID, peerID.isGroup else { return nil }
+        return chatViewModel.groupStore.group(for: peerID)
+    }
+
+    var currentNoiseFingerprint: String { chatViewModel.myNoiseFingerprint() }
+
+    func isGroupMember(_ peerID: PeerID, group: BitchatGroup) -> Bool {
+        guard let fingerprint = chatViewModel.meshFingerprint(for: peerID) else { return false }
+        return group.isMember(fingerprint: fingerprint)
+    }
+
+    func groupInvite(nickname: String) -> CommandResult { chatViewModel.groupCoordinator.inviteMember(nickname: nickname) }
+    func groupRemove(nickname: String) -> CommandResult { chatViewModel.groupCoordinator.removeMember(nickname: nickname) }
+    func groupLeave() -> CommandResult { chatViewModel.groupCoordinator.leaveGroup() }
+    func groupRename(named name: String) -> CommandResult { chatViewModel.groupCoordinator.renameGroup(named: name) }
+
+    func canCreateGroup(with peerID: PeerID) -> Bool {
+        guard !peerID.isGroup, peerID != chatViewModel.myPeerID,
+              let fingerprint = chatViewModel.meshFingerprint(for: peerID),
+              !chatViewModel.isFingerprintBlocked(fingerprint),
+              chatViewModel.cryptoIdentity(for: peerID) != nil else { return false }
+        return chatViewModel.isPeerConnected(peerID)
     }
 
     func block(peerID: PeerID?, displayName: String?) {
         guard let displayName else { return }
 
-        if let peerID, peerID.isGeoChat,
+        // Geohash chat senders and geohash DM keys both map to the full
+        // Nostr pubkey the block needs.
+        if let peerID, peerID.isGeoChat || peerID.isGeoDM,
            let full = chatViewModel.fullNostrHex(forSenderPeerID: peerID) {
             chatViewModel.blockGeohashUser(pubkeyHexLowercased: full, displayName: displayName)
         } else if let peerID, !peerID.isGeoDM, !peerID.isGeoChat {
@@ -95,6 +134,17 @@ final class ConversationUIModel: ObservableObject {
         } else {
             chatViewModel.sendMessage("/block \(displayName)")
         }
+    }
+
+    /// Whether I blocked the person behind `peerID`: by their Nostr key
+    /// for a geohash DM or location channel sender, by their Noise
+    /// identity on the mesh.
+    func isBlocked(peerID: PeerID) -> Bool {
+        if peerID.isGeoChat || peerID.isGeoDM {
+            guard let full = chatViewModel.fullNostrHex(forSenderPeerID: peerID) else { return false }
+            return chatViewModel.isGeohashUserBlocked(pubkeyHexLowercased: full.lowercased())
+        }
+        return chatViewModel.isPeerBlocked(peerID)
     }
 
     /// Mesh counterpart of `block(peerID:displayName:)`. Resolves the unblock by
@@ -142,12 +192,12 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.selectedAutocompleteIndex = next
     }
 
-    func formatMessage(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme? = nil) -> AttributedString {
-        chatViewModel.formatMessageAsText(message, colorScheme: colorScheme, theme: theme)
+    func formatMessageBody(_ message: BitchatMessage, isSelf: Bool, colorScheme: ColorScheme) -> AttributedString {
+        chatViewModel.formatMessageBody(message, isSelf: isSelf, colorScheme: colorScheme)
     }
 
-    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme? = nil) -> AttributedString {
-        chatViewModel.formatMessageHeader(message, colorScheme: colorScheme, theme: theme)
+    func formatSenderName(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        chatViewModel.formatSenderName(message, colorScheme: colorScheme)
     }
 
     func mediaAttachment(for message: BitchatMessage) -> BitchatMessage.Media? {
@@ -209,6 +259,12 @@ final class ConversationUIModel: ObservableObject {
         return chatViewModel.peerIdentityStore.isVerified(fingerprint)
     }
 
+    /// The sender's name as this user knows them: their saved petname when
+    /// there is one, otherwise the nickname the message carries.
+    func displayName(for message: BitchatMessage) -> String {
+        message.senderPeerID.flatMap { chatViewModel.localPetname(for: $0) } ?? message.sender
+    }
+
     func senderDisplayName(for peerID: PeerID, fallbackMessages: [BitchatMessage]) -> String? {
         if peerID.isGeoDM || peerID.isGeoChat {
             return chatViewModel.geohashDisplayName(for: peerID)
@@ -249,6 +305,13 @@ final class ConversationUIModel: ObservableObject {
     }
 
     /// Whether this message is a live voice burst still streaming in.
+    /// Whether the message came from someone marked as a favorite, which
+    /// lets their images skip the blur when the user allows it.
+    func isFavoriteSender(of message: BitchatMessage) -> Bool {
+        guard let peerID = message.senderPeerID else { return false }
+        return chatViewModel.isFavorite(peerID: peerID)
+    }
+
     func isLiveVoiceMessage(_ message: BitchatMessage) -> Bool {
         chatViewModel.liveVoiceCoordinator.isLiveVoiceMessage(message)
     }

@@ -48,7 +48,7 @@ struct MeshDiagnosticsTests {
         let result = processor.process("/ping")
         switch result {
         case .error(let message):
-            #expect(message == "usage: /ping <nickname>")
+            #expect(message == "Usage: /ping <nickname>")
         default:
             Issue.record("Expected usage error")
         }
@@ -61,7 +61,7 @@ struct MeshDiagnosticsTests {
         let result = processor.process("/ping @ghost")
         switch result {
         case .error(let message):
-            #expect(message == "cannot ping ghost: not found on mesh")
+            #expect(message == "Cannot ping ghost: not found on mesh")
         default:
             Issue.record("Expected error result")
         }
@@ -75,7 +75,7 @@ struct MeshDiagnosticsTests {
         let result = processor.process("/ping @alice")
         switch result {
         case .error(let message):
-            #expect(message == "cannot ping alice: not found on mesh")
+            #expect(message == "Cannot ping alice: not found on mesh")
         default:
             Issue.record("Expected error for geo peer")
         }
@@ -93,7 +93,7 @@ struct MeshDiagnosticsTests {
         let result = processor.process("/ping @alice")
         switch result {
         case .success(let message):
-            #expect(message == "pinging alice…")
+            #expect(message == "Pinging alice…")
         default:
             Issue.record("Expected immediate 'pinging' feedback")
         }
@@ -181,7 +181,7 @@ struct MeshDiagnosticsTests {
         let result = processor.process("/trace @bob")
         switch result {
         case .success(let message):
-            #expect(message == "estimated path: you → bob (1 hop)")
+            #expect(message == "Estimated path: You → bob (1 hop)")
         default:
             Issue.record("Expected success result")
         }
@@ -202,7 +202,7 @@ struct MeshDiagnosticsTests {
         let result = processor.process("/trace bob")
         switch result {
         case .success(let message):
-            #expect(message == "estimated path: you → alice → dead00be… → bob (3 hops)")
+            #expect(message == "Estimated path: You → alice → dead00be… → bob (3 hops)")
         default:
             Issue.record("Expected success result")
         }
@@ -217,7 +217,7 @@ struct MeshDiagnosticsTests {
         let result = processor.process("/trace @bob")
         switch result {
         case .success(let message):
-            #expect(message == "no known path to bob")
+            #expect(message == "No known path to bob")
         default:
             Issue.record("Expected success result")
         }
@@ -276,13 +276,7 @@ private final class DiagnosticsMockContext: CommandContextProvider {
     func sendPrivateMessage(_ content: String, to peerID: PeerID) {}
     func clearCurrentPublicTimeline() {}
     func clearPrivateChat(_ peerID: PeerID) {}
-    func sendPublicRaw(_ content: String) {}
     func sendPublicMessage(_ content: String) {}
-    func groupCreate(named name: String) -> CommandResult { .handled }
-    func groupInvite(nickname: String) -> CommandResult { .handled }
-    func groupRemove(nickname: String) -> CommandResult { .handled }
-    func groupLeave() -> CommandResult { .handled }
-    func groupList() -> CommandResult { .handled }
     func addLocalPrivateSystemMessage(_ content: String, to peerID: PeerID) {}
     func addPublicSystemMessage(_ content: String) {}
     func toggleFavorite(peerID: PeerID) {}

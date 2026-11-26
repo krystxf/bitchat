@@ -14,6 +14,9 @@ import SwiftUI
 struct GeohashPickerView: View {
     let onSelect: (String) -> Void
     let onCancel: () -> Void
+    private let initialGeohash: String?
+    private let nearbyGeohashes: [String]
+    private let clusters: [GeohashMapCluster]
 
     @StateObject private var state: GlobeState
     @State private var world: GlobeWorldData?
@@ -21,12 +24,14 @@ struct GeohashPickerView: View {
     @ThemedPalette private var palette
 
     private enum Strings {
-        static let instruction = String(localized: "geohash_picker.instruction", defaultValue: "drag to spin · pinch to zoom · tap to focus", comment: "Hint at the top of the globe geohash picker explaining its gestures")
-        static let noSelection = String(localized: "geohash_picker.no_selection", defaultValue: "select location", comment: "Shown in the globe geohash picker before a geohash is under the crosshair")
-        static let select = String(localized: "geohash_picker.select", defaultValue: "select", comment: "Button in the globe geohash picker that teleports to the geohash under the crosshair")
-        static let selectHint = String(localized: "geohash_picker.accessibility.select", defaultValue: "select geohash", comment: "Accessibility label for the globe picker's select button")
-        static let decreasePrecision = String(localized: "geohash_picker.accessibility.decrease_precision", defaultValue: "decrease precision", comment: "Accessibility label for the globe picker button that zooms out to a larger geohash cell")
-        static let increasePrecision = String(localized: "geohash_picker.accessibility.increase_precision", defaultValue: "increase precision", comment: "Accessibility label for the globe picker button that zooms in to a smaller geohash cell")
+        // The picker's one job is the teleport action it opens from.
+        static let title: LocalizedStringKey = "location_channels.action.teleport"
+        static let instruction = String(localized: "geohash_picker.instruction", defaultValue: "Drag to spin · pinch to zoom · tap to focus", comment: "Hint at the top of the globe geohash picker explaining its gestures")
+        static let noSelection = String(localized: "geohash_picker.no_selection", defaultValue: "Select location", comment: "Shown in the globe geohash picker before a geohash is under the crosshair")
+        static let select = String(localized: "geohash_picker.select", defaultValue: "Select", comment: "Button in the globe geohash picker that teleports to the geohash under the crosshair")
+        static let selectHint = String(localized: "geohash_picker.accessibility.select", defaultValue: "Select Geohash", comment: "Accessibility label for the globe picker's select button")
+        static let decreasePrecision = String(localized: "geohash_picker.accessibility.decrease_precision", defaultValue: "Decrease Precision", comment: "Accessibility label for the globe picker button that zooms out to a larger geohash cell")
+        static let increasePrecision = String(localized: "geohash_picker.accessibility.increase_precision", defaultValue: "Increase Precision", comment: "Accessibility label for the globe picker button that zooms in to a smaller geohash cell")
     }
 
     /// - Parameters:
@@ -35,11 +40,15 @@ struct GeohashPickerView: View {
     init(
         initialGeohash: String?,
         nearbyGeohashes: [String] = [],
+        clusters: [GeohashMapCluster] = [],
         onSelect: @escaping (String) -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.onSelect = onSelect
         self.onCancel = onCancel
+        self.initialGeohash = initialGeohash
+        self.nearbyGeohashes = nearbyGeohashes
+        self.clusters = clusters
         let target = Self.initialTarget(initialGeohash: initialGeohash, nearbyGeohashes: nearbyGeohashes)
         _state = StateObject(wrappedValue: GlobeState(
             targetLat: target.lat,
@@ -62,24 +71,44 @@ struct GeohashPickerView: View {
     }
 
     var body: some View {
-        ZStack {
-            palette.background
-                .ignoresSafeArea()
+        Group {
+            if #available(iOS 17.0, macOS 14.0, *) {
+                MapKitGlobePickerView(
+                    initialGeohash: initialGeohash,
+                    nearbyGeohashes: nearbyGeohashes,
+                    clusters: clusters,
+                    onSelect: onSelect,
+                    onCancel: onCancel
+                )
+            } else {
+                legacyBody
+            }
+        }
+    }
 
+    private var legacyBody: some View {
+        // The sheet top bar over the full-bleed globe: the globe runs under
+        // it, and the bar holds the title and the glass close button.
+        ZStack {
             if let world {
                 GlobeView(state: state, colors: globeColors, world: world)
                     .ignoresSafeArea()
             }
 
             VStack(spacing: 0) {
-                topBar
+                instructionPanel
                 Spacer(minLength: 0)
                 bottomControls
             }
             .padding(.horizontal, 16)
-            .padding(.top, 20)
+            .padding(.top, 8)
             .padding(.bottom, 20)
         }
+        #if os(iOS)
+        // Inside the chrome's NavigationStack: keeps the bar clear.
+        .toolbarBackground(.hidden, for: .navigationBar)
+        #endif
+        .sheetChrome(title: Text(Strings.title), onClose: onCancel)
         #if os(macOS)
         .frame(minWidth: 560, minHeight: 640)
         #endif
@@ -91,79 +120,33 @@ struct GeohashPickerView: View {
 
     // MARK: - Chrome
 
-    private var topBar: some View {
-        HStack(spacing: 10) {
-            Text(Strings.instruction)
-                .bitchatFont(size: 12)
-                .foregroundColor(palette.primary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity)
-                .geohashPickerPanel()
-
-            SheetCloseButton(action: onCancel)
-                .foregroundColor(palette.primary)
-                .frame(width: 40, height: 40)
-                .geohashPickerPanel(cornerRadius: 20)
-        }
+    private var instructionPanel: some View {
+        Text(Strings.instruction)
+            .font(.footnote)
+            .foregroundStyle(.primary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .glassSurface(in: Capsule())
     }
 
     private var bottomControls: some View {
-        VStack(spacing: 10) {
-            VStack(spacing: 2) {
-                Text(verbatim: hasSelection ? "#\(state.selectedGeohash)" : Strings.noSelection)
-                    .bitchatFont(size: 14, weight: .medium)
-                    .foregroundColor(palette.primary)
-                if hasSelection {
-                    Text(verbatim: "\(GeohashCoverage.level(forLength: state.precision).displayName) • \(GeohashCoverage.string(forPrecision: state.precision))")
-                        .bitchatFont(size: 10)
-                        .foregroundColor(palette.secondary)
-                }
+        GlobePickerControls(
+            title: hasSelection ? "#\(state.selectedGeohash)" : Strings.noSelection,
+            subtitle: hasSelection ? "\(GeohashCoverage.level(forLength: state.precision).displayName) • \(GeohashCoverage.string(forPrecision: state.precision))" : nil,
+            selectTitle: Strings.select,
+            selectLabel: Strings.selectHint,
+            decreaseLabel: Strings.decreasePrecision,
+            increaseLabel: Strings.increasePrecision,
+            canSelect: hasSelection,
+            onDecrease: { state.animatePrecision(state.precision - 1) },
+            onIncrease: { state.animatePrecision(state.precision + 1) },
+            onSelect: {
+                guard hasSelection else { return }
+                onSelect(state.selectedGeohash)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .geohashPickerPanel()
-            .accessibilityElement(children: .combine)
-
-            HStack(spacing: 10) {
-                precisionButton(systemImage: "minus", label: Strings.decreasePrecision) {
-                    state.animatePrecision(state.precision - 1)
-                }
-                precisionButton(systemImage: "plus", label: Strings.increasePrecision) {
-                    state.animatePrecision(state.precision + 1)
-                }
-                Button {
-                    guard hasSelection else { return }
-                    onSelect(state.selectedGeohash)
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark")
-                            .font(.bitchatSystem(size: 14, weight: .semibold))
-                        Text(verbatim: Strings.select)
-                            .bitchatFont(size: 12)
-                    }
-                    .foregroundColor(palette.primary)
-                    .pickerCapsule(fill: palette.accentBlue.opacity(0.12))
-                }
-                .buttonStyle(.plain)
-                .disabled(!hasSelection)
-                .opacity(hasSelection ? 1 : 0.38)
-                .accessibilityLabel(Strings.selectHint)
-            }
-        }
-    }
-
-    private func precisionButton(systemImage: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.bitchatSystem(size: 16, weight: .semibold))
-                .foregroundColor(palette.locationAccent)
-                .pickerCapsule(fill: palette.locationAccent.opacity(0.12))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        )
     }
 
     private var hasSelection: Bool { !state.selectedGeohash.isEmpty }
@@ -212,39 +195,3 @@ struct GeohashPickerView: View {
     }
 }
 
-// MARK: - Styling
-
-private struct GeohashPickerPanel: ViewModifier {
-    @Environment(\.appTheme) private var theme
-    @ThemedPalette private var palette
-    let cornerRadius: CGFloat
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if theme.usesGlassChrome {
-            content.themedOverlayPanel()
-        } else {
-            let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            content
-                .background(shape.fill(palette.background.opacity(0.85)))
-                .overlay(shape.stroke(palette.divider, lineWidth: 1))
-                .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 2)
-        }
-    }
-}
-
-private extension View {
-    /// Floating translucent surface for the picker's hint, readout and close button.
-    func geohashPickerPanel(cornerRadius: CGFloat = 12) -> some View {
-        modifier(GeohashPickerPanel(cornerRadius: cornerRadius))
-    }
-
-    /// Pill button body sized like a standard 40pt-tall button.
-    func pickerCapsule(fill: Color) -> some View {
-        self
-            .padding(.horizontal, 24)
-            .frame(minHeight: 40)
-            .background(Capsule().fill(fill))
-            .contentShape(Capsule())
-    }
-}

@@ -2,11 +2,15 @@ MARKETING_VERSION = 1.8.0
 CURRENT_PROJECT_VERSION = 1
 
 IPHONEOS_DEPLOYMENT_TARGET = 16.0
-MACOSX_DEPLOYMENT_TARGET = 13.0
+MACOSX_DEPLOYMENT_TARGET = 26.0
 SWIFT_VERSION = 5.0
 
 DEVELOPMENT_TEAM = L3N5LHJD5Y
 CODE_SIGN_STYLE = Automatic
 
-PRODUCT_BUNDLE_IDENTIFIER = chat.bitchat
-APP_GROUP_ID = group.chat.bitchat
+PRODUCT_BUNDLE_IDENTIFIER = chat.nova
+APP_GROUP_ID = group.chat.nova
+
+// Optional include of local configs (personal team and bundle IDs), so
+// Release builds can run on your own devices too.
+#include? "Local.xcconfig"

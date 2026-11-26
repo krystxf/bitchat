@@ -7,7 +7,7 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .iOS(.v16),
-        .macOS(.v13)
+        .macOS("26.0")
     ],
     products: [
         .executable(
@@ -34,17 +34,20 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 "Assets.xcassets",
+                // Icon Composer app icons, compiled by the Xcode app targets.
+                "Icons",
                 "_PreviewHelpers/PreviewAssets.xcassets",
                 "bitchat.entitlements",
                 "bitchat-macOS.entitlements",
-                "LaunchScreen.storyboard",
                 "ViewModels/Extensions/README.md",
                 // Globe picker geometry, bundled by the Xcode app targets and read
                 // from Bundle.main; the SwiftPM build only runs tests.
                 "Resources/Globe"
             ],
             resources: [
-                .process("Localizable.xcstrings")
+                .process("Localizable.xcstrings"),
+                // The reaction picker's emoji set (scripts/generate-emoji-catalog.py).
+                .process("Resources/Emoji/emoji-catalog.tsv")
             ]
         ),
         .testTarget(

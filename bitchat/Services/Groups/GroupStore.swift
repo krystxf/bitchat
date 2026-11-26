@@ -111,12 +111,13 @@ final class GroupStore: ObservableObject {
 
     /// Rotates the group key (creator-side removal/rotation): new random key,
     /// epoch + 1, and the given roster. Returns the updated group and new key.
-    func rotateKey(groupID: Data, members: [GroupMember]) -> (group: BitchatGroup, key: Data)? {
+    func rotateKey(groupID: Data, members: [GroupMember], name: String? = nil) -> (group: BitchatGroup, key: Data)? {
         guard let existing = group(withID: groupID),
               let newKey = Self.randomBytes(BitchatGroup.keyLength) else { return nil }
         var rotated = existing
         rotated.epoch = existing.epoch &+ 1
         rotated.members = members
+        if let name { rotated.name = name }
         guard upsert(rotated, key: newKey) else { return nil }
         return (rotated, newKey)
     }

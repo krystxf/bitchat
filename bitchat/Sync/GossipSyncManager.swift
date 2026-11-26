@@ -800,6 +800,30 @@ final class GossipSyncManager {
         }
     }
 
+    /// Drop every carried plaintext message packet — public messages,
+    /// public file transfers and their fragments — and the archive on disk,
+    /// and return only once that is done.
+    ///
+    /// Extreme security mode's message wipe calls this when the user leaves
+    /// the app, which can be the last moment before iOS suspends the
+    /// process, so unlike `removeAllPublicMessages()` it does not hand the
+    /// work to the queue and return. Group messages stay: they are sealed
+    /// ciphertext carried for every group's members, like courier mail, and
+    /// the app never shows them from here. Announcements and prekey bundles
+    /// carry no message content. The cost matches clearing the mesh
+    /// timeline: this device stops serving the recent public backlog until
+    /// it hears fresh traffic.
+    func removeAllCarriedMessages() {
+        queue.sync {
+            messages.remove { _ in true }
+            fileTransfers.remove { _ in true }
+            fragments.remove { _ in true }
+            // Nothing is left to persist; deleting the file is the whole job.
+            archiveDirty = false
+            archive?.wipe()
+        }
+    }
+
     private func removeState(for peerID: PeerID) {
         // Deliberately keeps the peer's prekey bundle: bundles exist to reach
         // owners who left the mesh, and they age out on their own schedule.
@@ -838,6 +862,13 @@ extension GossipSyncManager {
     func _messageCount(for peerID: PeerID) -> Int {
         queue.sync {
             messages.allPackets { _ in true }.filter { PeerID(hexData: $0.senderID) == peerID }.count
+        }
+    }
+
+    /// Carried packets per store, for the message wipe tests.
+    func _carriedPacketCounts() -> (messages: Int, fileTransfers: Int, fragments: Int, groupMessages: Int) {
+        queue.sync {
+            (messages.packets.count, fileTransfers.packets.count, fragments.packets.count, groupMessages.packets.count)
         }
     }
 }

@@ -118,10 +118,10 @@ struct PaymentChipView: View {
                 Text(paymentType.emoji)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(primaryLabel)
-                        .bitchatFont(size: 12, weight: .semibold)
+                        .font(.caption.weight(.semibold))
                     if let memoLabel {
                         Text(memoLabel)
-                            .bitchatFont(size: 10)
+                            .font(.caption2)
                             .opacity(0.7)
                             .lineLimit(1)
                     }

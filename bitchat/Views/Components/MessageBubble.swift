@@ -1,0 +1,290 @@
+//
+// MessageBubble.swift
+// bitchat
+//
+// This is free and unencumbered software released into the public domain.
+// For more information, see <https://unlicense.org>
+//
+
+import BitFoundation
+import SwiftUI
+#if os(iOS)
+import UIKit
+#else
+import AppKit
+#endif
+
+/// Geometry and colors every chat bubble shares.
+enum MessageBubbleStyle {
+    static let cornerRadius: CGFloat = 18
+    /// Share of the row's width a bubble may fill.
+    static let maxWidthFraction: CGFloat = 0.75
+    /// Inset of the text inside a bubble. The sender's name above a bubble
+    /// lines up with its text.
+    static let textInsets = EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+    /// Side of the sender's avatar beside other people's bubbles, where
+    /// several people talk.
+    static let avatarSize: CGFloat = InitialsAvatar.defaultSize
+    /// Gap between that avatar and the bubble.
+    static let avatarSpacing: CGFloat = 8
+
+    static func shape(isSelf: Bool, hasTail: Bool = true) -> MessageBubbleShape {
+        MessageBubbleShape(cornerRadius: cornerRadius, isSelf: isSelf, hasTail: hasTail)
+    }
+
+    /// Widest bubble in a row of `rowWidth`.
+    static func maxBubbleWidth(rowWidth: CGFloat) -> CGFloat {
+        max(0, rowWidth) * maxWidthFraction
+    }
+
+    /// Fill of other people's bubbles: the warm raised surface.
+    static var incomingFill: Color { .novaSurfaceRaised }
+
+    /// Links in other people's bubbles. The accent in light mode; in dark
+    /// mode a lighter blue that reaches WCAG AA on the raised fill.
+    static let incomingLink = Color(NovaPalette.Swatch(light: NovaPalette.accent.light, dark: 0x6DB3FF))
+}
+
+extension View {
+    /// Draws a chat bubble behind the view: the accent color behind mine,
+    /// a neutral fill behind everyone else's.
+    func messageBubbleBackground(isSelf: Bool, palette: ThemePalette, hasTail: Bool = true, selfFill: Color? = nil) -> some View {
+        background(
+            MessageBubbleStyle.shape(isSelf: isSelf, hasTail: hasTail)
+                .fill(isSelf ? (selfFill ?? palette.accent) : MessageBubbleStyle.incomingFill)
+        )
+    }
+}
+
+/// A continuous rounded message shape with the tail Messages draws on the
+/// last bubble of a run: the bubble's side runs straight down into its
+/// lower corner and hooks out past the edge. The tail hangs outside the
+/// view's frame by `tailOverhang`, so bubbles with and without it line up
+/// on the same edge. The row insets leave room for it.
+struct MessageBubbleShape: Shape {
+    /// How far the tail reaches past the bubble's side.
+    static let tailOverhang: CGFloat = 5
+
+    var cornerRadius: CGFloat
+    var isSelf: Bool
+    var hasTail: Bool = true
+
+    func path(in rect: CGRect) -> Path {
+        let r = min(cornerRadius, min(rect.width, rect.height) / 2)
+        let body = Path(roundedRect: rect, cornerSize: CGSize(width: r, height: r), style: .continuous)
+        guard hasTail, rect.width > 2 * r, rect.height >= 2 * r - 1 else { return body }
+        // Drawn for the trailing corner, then mirrored for other people's.
+        let edge = rect.maxX
+        let bottom = rect.maxY
+        let overhang = Self.tailOverhang
+        var tail = Path()
+        tail.move(to: CGPoint(x: edge, y: bottom - r))
+        // Down the side, then out to the tip just past the edge.
+        tail.addCurve(
+            to: CGPoint(x: edge + overhang, y: bottom),
+            control1: CGPoint(x: edge, y: bottom - r * 0.35),
+            control2: CGPoint(x: edge + overhang * 0.2, y: bottom - 0.5)
+        )
+        // Back under the corner, curving up into the bubble's bottom edge.
+        tail.addCurve(
+            to: CGPoint(x: edge - r * 0.75, y: bottom - 2),
+            control1: CGPoint(x: edge - overhang * 0.6, y: bottom + 0.5),
+            control2: CGPoint(x: edge - r * 0.45, y: bottom - 0.5)
+        )
+        tail.addLine(to: CGPoint(x: edge - r * 0.75, y: bottom - r))
+        tail.closeSubpath()
+        if !isSelf {
+            tail = tail.applying(
+                CGAffineTransform(translationX: rect.minX + rect.maxX, y: 0).scaledBy(x: -1, y: 1)
+            )
+        }
+        // One outline, whatever the subpaths' directions.
+        return Path(body.cgPath.union(tail.cgPath))
+    }
+}
+
+extension VerticalAlignment {
+    private enum MessageBubbleBottom: AlignmentID {
+        static func defaultValue(in context: ViewDimensions) -> CGFloat {
+            context[.bottom]
+        }
+    }
+
+    /// The bottom of a message's bubble, which the sender's avatar lines up
+    /// with. It is the row's bottom unless something sits below the bubble.
+    static let messageBubbleBottom = VerticalAlignment(MessageBubbleBottom.self)
+}
+
+/// Puts a bubble and its meta (status glyphs) side by side, bottom-aligned,
+/// with the meta on the inner side: right of other people's bubbles, left
+/// of mine. The bubble hugs its content up to `maxBubbleWidth`; the meta
+/// keeps its ideal size.
+///
+/// Stacks can't do this. An HStack offers a wrapping text only a share of
+/// the width, and a `maxWidth` frame grows to its maximum, which pushes the
+/// meta away from a short bubble. Empty meta takes no room.
+struct MessageBubbleLayout: Layout {
+    let isSelf: Bool
+    let maxBubbleWidth: CGFloat
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let sizes = measure(proposal, subviews)
+        return CGSize(
+            width: sizes.bubble.width + sizes.metaSpan,
+            height: max(sizes.bubble.height, sizes.meta.height)
+        )
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard let bubble = subviews.first else { return }
+        let sizes = measure(proposal, subviews)
+        let bubbleX = isSelf ? bounds.maxX - sizes.bubble.width : bounds.minX
+        bubble.place(
+            at: CGPoint(x: bubbleX, y: bounds.maxY),
+            anchor: .bottomLeading,
+            proposal: ProposedViewSize(sizes.bubble)
+        )
+        guard subviews.count > 1 else { return }
+        let metaX = isSelf
+            ? bubbleX - spacing - sizes.meta.width
+            : bubbleX + sizes.bubble.width + spacing
+        subviews[1].place(
+            at: CGPoint(x: metaX, y: bounds.maxY),
+            anchor: .bottomLeading,
+            proposal: ProposedViewSize(sizes.meta)
+        )
+    }
+
+    private func measure(
+        _ proposal: ProposedViewSize,
+        _ subviews: Subviews
+    ) -> (bubble: CGSize, meta: CGSize, metaSpan: CGFloat) {
+        guard let bubble = subviews.first else { return (.zero, .zero, 0) }
+        let meta = subviews.count > 1 ? subviews[1].sizeThatFits(.unspecified) : .zero
+        let metaSpan = meta.width > 0 ? meta.width + spacing : 0
+        let available = (proposal.width ?? .infinity) - metaSpan
+        let bubbleWidth = max(0, min(available, maxBubbleWidth))
+        let bubbleSize = bubble.sizeThatFits(ProposedViewSize(width: bubbleWidth, height: nil))
+        return (bubbleSize, meta, metaSpan)
+    }
+}
+
+/// What sits beside a bubble: the private lock, the verified seal, the
+/// bridge glyph, and the delivery status of my private messages. The time
+/// is not here: it heads each time group instead (`MessageTimeHeader`).
+/// The status is tappable: `.help()` tooltips only exist on macOS, so iOS
+/// users get its description as a caption under the bubble instead.
+struct MessageMetaView: View {
+    @ThemedPalette private var palette
+
+    let message: BitchatMessage
+    let showsVerifiedSeal: Bool
+    /// The delivery status to show, or nil for none.
+    let deliveryStatus: DeliveryStatus?
+    @Binding var showsDeliveryDetail: Bool
+
+    var body: some View {
+        HStack(spacing: 3) {
+            if message.isPrivate {
+                Image(systemName: "lock.fill")
+                    .foregroundColor(palette.secondary)
+                    .accessibilityHidden(true)
+            }
+            if showsVerifiedSeal {
+                Image(systemName: "checkmark.seal.fill")
+                    .foregroundColor(.green)
+                    .accessibilityLabel(
+                        String(localized: "content.accessibility.verified_sender", defaultValue: "Verified sender", comment: "Accessibility label for the seal next to a verified peer's name on a private message")
+                    )
+            }
+            if message.isBridged {
+                Image(systemName: "network")
+                    .foregroundColor(palette.secondary)
+                    .accessibilityLabel(
+                        String(localized: "content.accessibility.bridged_message", defaultValue: "Arrived across a mesh bridge", comment: "Accessibility label for the glyph marking a message that arrived across a mesh bridge")
+                    )
+            }
+            if let deliveryStatus {
+                Button {
+                    showsDeliveryDetail.toggle()
+                } label: {
+                    DeliveryStatusView(status: deliveryStatus)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(
+                    String(localized: "content.accessibility.delivery_detail_hint", comment: "Accessibility hint for the delivery status glyph explaining a tap reveals details")
+                )
+            }
+        }
+        .font(.caption2)
+        .imageScale(.small)
+        .padding(.bottom, 2)
+    }
+}
+
+/// The sender's name above someone else's bubble, where several people
+/// talk. It carries the same link as the name in the full text, so a tap
+/// opens the sender's actions.
+struct MessageSenderNameView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var conversationUIModel: ConversationUIModel
+    @ThemedPalette private var palette
+
+    let message: BitchatMessage
+
+    var body: some View {
+        Text(conversationUIModel.formatSenderName(message, colorScheme: colorScheme))
+            // The name is a link; keep it in the label color wherever links
+            // would take the tint.
+            .tint(palette.secondary)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .padding(.leading, MessageBubbleStyle.textInsets.leading)
+    }
+}
+
+/// The delivery caption under my private bubble: a failure reason always,
+/// any other status once its glyph is tapped.
+struct MessageDeliveryCaption: View {
+    @ThemedPalette private var palette
+
+    let status: DeliveryStatus
+    let showsDetail: Bool
+
+    var body: some View {
+        if case .failed = status {
+            caption(color: palette.alertRed)
+        } else if showsDetail {
+            caption(color: palette.secondary)
+        }
+    }
+
+    private func caption(color: Color) -> some View {
+        Text(verbatim: status.bitchatDescription)
+            .font(.caption2)
+            .foregroundColor(color)
+            .multilineTextAlignment(.trailing)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// Which rows open a new run of bubbles. A run is consecutive messages
+/// from one sender, close in time. Only its first row shows the sender's
+/// name and keeps the wider gap above it, and only its last row shows the
+/// sender's avatar.
+enum MessageRunPolicy {
+    /// Longest pause within one run.
+    static let maxGap: TimeInterval = 5 * 60
+
+    static func startsRun(_ message: BitchatMessage, after previous: BitchatMessage?) -> Bool {
+        guard let previous else { return true }
+        if message.sender == "system" || previous.sender == "system" { return true }
+        if message.isArchivedEcho != previous.isArchivedEcho { return true }
+        guard message.senderPeerID == previous.senderPeerID,
+              message.sender == previous.sender
+        else { return true }
+        return abs(message.timestamp.timeIntervalSince(previous.timestamp)) > maxGap
+    }
+}

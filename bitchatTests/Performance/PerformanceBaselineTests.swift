@@ -295,57 +295,6 @@ final class PerformanceBaselineTests: XCTestCase {
         reportThroughput("delivery.storeUpdate", samples: samples, operations: targetIDs.count, unit: "updates")
     }
 
-    // MARK: - 5. Message formatting
-
-    /// `MessageFormattingEngine.formatMessage` over 200 messages with
-    /// mentions, hashtags, and URLs. Formatting caches per message, so each
-    /// measure pass consumes a fresh pre-built batch (cache-miss path, which
-    /// is the cost paid when messages first render).
-    func testMessageFormatting() {
-        let context = PerfFormattingContext(nickname: "carol")
-        let batchCount = 16 // > XCTest's default 10 measure iterations
-        let batchSize = 200
-        let contents: [(String, [String]?)] = [
-            ("hello mesh, anyone around tonight?", nil),
-            ("@carol#a1b2 did you see this? https://example.com/threads/42", ["carol"]),
-            ("checking in from the harbor #bitchat #mesh", nil),
-            ("@bob#0042 ping me when you get this", ["bob#0042"]),
-            ("long form update with a link https://news.example.org/articles/2026/06/mesh-networks and a tag #geohash", nil)
-        ]
-        let batches: [[BitchatMessage]] = (0..<batchCount).map { batch in
-            (0..<batchSize).map { i in
-                let (content, mentions) = contents[i % contents.count]
-                return BitchatMessage(
-                    id: "fmt-\(batch)-\(i)",
-                    sender: "alice#a1b\(i % 10)",
-                    content: content,
-                    timestamp: Date(timeIntervalSince1970: 1_700_000_000 + Double(i)),
-                    isRelay: false,
-                    senderPeerID: PeerID(str: "abcdef123456789\(i % 10)"),
-                    mentions: mentions
-                )
-            }
-        }
-        var pass = 0
-        var samples: [TimeInterval] = []
-
-        measure {
-            precondition(pass < batches.count, "add more pre-built batches")
-            let batch = batches[pass]
-            pass += 1
-            let start = Date()
-            var formattedCharacters = 0
-            for message in batch {
-                let formatted = MessageFormattingEngine.formatMessage(message, context: context, colorScheme: .light)
-                formattedCharacters += formatted.characters.count
-            }
-            samples.append(Date().timeIntervalSince(start))
-            XCTAssertGreaterThan(formattedCharacters, 0)
-        }
-
-        reportThroughput("formatting.formatMessage", samples: samples, operations: batchSize, unit: "messages")
-    }
-
     // MARK: - 6a. End-to-end private ingest pipeline (current architecture)
 
     /// Baseline for the full private-message ingest cycle through a real
@@ -675,17 +624,20 @@ private final class PerfNostrContext: ChatNostrContext {
     func appendGeohashMessageIfAbsent(_ message: BitchatMessage, toGeohash geohash: String) -> Bool { true }
 
     private(set) var handledPublicMessageCount = 0
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int) { handledPublicMessageCount += 1 }
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int, allowHaptic: Bool) { handledPublicMessageCount += 1 }
     func checkForMentions(_ message: BitchatMessage) {}
     func sendHapticFeedback(for message: BitchatMessage) {}
     func parseMentions(from content: String) -> [String] {
-        MessageFormattingEngine.extractMentions(from: content)
+        let range = NSRange(content.startIndex..., in: content)
+        return MessageFormattingEngine.Patterns.mention.matches(in: content, range: range).compactMap { match in
+            Range(match.range(at: 1), in: content).map { String(content[$0]) }
+        }
     }
 
     var selectedPrivateChatPeer: PeerID?
     var nostrKeyMapping: [PeerID: String] = [:]
     func registerNostrKeyMapping(_ pubkey: String, for peerID: PeerID) { nostrKeyMapping[peerID] = pubkey }
-    func handlePrivateMessage(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID, id: NostrIdentity, messageTimestamp: Date) {}
+    func handlePrivateMessage(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID, id: NostrIdentity, messageTimestamp: Date, allowHaptic: Bool) {}
     func handleDelivered(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID) {}
     func handleReadReceipt(_ payload: NoisePayload, senderPubkey: String, convKey: PeerID) {}
     func startPrivateChat(with peerID: PeerID) {}
@@ -889,15 +841,4 @@ private final class PerfPipelineFixture {
         self.privateInbox = PrivateInboxModel(conversations: conversations)
         self.publicChat = PublicChatModel(conversations: conversations)
     }
-}
-
-// MARK: - Mock MessageFormattingContext
-
-@MainActor
-private final class PerfFormattingContext: MessageFormattingContext {
-    let nickname: String
-    init(nickname: String) { self.nickname = nickname }
-    func isSelfMessage(_ message: BitchatMessage) -> Bool { false }
-    func senderColor(for message: BitchatMessage, isDark: Bool) -> Color { .blue }
-    func peerURL(for peerID: PeerID) -> URL? { URL(string: "bitchat://peer/\(peerID.id)") }
 }

@@ -12,6 +12,15 @@ import SwiftUI
 private struct MessageDisplayItem: Identifiable {
     let id: String
     let message: BitchatMessage
+    /// Whether the row opens a run of bubbles from one sender (see
+    /// `MessageRunPolicy`).
+    let startsRun: Bool
+    /// Whether the row closes its run, which puts the sender's avatar
+    /// beside it. The next row decides, so it starts true for the newest.
+    var endsRun = true
+    /// Whether the row opens a time group, which shows the time above it
+    /// (see `MessageTimeLabel`).
+    let startsTimeGroup: Bool
 }
 
 /// What the list's change detection keys on. The count alone stops moving
@@ -42,6 +51,12 @@ private struct TimelineSignature: Equatable {
     }
 }
 
+/// The message the full emoji picker is open for.
+struct ReactionPickerTarget: Identifiable {
+    let message: BitchatMessage
+    var id: String { message.id }
+}
+
 struct MessageListView: View {
     @EnvironmentObject private var publicChatModel: PublicChatModel
     @EnvironmentObject private var privateInboxModel: PrivateInboxModel
@@ -52,7 +67,8 @@ struct MessageListView: View {
     @ObservedObject private var nearbyNotes = NearbyNotesCounter.shared
 
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.appTheme) private var theme
+    @Environment(\.resolvedMessageBubbleColor) private var messageBubbleColor
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let privatePeer: PeerID?
     @Binding var isAtBottom: Bool
@@ -62,12 +78,28 @@ struct MessageListView: View {
     @Binding var imagePreviewURL: URL?
     @Binding var windowCountPublic: Int
     @Binding var windowCountPrivate: [PeerID: Int]
-    @Binding var showSidebar: Bool
 
     var isTextFieldFocused: FocusState<Bool>.Binding
 
     @State private var showMessageActions = false
+    @State private var showCreateGroupPrompt = false
+    @State private var newGroupName = ""
+    @State private var createGroupPeerID: PeerID?
+    @State private var createGroupPeerName = ""
     @State private var showClearConfirmation = false
+    /// macOS: the message under the pointer, and the one whose quick
+    /// reaction bar shows (after a short delay, never while scrolling).
+    @State private var hoveredReactionMessageID: String?
+    @State private var reactionBarMessageID: String?
+    @State private var reactionBarTask: Task<Void, Never>?
+    /// The quick bar's own popover is open, so the bar stays.
+    @State private var isReactionBarPinned = false
+    @State private var isListScrolling = false
+    /// The message the full emoji picker reacts to: a sheet on iOS, a
+    /// popover anchored to the message on macOS (from its context menu).
+    @State private var reactionPickerTarget: ReactionPickerTarget?
+    /// The message whose long-press overlay is open (iOS 16.4+).
+    @State private var actionsOverlayItem: MessageActionsOverlayItem?
     @State private var lastScrollTime: Date = .distantPast
     @State private var scrollThrottleTimer: Timer?
     @State private var unseenCount = 0
@@ -99,6 +131,11 @@ struct MessageListView: View {
         let currentWindowCount = windowCount(for: privatePeer)
 
         let messages = conversationMessages(for: privatePeer)
+        let reactionProjection = MessageReactionProjection(
+            messages: messages,
+            isMine: conversationUIModel.isSentByCurrentUser,
+            displayName: conversationUIModel.displayName
+        )
         let contextKey = timelineContextKey(for: privatePeer)
         // While the reader is scrolled up, messages landing below the
         // window's first row widen the window in this same render instead of
@@ -114,10 +151,7 @@ struct MessageListView: View {
             )
         let windowedMessages = Array(messages.suffix(renderedWindowCount))
 
-        let messageItems: [MessageDisplayItem] = windowedMessages.compactMap { message in
-            guard !message.content.trimmed.isEmpty else { return nil }
-            return MessageDisplayItem(id: "\(contextKey)|\(message.id)", message: message)
-        }
+        let messageItems = displayItems(for: windowedMessages, of: messages, contextKey: contextKey)
         // Top edge of the rendered window (whitespace-only messages get no
         // row, so they could never report reaching it).
         let firstRowID = messageItems.first?.id
@@ -131,6 +165,8 @@ struct MessageListView: View {
             notesHereStrip
         }
         GeometryReader { geometry in
+        // Rows are inset 12pt on each side.
+        let maxBubbleWidth = MessageBubbleStyle.maxBubbleWidth(rowWidth: geometry.size.width - 24)
         ScrollViewReader { proxy in
             ScrollView {
                 if messageItems.isEmpty && privatePeer == nil {
@@ -139,7 +175,17 @@ struct MessageListView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(messageItems) { item in
                         let message = item.message
-                        messageRow(for: message)
+                        let isSelf = conversationUIModel.isSentByCurrentUser(message)
+                        let showsSender = isMultiPersonConversation && !isSelf && message.sender != "system"
+                        messageRow(
+                            for: message,
+                            isSelf: isSelf,
+                            showsSenderName: item.startsRun && showsSender,
+                            avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
+                            maxBubbleWidth: maxBubbleWidth,
+                            endsRun: item.endsRun,
+                            reactions: reactionProjection.summaries(for: message.id)
+                        )
                             .onAppear {
                                 // Callbacks lag a timeline switch: the new
                                 // rows appear before the old ones disappear,
@@ -182,61 +228,105 @@ struct MessageListView: View {
                                     cancelFollowScroll()
                                 }
                             }
+                            .messageExactTimeHelp(message.timestamp)
+                            // The menu belongs to the bubble, not the empty
+                            // side of the row.
                             .contentShape(Rectangle())
-                            .contextMenu {
-                                let showsUserActions = message.sender != "system" && !conversationUIModel.isSentByCurrentUser(message)
-                                if showsUserActions {
-                                    // Mention and DM are redundant inside a 1:1 conversation:
-                                    // mentioning the only other participant is noise, and "DM"
-                                    // would just reopen the conversation that is already open.
-                                    if privatePeer == nil {
-                                        Button("content.actions.mention") {
-                                            insertMention(message.sender)
-                                        }
-                                        if let peerID = message.senderPeerID {
-                                            Button("content.actions.direct_message") {
-                                                privateConversationModel.openConversation(for: peerID)
-                                                withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                                                    showSidebar = true
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Button("content.actions.hug") {
-                                        conversationUIModel.sendHug(to: message.sender)
-                                    }
-                                    Button("content.actions.slap") {
-                                        conversationUIModel.sendSlap(to: message.sender)
-                                    }
-                                }
-                                Button("content.message.copy") {
-                                    #if os(iOS)
-                                    UIPasteboard.general.string = message.content
-                                    #else
-                                    let pb = NSPasteboard.general
-                                    pb.clearContents()
-                                    pb.setString(message.content, forType: .string)
-                                    #endif
-                                }
-                                if isResendableFailedMessage(message) {
-                                    Button("content.actions.resend") {
-                                        conversationUIModel.resendFailedPrivateMessage(message)
+                            // iOS 16.4+: a long press opens the Liquid Glass
+                            // overlay; elsewhere the native context menu.
+                            .modifier(MessageMenuModifier(onLongPress: { frame in
+                                presentActionsOverlay(
+                                    for: message,
+                                    isSelf: isSelf,
+                                    frame: frame,
+                                    reactions: reactionProjection.summaries(for: message.id),
+                                    content: AnyView(messageRow(
+                                        for: message,
+                                        isSelf: isSelf,
+                                        showsSenderName: item.startsRun && showsSender,
+                                        avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
+                                        maxBubbleWidth: maxBubbleWidth,
+                                        endsRun: item.endsRun,
+                                        reactions: reactionProjection.summaries(for: message.id)
+                                    ))
+                                )
+                            }) {
+                                if canReact(to: message) {
+                                    Section {
+                                        ReactionMenuRow(
+                                            selected: ownReactionEmojis(in: reactionProjection.summaries(for: message.id)),
+                                            tint: messageBubbleColor,
+                                            onSelect: { emoji in toggleReaction(emoji, on: message) },
+                                            onOpenPicker: { openReactionPicker(for: message) }
+                                        )
                                     }
                                 }
-                                if showsUserActions {
-                                    Button("content.actions.block", role: .destructive) {
-                                        conversationUIModel.block(peerID: message.senderPeerID, displayName: message.sender)
+                                // The exact time, which no longer sits beside
+                                // each bubble.
+                                Section {
+                                    Text(verbatim: MessageTimeLabel.exactLabel(for: message.timestamp))
+                                }
+                                MessageActionMenuItems(actions: messageActions(for: message, isSelf: isSelf))
+                            })
+                            // VoiceOver reaches every action and the quick
+                            // reactions without the overlay or the menu.
+                            .accessibilityActions {
+                                if canReact(to: message) {
+                                    ForEach(MessageReaction.emojis, id: \.self) { emoji in
+                                        Button(emoji) { toggleReaction(emoji, on: message) }
                                     }
+                                    Button(String(localized: "content.reaction.add", comment: "Menu item or title for adding a reaction to a message")) {
+                                        openReactionPicker(for: message)
+                                    }
+                                }
+                                ForEach(messageActions(for: message, isSelf: isSelf)) { action in
+                                    Button(action.title, action: action.perform)
                                 }
                             }
+#if os(macOS)
+                            // The context menu's "+" opens the full picker
+                            // anchored to the message.
+                            .popover(isPresented: reactionPickerBinding(for: message), arrowEdge: .bottom) {
+                                if let target = reactionPickerTarget {
+                                    reactionPicker(for: target)
+                                }
+                            }
+                            // The bar sits in the free space beside the
+                            // bubble, so hovering anywhere on the row (bar
+                            // included) keeps it.
+                            .reactionQuickBar(
+                                alignment: rowAlignment(for: message, isSelf: isSelf).horizontal,
+                                isShown: reactionBarMessageID == message.id && message.sender != "system" && !message.isUnsentLocationMessage
+                            ) {
+                                ReactionQuickBar(
+                                    selected: ownReactionEmojis(in: reactionProjection.summaries(for: message.id)),
+                                    tint: messageBubbleColor,
+                                    isPresentingChoices: $isReactionBarPinned
+                                ) { emoji in
+                                    toggleReaction(emoji, on: message)
+                                }
+                            }
+                            .onHover { hovering in
+                                updateReactionHover(hovering, on: message)
+                            }
+#endif
+                            .frame(maxWidth: .infinity, alignment: rowAlignment(for: message, isSelf: isSelf))
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 1)
-                            // Archived echoes read as one tinted block, not
-                            // just faded rows.
-                            .background(message.isArchivedEcho ? palette.secondary.opacity(0.08) : Color.clear)
+                            // A run of bubbles from one sender reads as a
+                            // group: tight within, a wider gap above it.
+                            .padding(.top, item.startsRun ? 8 : 2)
+                            .padding(.bottom, item.endsRun ? 6 : 1)
+                            // No row background: bubbles sit straight on the
+                            // backdrop. Archived echoes are told apart by
+                            // their dimming (messageRow) alone.
+                            .messageTimeHeader(item.startsTimeGroup ? message.timestamp : nil)
                     }
                 }
-                .padding(.vertical, 2)
+                .padding(.vertical, 6)
+                // A loaded GIF opens in the same preview as an image.
+                .environment(\.openMediaPreview) { url in
+                    imagePreviewURL = url
+                }
 
                 // Only carried history on screen: the ambient layer (radar,
                 // sightings, live hints) stays visible below it instead of
@@ -248,12 +338,34 @@ struct MessageListView: View {
                         .padding(.bottom, 8)
                 }
             }
+#if os(macOS)
+            .onScrollPhaseChange { _, phase in
+                updateReactionBarForScrolling(phase.isScrolling)
+            }
+#endif
+#if os(iOS)
+            // A drag through the conversation puts the keyboard away, as in
+            // Messages; the draft stays in the composer. The list's own
+            // scrolls (new messages, the jump to the latest) are no drag
+            // and leave the keyboard up. The composer sits outside this
+            // scroll view, so its own scrolling keeps the keyboard too.
+            .scrollDismissesKeyboard(.immediately)
+#endif
             .overlay(alignment: .bottomTrailing) {
                 if !isAtBottom && !messageItems.isEmpty {
                     jumpToLatestPill(proxy: proxy)
                 }
             }
             .onOpenURL(perform: handleOpenURL)
+#if os(iOS)
+            .sheet(item: $reactionPickerTarget) { target in
+                reactionPicker(for: target)
+                    .presentationDetents([.medium, .large])
+            }
+            .fullScreenCover(item: $actionsOverlayItem) { item in
+                actionsOverlay(for: item)
+            }
+#endif
             .onTapGesture(count: 3) {
                 showClearConfirmation = true
             }
@@ -295,22 +407,19 @@ struct MessageListView: View {
                 Button("content.actions.direct_message") {
                     if let peerID = selectedMessageSenderID {
                         privateConversationModel.openConversation(for: peerID)
-                        withAnimation(.easeInOut(duration: TransportConfig.uiAnimationMediumSeconds)) {
-                            showSidebar = true
-                        }
                     }
                 }
 
-                Button("content.actions.hug") {
-                    if let sender = selectedMessageSender {
-                        conversationUIModel.sendHug(to: sender)
+                if let peerID = selectedMessageSenderID, conversationUIModel.canCreateGroup(with: peerID) {
+                    Button {
+                        createGroupPeerID = peerID
+                        createGroupPeerName = selectedMessageSender ?? ""
+                        newGroupName = GroupManagementPolicy.defaultName(with: createGroupPeerName)
+                        showCreateGroupPrompt = true
+                    } label: {
+                        Text(verbatim: String(format: String(localized: "group.action.create_with_peer"), selectedMessageSender ?? ""))
                     }
-                }
-
-                Button("content.actions.slap") {
-                    if let sender = selectedMessageSender {
-                        conversationUIModel.sendSlap(to: sender)
-                    }
+                    .accessibilityLabel(Text(verbatim: String(format: String(localized: "group.action.create_with_peer"), selectedMessageSender ?? "")))
                 }
 
                 Button("content.actions.block", role: .destructive) {
@@ -318,6 +427,17 @@ struct MessageListView: View {
                 }
 
                 Button("common.cancel", role: .cancel) {}
+            }
+            .alert("group.create.title", isPresented: $showCreateGroupPrompt) {
+                TextField("group.create.name", text: $newGroupName)
+                Button("common.cancel", role: .cancel) { createGroupPeerID = nil }
+                Button("group.create.action") {
+                    guard let peerID = createGroupPeerID else { return }
+                    _ = conversationUIModel.createGroup(named: newGroupName, inviting: peerID)
+                    createGroupPeerID = nil
+                }
+            } message: {
+                Text("group.create.prompt")
             }
             .onAppear {
                 // Also check when view appears
@@ -342,6 +462,10 @@ struct MessageListView: View {
         }
         .onAppear { updateNotesCounterHold() }
         .onDisappear { releaseNotesCounterHold() }
+#if os(macOS)
+        // Where the Character Viewer types a reaction picked from it.
+        .background { CharacterViewerHost() }
+#endif
         .onChange(of: locationChannelsModel.selectedChannel) { _ in updateNotesCounterHold() }
         .onChange(of: privatePeer) { _ in updateNotesCounterHold() }
         .environment(\.openURL, OpenURLAction { url in
@@ -441,19 +565,11 @@ private extension MessageListView {
         return Button {
             appChromeModel.presentNotices(geoTab: true)
         } label: {
-            HStack(spacing: 6) {
-                Text(verbatim: "📍 \(text)")
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.primary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.bitchatSystem(size: 10))
-                    .foregroundColor(palette.secondary)
+            ChatBanner(systemImage: "mappin.and.ellipse", symbolColor: palette.accent, showsChevron: true) {
+                Text(verbatim: text)
+                    .font(.footnote)
+                    .foregroundStyle(palette.primary)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(palette.secondary.opacity(0.08))
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -488,49 +604,46 @@ private extension MessageListView {
         return messageItems.allSatisfy { $0.message.isArchivedEcho || $0.message.sender == "system" }
     }
 
-    /// Terminal-styled narration for an empty public timeline: says which
-    /// channel this is, that the app is waiting for peers, and where to go
-    /// next. Rendered inside the ScrollView; disappears with the first row.
-    /// The mesh case fills the visible chat height so its radar can center
-    /// in the space below the text.
+    /// The empty public timeline, centered as the system's empty states
+    /// are: which channel this is and who it reaches. Rendered inside the
+    /// ScrollView; it goes away with the first row. It fills the visible
+    /// chat height, so it sits in the middle of the screen.
+    @ViewBuilder
     func publicEmptyState(fillHeight: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            switch locationChannelsModel.selectedChannel {
-            case .mesh:
-                MeshEmptyStateView(
-                    fillHeight: max(0, fillHeight - 24),
-                    bluetoothAvailable: bluetoothCanScan
-                )
-            case .location(let channel):
-                emptyStateLine(
-                    String(
+        switch locationChannelsModel.selectedChannel {
+        case .mesh:
+            MeshEmptyStateView(
+                fillHeight: max(0, fillHeight - 24),
+                bluetoothAvailable: bluetoothCanScan
+            )
+            .padding(.horizontal, 12)
+        case .location(let channel):
+            VStack {
+                Spacer(minLength: 24)
+                ChatEmptyStateHeader(
+                    title: "#\(channel.geohash)",
+                    message: String(
                         format: String(localized: "content.empty.location_intro", comment: "First line of an empty geohash timeline naming the channel"),
                         locale: .current,
                         channel.geohash
                     )
-                )
-                emptyStateLine(String(localized: "content.empty.switch_hint", comment: "Empty timeline hint pointing at the channel switcher and the help screen"))
+                ) {
+                    ChatEmptyStateSymbol(systemImage: "mappin.and.ellipse")
+                }
+                Spacer(minLength: 24)
             }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: max(0, fillHeight - 24))
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    func emptyStateLine(_ text: String) -> some View {
-        // Non-breaking space before the closing asterisk so a tight wrap
-        // can't orphan a lone "*" onto its own line.
-        Text(verbatim: "* \(text)\u{00A0}*")
-            .bitchatFont(size: 13)
-            .foregroundColor(palette.secondary.opacity(0.9))
-            .fixedSize(horizontal: false, vertical: true)
     }
 
     /// A failed private text message of our own can be resent through the
     /// normal send path (the context menu removes the failed original and
-    /// re-submits its content).
+    /// re-submits its content). So can a location message of ours that never
+    /// went out: it shows only in its own channel's timeline, so the normal
+    /// send path sends it to that channel.
     func isResendableFailedMessage(_ message: BitchatMessage) -> Bool {
-        guard message.isPrivate,
+        guard message.isPrivate || (privatePeer == nil && message.isUnsentLocationMessage),
               conversationUIModel.isSentByCurrentUser(message),
               conversationUIModel.mediaAttachment(for: message) == nil,
               case .failed = message.deliveryStatus
@@ -559,9 +672,12 @@ private extension MessageListView {
         Button {
             scrollToBottom(on: proxy, privatePeer: privatePeer)
         } label: {
-            HStack(spacing: 4) {
+            // Same size as the composer's round buttons: a 44 pt glass
+            // circle, stretching into a capsule when it also shows the new
+            // count.
+            HStack(spacing: 6) {
                 Image(systemName: "arrow.down")
-                    .font(.bitchatSystem(size: 11, weight: .semibold))
+                    .font(.callout.weight(.semibold))
                 if unseenCount > 0 {
                     Text(
                         String(
@@ -570,16 +686,16 @@ private extension MessageListView {
                             unseenCount
                         )
                     )
-                    .bitchatFont(size: 12, weight: .medium)
+                    .font(.subheadline.weight(.medium))
                 }
             }
             .foregroundColor(palette.primary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .contentShape(Rectangle())
+            .padding(.horizontal, unseenCount > 0 ? 14 : 0)
+            .frame(minWidth: ComposerMetrics.controlSize, minHeight: ComposerMetrics.controlSize)
+            .glassSurface(in: Capsule())
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .themedOverlayPanel()
         .padding(.trailing, 12)
         .padding(.bottom, 10)
         .accessibilityLabel(jumpToLatestAccessibilityLabel)
@@ -596,27 +712,398 @@ private extension MessageListView {
         return "\(base), \(count)"
     }
 
-    @ViewBuilder
-    func messageRow(for message: BitchatMessage) -> some View {
-        Group {
-            if message.sender == "system" {
-                systemMessageRow(message)
-            } else if let media = conversationUIModel.mediaAttachment(for: message) {
-                MediaMessageView(message: message, media: media, imagePreviewURL: $imagePreviewURL)
-            } else {
-                TextMessageView(message: message)
+    /// Whether several people talk here: a public channel or a group
+    /// chat, not a 1:1 private chat. Other people's bubbles then show who
+    /// sent them: the name above a run, the avatar beside it.
+    var isMultiPersonConversation: Bool {
+        privatePeer.map(\.isGroup) ?? true
+    }
+
+    /// System lines sit centered; bubbles sit on their sender's side, mine
+    /// on the right.
+    func rowAlignment(for message: BitchatMessage, isSelf: Bool) -> Alignment {
+        if message.sender == "system" { return .center }
+        return isSelf ? .trailing : .leading
+    }
+
+    /// The rows of the rendered window, each marked with whether it opens a
+    /// run and a time group, and whether it closes its run. The message just
+    /// above the window decides both openings for its first row, so a window
+    /// that grows or shrinks never regroups a row. The window always ends at
+    /// the newest message, so its last row closes its run.
+    func displayItems(
+        for windowedMessages: [BitchatMessage],
+        of messages: [BitchatMessage],
+        contextKey: String
+    ) -> [MessageDisplayItem] {
+        let firstIndex = messages.count - windowedMessages.count
+        var previous = firstIndex > 0 ? messages[firstIndex - 1] : nil
+        var items: [MessageDisplayItem] = []
+        items.reserveCapacity(windowedMessages.count)
+        // Whitespace-only messages get no row, and neither do reaction
+        // lines: they show as pills under their target, or not at all
+        // while the target is missing.
+        for message in windowedMessages where Self.rendersRow(message) {
+            let startsRun = MessageRunPolicy.startsRun(message, after: previous)
+            if !items.isEmpty {
+                items[items.count - 1].endsRun = startsRun
             }
+            items.append(MessageDisplayItem(
+                id: "\(contextKey)|\(message.id)",
+                message: message,
+                startsRun: startsRun,
+                startsTimeGroup: MessageTimeLabel.startsTimeGroup(message, after: previous)
+            ))
+            previous = message
         }
-        // Archived echoes ("heard here earlier") render dimmed: real history,
-        // visually distinct from the live conversation.
-        .opacity(message.isArchivedEcho ? 0.55 : 1)
+        return items
+    }
+
+    /// Whether a message gets a row: not whitespace-only, not a reaction
+    /// line.
+    static func rendersRow(_ message: BitchatMessage) -> Bool {
+        !message.content.trimmed.isEmpty && !message.isReactionLine
+    }
+
+    /// What sits left of a row's bubble.
+    enum AvatarSlot {
+        /// No column: my bubbles, system lines, and 1:1 chats.
+        case absent
+        /// The sender's avatar, on the last row of their run.
+        case shown
+        /// An empty column as wide as the avatar, which keeps the other
+        /// rows of the run lined up with the last.
+        case space
     }
 
     @ViewBuilder
+    func messageRow(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        showsSenderName: Bool,
+        avatar: AvatarSlot,
+        maxBubbleWidth: CGFloat,
+        endsRun: Bool,
+        reactions: [MessageReactionSummary] = []
+    ) -> some View {
+        Group {
+            if avatar == .absent {
+                messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactions: reactions)
+            } else {
+                // The avatar lines up with the bottom of the bubble, as in
+                // Messages, not with anything below it (payment chips).
+                HStack(alignment: .messageBubbleBottom, spacing: MessageBubbleStyle.avatarSpacing) {
+                    senderAvatar(for: message, isShown: avatar == .shown)
+                    messageContent(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun, reactions: reactions)
+                }
+            }
+        }
+        // Archived echoes ("heard here earlier") render dimmed: real history,
+        // visually distinct from the live conversation. They start a run of
+        // their own (MessageRunPolicy), so the sender's name shows again
+        // where the live conversation picks up.
+        .opacity(message.isArchivedEcho ? 0.55 : 1)
+    }
+
+    /// The message and, under its bubble, its reaction pills. The pills
+    /// line up with the bubble's edge and wrap within the bubble's width.
+    @ViewBuilder
+    func messageContent(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        showsSenderName: Bool,
+        maxBubbleWidth: CGFloat,
+        endsRun: Bool,
+        reactions: [MessageReactionSummary] = []
+    ) -> some View {
+        if message.sender == "system" {
+            systemMessageRow(message)
+        } else {
+            VStack(alignment: isSelf ? .trailing : .leading, spacing: MessageReactionStyle.bubbleGap) {
+                messageBody(for: message, isSelf: isSelf, showsSenderName: showsSenderName, maxBubbleWidth: maxBubbleWidth, endsRun: endsRun)
+                if !reactions.isEmpty {
+                    MessageReactionsView(
+                        summaries: reactions,
+                        isSelf: isSelf,
+                        maxWidth: maxBubbleWidth,
+                        tint: messageBubbleColor,
+                        onToggle: { emoji in toggleReaction(emoji, on: message) },
+                        onOpenPicker: { openReactionPicker(for: message) }
+                    )
+                    .transition(MessageReactionStyle.transition(reduceMotion: reduceMotion))
+                }
+            }
+            // The first reaction grows the row smoothly instead of making
+            // it jump.
+            .animation(MessageReactionStyle.animation(reduceMotion: reduceMotion), value: reactions.isEmpty)
+        }
+    }
+
+    @ViewBuilder
+    func messageBody(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        showsSenderName: Bool,
+        maxBubbleWidth: CGFloat,
+        endsRun: Bool
+    ) -> some View {
+        if let media = conversationUIModel.mediaAttachment(for: message) {
+            MediaMessageView(
+                message: message,
+                media: media,
+                imagePreviewURL: $imagePreviewURL,
+                isSelf: isSelf,
+                showsSenderName: showsSenderName,
+                maxBubbleWidth: maxBubbleWidth
+            )
+        } else {
+            TextMessageView(
+                message: message,
+                isSelf: isSelf,
+                showsSenderName: showsSenderName,
+                maxBubbleWidth: maxBubbleWidth,
+                hasTail: endsRun
+            )
+        }
+    }
+
+    func ownReactionEmojis(in reactions: [MessageReactionSummary]) -> Set<String> {
+        Set(reactions.filter(\.includesMe).map(\.emoji))
+    }
+
+#if os(macOS)
+    /// Shows the quick bar for the message under the pointer after a short
+    /// delay, or at once when it moves over from another message, and hides
+    /// it a moment after the pointer leaves (so it can cross a gap).
+    func updateReactionHover(_ hovering: Bool, on message: BitchatMessage) {
+        // A location message that never went out has no event anyone could
+        // react to.
+        guard message.sender != "system", !message.isUnsentLocationMessage else { return }
+        if hovering {
+            hoveredReactionMessageID = message.id
+            reactionBarTask?.cancel()
+            guard !isListScrolling, !isReactionBarPinned else { return }
+            if reactionBarMessageID != nil {
+                reactionBarMessageID = message.id
+            } else {
+                showReactionBar(for: message.id, after: 0.35)
+            }
+        } else if hoveredReactionMessageID == message.id {
+            hoveredReactionMessageID = nil
+            reactionBarTask?.cancel()
+            reactionBarTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                guard !Task.isCancelled, hoveredReactionMessageID == nil, !isReactionBarPinned else { return }
+                reactionBarMessageID = nil
+            }
+        }
+    }
+
+    func showReactionBar(for messageID: String, after delay: TimeInterval) {
+        reactionBarTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard !Task.isCancelled, hoveredReactionMessageID == messageID, !isListScrolling else { return }
+            reactionBarMessageID = messageID
+        }
+    }
+
+    /// Scrolling hides the bar; when it stops, the message under the pointer
+    /// gets the bar again after the usual delay.
+    func updateReactionBarForScrolling(_ isScrolling: Bool) {
+        guard isScrolling != isListScrolling else { return }
+        isListScrolling = isScrolling
+        reactionBarTask?.cancel()
+        if isScrolling {
+            guard !isReactionBarPinned else { return }
+            reactionBarMessageID = nil
+        } else if let hovered = hoveredReactionMessageID {
+            showReactionBar(for: hovered, after: 0.35)
+        }
+    }
+#endif
+
+    func toggleReaction(_ emoji: String, on message: BitchatMessage) {
+        let ownEvents = MessageReaction.resolvedEvents(in: conversationMessages(for: privatePeer))
+            .filter { $0.event.targetID == message.id && conversationUIModel.isSentByCurrentUser($0.message) }
+        let active = ownEvents.last(where: { $0.event.emoji == emoji })?.event.removes == false
+        if !active {
+            ReactionEmojiPreferences.shared.recordUse(emoji)
+        }
+        conversationUIModel.sendMessage(MessageReaction.format(emoji: emoji, target: message, removes: active))
+    }
+
+    /// Whether a message takes reactions: not a system line, and not a
+    /// location message that never went out (it has no event to react to).
+    func canReact(to message: BitchatMessage) -> Bool {
+        message.sender != "system" && !message.isUnsentLocationMessage
+    }
+
+    /// What I can do with a message, in menu order.
+    func messageActions(for message: BitchatMessage, isSelf: Bool) -> [MessageAction] {
+        var actions: [MessageAction] = []
+        if isResendableFailedMessage(message) {
+            actions.append(MessageAction(kind: .resend) {
+                if message.isPrivate {
+                    conversationUIModel.resendFailedPrivateMessage(message)
+                } else {
+                    conversationUIModel.resendFailedLocationMessage(message)
+                }
+            })
+        }
+        let showsUserActions = message.sender != "system" && !isSelf
+        // Mention and DM are redundant inside a 1:1 conversation:
+        // mentioning the only other participant is noise, and "DM" would
+        // just reopen the conversation that is already open.
+        if showsUserActions && privatePeer == nil {
+            actions.append(MessageAction(kind: .mention) { insertMention(message.sender) })
+            if let peerID = message.senderPeerID {
+                actions.append(MessageAction(kind: .directMessage) {
+                    privateConversationModel.openConversation(for: peerID)
+                })
+            }
+        }
+        actions.append(MessageAction(kind: .copy) {
+            #if os(iOS)
+            UIPasteboard.general.string = message.content
+            #else
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(message.content, forType: .string)
+            #endif
+        })
+        if showsUserActions {
+            actions.append(MessageAction(kind: .block) {
+                conversationUIModel.block(peerID: message.senderPeerID, displayName: message.sender)
+            })
+        }
+        return actions
+    }
+
+    /// Opens the long-press overlay (iOS 16.4+) with a light tap.
+    func presentActionsOverlay(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        frame: CGRect,
+        reactions: [MessageReactionSummary],
+        content: AnyView
+    ) {
+        #if os(iOS)
+        guard frame.width > 0 else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        let item = MessageActionsOverlayItem(
+            message: message,
+            messageFrame: frame,
+            isSelf: isSelf,
+            canReact: canReact(to: message),
+            selectedReactions: ownReactionEmojis(in: reactions),
+            actions: messageActions(for: message, isSelf: isSelf),
+            content: content
+        )
+        // The overlay animates itself; the cover appears and goes at once.
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { actionsOverlayItem = item }
+        #endif
+    }
+
+    func openReactionPicker(for message: BitchatMessage) {
+        reactionPickerTarget = ReactionPickerTarget(message: message)
+    }
+
+#if os(iOS)
+    @ViewBuilder
+    func actionsOverlay(for item: MessageActionsOverlayItem) -> some View {
+        if #available(iOS 16.4, *) {
+            MessageActionsOverlay(
+                item: item,
+                tint: messageBubbleColor,
+                onReact: { emoji in toggleReaction(emoji, on: item.message) },
+                onOpenPicker: {
+                    // After the cover is gone, so the sheet can present.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        openReactionPicker(for: item.message)
+                    }
+                },
+                onDismiss: {
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) { actionsOverlayItem = nil }
+                }
+            )
+            .environmentObject(conversationUIModel)
+            .environment(\.resolvedMessageBubbleColor, messageBubbleColor)
+            .presentationBackground(.clear)
+        }
+    }
+#endif
+
+    /// Whether the picker popover shows on `message`'s row (macOS).
+    func reactionPickerBinding(for message: BitchatMessage) -> Binding<Bool> {
+        Binding(
+            get: { reactionPickerTarget?.message.id == message.id },
+            set: { isPresented in
+                if !isPresented, reactionPickerTarget?.message.id == message.id {
+                    reactionPickerTarget = nil
+                }
+            }
+        )
+    }
+
+    /// My current reactions on a message, for marking them in a picker.
+    func ownReactionEmojis(on message: BitchatMessage) -> Set<String> {
+        let projection = MessageReactionProjection(
+            messages: conversationMessages(for: privatePeer),
+            isMine: conversationUIModel.isSentByCurrentUser,
+            displayName: conversationUIModel.displayName
+        )
+        return ownReactionEmojis(in: projection.summaries(for: message.id))
+    }
+
+    /// The full emoji picker for `target`. Choosing an emoji closes it.
+    func reactionPicker(for target: ReactionPickerTarget) -> some View {
+        EmojiPickerView(
+            selected: ownReactionEmojis(on: target.message),
+            tint: messageBubbleColor,
+            onSelect: { emoji in
+                reactionPickerTarget = nil
+                toggleReaction(emoji, on: target.message)
+            },
+            onClose: { reactionPickerTarget = nil }
+        )
+    }
+
+    /// The avatar column of a row. A tap on the avatar opens the sender's
+    /// actions, as a tap on their name does. VoiceOver skips it: the name
+    /// above the run already says who wrote it.
+    func senderAvatar(for message: BitchatMessage, isShown: Bool) -> some View {
+        ZStack {
+            if isShown {
+                if let peerID = message.senderPeerID {
+                    Button {
+                        presentSenderActions(for: peerID)
+                    } label: {
+                        InitialsAvatar(name: conversationUIModel.displayName(for: message), peerID: peerID, size: MessageBubbleStyle.avatarSize)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    InitialsAvatar(name: conversationUIModel.displayName(for: message), peerID: nil, size: MessageBubbleStyle.avatarSize)
+                }
+            }
+        }
+        .frame(width: MessageBubbleStyle.avatarSize)
+        .accessibilityHidden(true)
+    }
+
+    /// Status lines ("You're on #mesh") stay plain, without a bubble:
+    /// centered secondary text, as Messages shows its own notices.
     func systemMessageRow(_ message: BitchatMessage) -> some View {
-        Text(conversationUIModel.formatMessage(message, colorScheme: colorScheme, theme: theme))
+        Text(verbatim: message.content)
+            .font(.footnote)
+            .foregroundColor(palette.secondary)
+            .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 4)
     }
 
     func expandWindow(ifNeededFor message: BitchatMessage,
@@ -653,20 +1140,7 @@ private extension MessageListView {
         switch url.host {
         case "user":
             let id = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            let peerID = PeerID(str: id.removingPercentEncoding ?? id)
-            selectedMessageSenderID = peerID
-
-            selectedMessageSender = conversationUIModel.senderDisplayName(
-                for: peerID,
-                fallbackMessages: conversationMessages(for: privatePeer)
-            )
-
-            if conversationUIModel.isSelfSender(peerID: peerID, displayName: selectedMessageSender) {
-                selectedMessageSender = nil
-                selectedMessageSenderID = nil
-            } else {
-                showMessageActions = true
-            }
+            presentSenderActions(for: PeerID(str: id.removingPercentEncoding ?? id))
 
         case "geohash":
             let gh = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).lowercased()
@@ -676,6 +1150,24 @@ private extension MessageListView {
 
         default:
             return
+        }
+    }
+
+    /// Opens the action sheet (mention, DM, new group, block) for the
+    /// sender behind `peerID`, unless that is me. A tap on a sender's name
+    /// or avatar lands here.
+    func presentSenderActions(for peerID: PeerID) {
+        selectedMessageSenderID = peerID
+        selectedMessageSender = conversationUIModel.senderDisplayName(
+            for: peerID,
+            fallbackMessages: conversationMessages(for: privatePeer)
+        )
+
+        if conversationUIModel.isSelfSender(peerID: peerID, displayName: selectedMessageSender) {
+            selectedMessageSender = nil
+            selectedMessageSenderID = nil
+        } else {
+            showMessageActions = true
         }
     }
 
@@ -714,9 +1206,9 @@ private extension MessageListView {
     }
 
     /// Row ID of the newest message that has a row (whitespace-only
-    /// messages render none).
+    /// messages and reaction lines render none).
     func newestRowID(for privatePeer: PeerID?) -> String? {
-        guard let newest = conversationMessages(for: privatePeer).last(where: { !$0.content.trimmed.isEmpty }) else {
+        guard let newest = conversationMessages(for: privatePeer).last(where: Self.rendersRow) else {
             return nil
         }
         return "\(timelineContextKey(for: privatePeer))|\(newest.id)"
@@ -741,7 +1233,9 @@ private extension MessageListView {
         let reaction = MessageListScrollPolicy.reaction(
             mark: mark,
             messages: messages,
-            newestIsOwn: messages.last.map { conversationUIModel.isSentByCurrentUser($0) } ?? false,
+            // My reaction to an older message is no new message of mine:
+            // it must not pull a scrolled-up reader to the bottom.
+            newestIsOwn: messages.last.map { !$0.isReactionLine && conversationUIModel.isSentByCurrentUser($0) } ?? false,
             appendedCount: appended.total,
             windowCount: currentWindowCount,
             isAtBottom: isAtBottom

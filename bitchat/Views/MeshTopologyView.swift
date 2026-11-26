@@ -1,217 +1,239 @@
-//
-// MeshTopologyView.swift
-// bitchat
-//
-// This is free and unencumbered software released into the public domain.
-// For more information, see <https://unlicense.org>
-//
-
 import SwiftUI
+import BitFoundation
 
-/// Display model for the mesh topology map: nodes are known mesh peers,
-/// edges are gossiped `directNeighbors` claims. Built on the main actor from
-/// a `MeshTopologySnapshot` plus the current nickname table.
 struct MeshTopologyDisplayModel {
     struct Node: Identifiable, Equatable {
         let id: String
         let label: String
         let isSelf: Bool
     }
-
     let nodes: [Node]
-    /// Pairs of `Node.id`; every id is present in `nodes`.
     let edges: [(String, String)]
-
     static let empty = MeshTopologyDisplayModel(nodes: [], edges: [])
 }
 
-/// Minimal diagnostics sheet: the mesh graph on a circular layout (self in
-/// the center), drawn with Canvas so it stays cheap at any peer count.
 struct MeshTopologyView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.appTheme) private var appTheme
-    @ThemedPalette private var palette
-
-    /// Fetches a fresh model; called on appear and on manual refresh.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let provider: @MainActor () -> MeshTopologyDisplayModel
     @State private var model: MeshTopologyDisplayModel = .empty
+    @State private var layout = MeshGraphLayout()
+    @State private var selectedID: String?
+    @State private var zoom = 1.0
+    @State private var zoomStart = 1.0
+    @State private var pan = CGSize.zero
+    @State private var panStart = CGSize.zero
+    @State private var draggingID: String?
+    @State private var dragStart: CGPoint = .zero
 
     var body: some View {
-        #if os(macOS)
-        VStack(spacing: 0) {
-            HStack {
-                Text("topology.title")
-                    .bitchatFont(size: 16, weight: .bold)
-                    .foregroundColor(palette.primary)
-                Spacer()
-                refreshButton
-                Button("app_info.done") {
-                    dismiss()
+        content
+            .sheetChrome(title: Text("topology.title"), onClose: { dismiss() }) { refreshButton }
+            #if os(macOS)
+            .frame(width: 600, height: 600)
+            #else
+            .presentationDetents([.medium, .large])
+            #endif
+            .onAppear { refresh() }
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(8))
+                    guard !Task.isCancelled else { break }
+                    refresh()
                 }
-                .buttonStyle(.plain)
-                .foregroundColor(palette.primary)
             }
-            .padding()
-            .themedSurface(opacity: 0.95)
+            #if os(macOS)
+            .popover(item: selectedNodeBinding, arrowEdge: .bottom) { node in detail(node) }
+            #else
+            .sheet(item: selectedNodeBinding) { node in detail(node).presentationDetents([.height(230)]) }
+            #endif
+    }
 
-            content
-        }
-        .frame(width: 500, height: 520)
-        .themedSheetBackground()
-        #else
-        NavigationView {
-            content
-                .themedSheetBackground()
-                .navigationTitle(Text("topology.title"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        refreshButton
-                    }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        SheetCloseButton { dismiss() }
-                            .foregroundColor(palette.primary)
-                    }
-                }
-        }
-        #endif
+    private var selectedNodeBinding: Binding<MeshTopologyDisplayModel.Node?> {
+        Binding(get: { model.nodes.first { $0.id == selectedID } }, set: { selectedID = $0?.id })
     }
 
     private var refreshButton: some View {
-        Button {
-            model = provider()
-        } label: {
-            Image(systemName: "arrow.clockwise")
-                .font(.bitchatSystem(size: 14))
-                .foregroundColor(palette.primary)
+        HStack(spacing: 8) {
+            Button(action: fit) { Label(Strings.fit, systemImage: "arrow.up.left.and.arrow.down.right") }
+            Button(action: refresh) { Label("topology.refresh", systemImage: "arrow.clockwise") }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("topology.refresh"))
     }
 
-    @ViewBuilder
     private var content: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             if model.nodes.count <= 1 {
-                Spacer()
-                Text("topology.empty")
-                    .bitchatFont(size: 14)
-                    .foregroundColor(palette.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                Spacer()
+                SheetEmptyState(
+                    title: Strings.emptyTitle,
+                    systemImage: "point.3.connected.trianglepath.dotted",
+                    message: String(localized: "topology.empty")
+                )
             } else {
-                graphCanvas
-                    .padding(.horizontal, 8)
+                GeometryReader { proxy in
+                    let size = proxy.size
+                    TimelineView(.animation(minimumInterval: 1.0 / 60, paused: reduceMotion || !layout.isMoving)) { _ in
+                        let _ = advanceLayout()
+                        ZStack {
+                            graph(size: size)
+                            ForEach(model.nodes) { node in
+                                nodeView(node)
+                                    .position(point(for: node, size: size))
+                                    .gesture(nodeDrag(node, size: size))
+                                    .onTapGesture { selectedID = node.id }
+                                    .accessibilityElement()
+                                    .accessibilityLabel("\(node.label), \(node.id)")
+                                    .accessibilityHint(Text(verbatim: Strings.nodeHint))
+                                    .accessibilityAddTraits(.isButton)
+                            }
+                        }
+                        .scaleEffect(zoom)
+                        .offset(pan)
+                        .contentShape(Rectangle())
+                        .gesture(backgroundDrag)
+                        .simultaneousGesture(MagnificationGesture().onChanged { zoom = min(3, max(0.45, zoomStart * $0)) }.onEnded { _ in zoomStart = zoom })
+                        .onAppear {
+                            layout.setBounds(width: size.width, height: size.height)
+                            layout.update(nodes: model.nodes.map(\.id), edges: model.edges)
+                            if reduceMotion { layout.settle(nodes: model.nodes.map(\.id), edges: model.edges, iterations: 160) }
+                        }
+                        .onChange(of: size) { newSize in layout.setBounds(width: newSize.width, height: newSize.height) }
+                        .onChange(of: model.nodes.map(\.id)) { ids in
+                            layout.update(nodes: ids, edges: model.edges)
+                            if reduceMotion { layout.settle(nodes: ids, edges: model.edges, iterations: 160) }
+                        }
+                    }
+                }
+                .padding(.horizontal, 8)
             }
+            if model.nodes.count > 1 {
+                VStack(spacing: 4) {
+                    Text(summaryText)
+                        .font(.subheadline.weight(.semibold))
+                    Text("topology.caption")
+                        .font(.footnote)
+                        .foregroundStyle(.novaSecondaryText)
+                }
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
 
-            VStack(spacing: 4) {
-                Text(summaryText)
-                    .bitchatFont(size: 13, weight: .semibold)
-                    .foregroundColor(palette.primary)
-                Text("topology.caption")
-                    .bitchatFont(size: 11)
-                    .foregroundColor(palette.secondary)
+    private func graph(size: CGSize) -> some View {
+        Canvas { context, _ in
+            for (a, b) in model.edges {
+                guard let p1 = layout.positions[a], let p2 = layout.positions[b] else { continue }
+                var path = Path(); path.move(to: CGPoint(x: p1.x, y: p1.y)); path.addLine(to: CGPoint(x: p2.x, y: p2.y))
+                let highlighted = selectedID == a || selectedID == b
+                context.stroke(path, with: .color(highlighted ? Color.novaAccent : Color.novaSecondaryText.opacity(0.5)), style: StrokeStyle(lineWidth: highlighted ? 2.5 : 1.2, dash: [5, 4]))
+            }
+        }
+    }
+
+    @ViewBuilder private func nodeView(_ node: MeshTopologyDisplayModel.Node) -> some View {
+        let size: CGFloat = node.isSelf ? 42 : 34
+        ZStack {
+            AvatarDisc(seed: node.id).frame(width: size, height: size)
+                .overlay(Text(AvatarIdentity.initials(for: node.label)).font(.system(size: size * 0.38, weight: .semibold, design: .rounded)).foregroundStyle(.white))
+            if node.isSelf { Circle().stroke(Color.novaAccent, lineWidth: 2).frame(width: size + 7, height: size + 7) }
+            if selectedID == node.id { Circle().stroke(Color.novaAccent.opacity(0.7), lineWidth: 2).frame(width: size + 12, height: size + 12) }
+        }
+        .overlay(alignment: .bottom) {
+            Text(verbatim: node.label)
+                .font(.caption2)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .fixedSize()
+                .offset(y: 15)
+        }
+        .frame(width: 58, height: 58)
+        .contentShape(Circle())
+    }
+
+    /// A peer's card: its avatar tile, name, and what the map knows of it.
+    private func detail(_ node: MeshTopologyDisplayModel.Node) -> some View {
+        VStack(spacing: 8) {
+            InitialsAvatar(name: node.label, seed: node.id, size: 56)
+            Text(verbatim: node.label)
+                .font(.headline)
+            Text(verbatim: node.isSelf ? Strings.thisDevice : Strings.peerID(String(node.id.prefix(12)) + "…"))
+                .font(.subheadline)
+                .foregroundStyle(.novaSecondaryText)
+            if !node.isSelf {
+                Text(verbatim: Strings.advisory)
+                    .font(.footnote)
+                    .foregroundStyle(.novaSecondaryText)
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal)
-            .padding(.bottom, 16)
         }
-        .onAppear { model = provider() }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(summaryText))
+        .padding(24)
+        .frame(minWidth: 240)
+    }
+
+    private var backgroundDrag: some Gesture {
+        DragGesture(minimumDistance: 6).onChanged { value in
+            if draggingID == nil { pan = CGSize(width: panStart.width + value.translation.width, height: panStart.height + value.translation.height) }
+        }.onEnded { _ in panStart = pan }
+    }
+
+    private func nodeDrag(_ node: MeshTopologyDisplayModel.Node, size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 4).onChanged { value in
+            if draggingID == nil { draggingID = node.id; dragStart = value.startLocation }
+            guard draggingID == node.id else { return }
+            let origin = layout.positions[node.id] ?? .init(x: size.width/2, y: size.height/2)
+            layout.move(node.id, to: .init(x: origin.x + value.translation.width / zoom, y: origin.y + value.translation.height / zoom))
+        }.onEnded { _ in if draggingID == node.id { layout.release(node.id); draggingID = nil } }
+    }
+
+    private func point(for node: MeshTopologyDisplayModel.Node, size: CGSize) -> CGPoint {
+        let p = layout.positions[node.id] ?? .init(x: size.width/2, y: size.height/2)
+        return CGPoint(x: p.x, y: p.y)
+    }
+
+    private enum Strings {
+        static let fit = String(localized: "topology.action.fit", defaultValue: "Fit to Screen", comment: "Button in the mesh topology sheet's top bar that resets zoom and pan so the whole map fits")
+        static let nodeHint = String(localized: "topology.accessibility.node_hint", defaultValue: "Double-tap for details. Drag to move.", comment: "VoiceOver hint on a peer in the mesh topology map")
+        static let thisDevice = String(localized: "topology.detail.this_device", defaultValue: "This Device", comment: "Shown in the detail card of the user's own node in the mesh topology map")
+        static let advisory = String(localized: "topology.detail.advisory", defaultValue: "Links come from what peers report and may be out of date.", comment: "Note in the detail card of a peer in the mesh topology map: the links are reported by peers and may be stale")
+        static let emptyTitle = String(localized: "topology.empty.title", defaultValue: "No Peers Yet", comment: "Title of the empty mesh topology map, above an explanation that it fills in as peers announce themselves")
+        static func peerID(_ id: String) -> String {
+            String(
+                format: String(localized: "topology.detail.peer_id", defaultValue: "Peer ID %@", comment: "Shown in the detail card of a peer in the mesh topology map; %@ is the start of the peer's ID"),
+                locale: .current,
+                id
+            )
+        }
     }
 
     private var summaryText: String {
-        String(
-            format: String(
-                localized: "topology.summary",
-                comment: "Topology map summary: number of peers and links"
-            ),
-            locale: .current,
-            model.nodes.count,
-            model.edges.count
-        )
+        String(format: String(localized: "topology.summary", comment: "Topology map summary: number of peers and links"), locale: .current, model.nodes.count, model.edges.count)
     }
 
-    private var graphCanvas: some View {
-        Canvas { context, size in
-            let positions = Self.layout(nodes: model.nodes, in: size)
-            let fontDesign = appTheme.bodyFontDesign
-
-            // Edges first so nodes draw on top.
-            for (fromID, toID) in model.edges {
-                guard let from = positions[fromID], let to = positions[toID] else { continue }
-                var path = Path()
-                path.move(to: from)
-                path.addLine(to: to)
-                context.stroke(path, with: .color(palette.secondary.opacity(0.45)), lineWidth: 1)
-            }
-
-            for node in model.nodes {
-                guard let center = positions[node.id] else { continue }
-                let radius: CGFloat = node.isSelf ? 7 : 5
-                let dot = Path(ellipseIn: CGRect(
-                    x: center.x - radius,
-                    y: center.y - radius,
-                    width: radius * 2,
-                    height: radius * 2
-                ))
-                context.fill(dot, with: .color(node.isSelf ? palette.accent : palette.primary))
-                if node.isSelf {
-                    let ring = Path(ellipseIn: CGRect(
-                        x: center.x - radius - 3,
-                        y: center.y - radius - 3,
-                        width: (radius + 3) * 2,
-                        height: (radius + 3) * 2
-                    ))
-                    context.stroke(ring, with: .color(palette.accent.opacity(0.6)), lineWidth: 1)
-                }
-                context.draw(
-                    Text(node.label)
-                        .font(.system(size: 10, design: fontDesign))
-                        .foregroundColor(node.isSelf ? palette.accent : palette.secondary),
-                    at: CGPoint(x: center.x, y: center.y + radius + 4),
-                    anchor: .top
-                )
-            }
-        }
-        .accessibilityHidden(true) // The combined summary label narrates the graph.
+    private func refresh() {
+        model = provider()
+        layout.update(nodes: model.nodes.map(\.id), edges: model.edges)
+        if reduceMotion { layout.settle(nodes: model.nodes.map(\.id), edges: model.edges, iterations: 160) }
     }
 
-    /// Circular layout: self in the center, everyone else evenly spaced on a
-    /// ring. Deterministic (nodes arrive sorted), so refreshes don't shuffle.
+    private func fit() { zoom = 1; zoomStart = 1; pan = .zero; panStart = .zero }
+
+    private func advanceLayout() {
+        if !reduceMotion { layout.step(nodes: model.nodes.map(\.id), edges: model.edges) }
+    }
+
+    /// Kept for callers that need a deterministic initial preview layout.
     static func layout(nodes: [MeshTopologyDisplayModel.Node], in size: CGSize) -> [String: CGPoint] {
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
-        // Leave room for the label row under each ring node.
         let radius = max(20, min(size.width, size.height) / 2 - 36)
-        var positions: [String: CGPoint] = [:]
-
         let ringNodes = nodes.filter { !$0.isSelf }
-        for node in nodes where node.isSelf {
-            positions[node.id] = center
-        }
+        var result: [String: CGPoint] = [:]
+        for node in nodes where node.isSelf { result[node.id] = center }
         for (index, node) in ringNodes.enumerated() {
-            let angle = (2 * CGFloat.pi * CGFloat(index)) / CGFloat(max(1, ringNodes.count)) - CGFloat.pi / 2
-            positions[node.id] = CGPoint(
-                x: center.x + radius * cos(angle),
-                y: center.y + radius * sin(angle)
-            )
+            let angle = 2 * CGFloat.pi * CGFloat(index) / CGFloat(max(1, ringNodes.count)) - CGFloat.pi / 2
+            result[node.id] = CGPoint(x: center.x + radius * cos(angle), y: center.y + radius * sin(angle))
         }
-        return positions
+        return result
     }
-}
-
-#Preview("Topology") {
-    MeshTopologyView(provider: {
-        MeshTopologyDisplayModel(
-            nodes: [
-                .init(id: "self", label: "me", isSelf: true),
-                .init(id: "a", label: "alice", isSelf: false),
-                .init(id: "b", label: "bob", isSelf: false),
-                .init(id: "c", label: "carol", isSelf: false)
-            ],
-            edges: [("self", "a"), ("a", "b"), ("self", "c")]
-        )
-    })
 }

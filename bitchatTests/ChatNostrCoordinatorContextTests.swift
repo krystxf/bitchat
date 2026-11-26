@@ -67,10 +67,14 @@ private final class MockChatNostrContext: ChatNostrContext {
 
     // Inbound public messages
     private(set) var handledPublicMessages: [BitchatMessage] = []
+    private(set) var publicHapticEligibility: [Bool] = []
     private(set) var mentionCheckedMessageIDs: [String] = []
     private(set) var hapticMessageIDs: [String] = []
 
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int) { handledPublicMessages.append(message) }
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int, allowHaptic: Bool) {
+        handledPublicMessages.append(message)
+        publicHapticEligibility.append(allowHaptic)
+    }
     func checkForMentions(_ message: BitchatMessage) { mentionCheckedMessageIDs.append(message.id) }
     func sendHapticFeedback(for message: BitchatMessage) { hapticMessageIDs.append(message.id) }
     func parseMentions(from content: String) -> [String] { [] }
@@ -89,7 +93,8 @@ private final class MockChatNostrContext: ChatNostrContext {
         senderPubkey: String,
         convKey: PeerID,
         id: NostrIdentity,
-        messageTimestamp: Date
+        messageTimestamp: Date,
+        allowHaptic: Bool
     ) {
         handledPrivateMessages.append((payload, senderPubkey, convKey, messageTimestamp))
     }
@@ -304,7 +309,7 @@ struct ChatNostrCoordinatorContextTests {
         #expect(context.handledPublicMessages.first?.sender == "alice#1234")
         #expect(context.handledPublicMessages.first?.content == "hello geohash")
         #expect(context.mentionCheckedMessageIDs == [event.id])
-        #expect(context.hapticMessageIDs == [event.id])
+        #expect(context.publicHapticEligibility == [true])
 
         // A replay of the same event is dropped before any processing.
         coordinator.inbound.handleNostrEvent(event)
@@ -801,4 +806,134 @@ struct GeoPresenceTrackerTests {
         )
     }
 
+}
+
+// MARK: - Hide messages without proof of work
+
+/// The optional receive filter (`LocationProofOfWorkSettings`
+/// `hidesMessagesWithoutWork`). Off by default, so every test here opts in
+/// through the coordinator's injected flag, never the shared preferences.
+struct LocationProofOfWorkReceiveFilterTests {
+    private static func unminedMessage(from sender: NostrIdentity, geohash: String = "u4pruyd") throws -> NostrEvent {
+        try NostrProtocol.createEphemeralGeohashEvent(content: "no work", geohash: geohash, senderIdentity: sender)
+    }
+
+    private static func minedMessage(from sender: NostrIdentity, bits: Int, geohash: String = "u4pruyd") async throws -> NostrEvent {
+        try await NostrProtocol.createMinedEphemeralGeohashEvent(
+            content: "with work",
+            geohash: geohash,
+            senderIdentity: sender,
+            powTargetBits: bits
+        )
+    }
+
+    @Test @MainActor
+    func filterOff_showsMessagesWithoutWork() async throws {
+        let context = MockChatNostrContext()
+        let coordinator = ChatNostrCoordinator(context: context, hidesMessagesWithoutWork: { false })
+        let event = try Self.unminedMessage(from: NostrIdentity.generate())
+
+        coordinator.inbound.handleNostrEvent(event)
+        await drainMainQueue()
+
+        #expect(context.handledPublicMessages.map(\.id) == [event.id])
+    }
+
+    @Test @MainActor
+    func filterOn_hidesMessagesWithoutWorkAndLeavesThemUnrecorded() async throws {
+        let context = MockChatNostrContext()
+        var hides = true
+        let coordinator = ChatNostrCoordinator(context: context, hidesMessagesWithoutWork: { hides })
+        let event = try Self.unminedMessage(from: NostrIdentity.generate())
+
+        coordinator.inbound.handleNostrEvent(event)
+        coordinator.inbound.subscribeNostrEvent(event)
+        await drainMainQueue()
+
+        #expect(context.handledPublicMessages.isEmpty)
+        // Not recorded as processed or present, so once the filter is off
+        // the next copy of the same event shows.
+        #expect(context.recordedNostrEventIDs.isEmpty)
+        #expect(context.recordedParticipants.isEmpty)
+
+        hides = false
+        coordinator.inbound.handleNostrEvent(event)
+        await drainMainQueue()
+        #expect(context.handledPublicMessages.map(\.id) == [event.id])
+    }
+
+    @Test @MainActor
+    func filterOn_showsMessagesWithEnoughWork() async throws {
+        let context = MockChatNostrContext()
+        let coordinator = ChatNostrCoordinator(context: context, hidesMessagesWithoutWork: { true })
+        let sender = try NostrIdentity.generate()
+        let mined = try await Self.minedMessage(from: sender, bits: LocationProofOfWorkSettings.minimumIncomingBits)
+        // The 2 s budget makes 8 bits effectively certain.
+        try #require(NostrPoW.validatedDifficulty(idHex: mined.id, tags: mined.tags) >= LocationProofOfWorkSettings.minimumIncomingBits)
+
+        coordinator.inbound.subscribeNostrEvent(mined)
+        await drainMainQueue()
+
+        #expect(context.handledPublicMessages.map(\.id) == [mined.id])
+    }
+
+    @Test @MainActor
+    func filterOn_hidesWorkBelowTheMinimum() async throws {
+        let context = MockChatNostrContext()
+        let coordinator = ChatNostrCoordinator(context: context, hidesMessagesWithoutWork: { true })
+        let weak = try await Self.minedMessage(from: NostrIdentity.generate(), bits: 4)
+        try #require(NostrPoW.validatedDifficulty(idHex: weak.id, tags: weak.tags) < LocationProofOfWorkSettings.minimumIncomingBits)
+
+        coordinator.inbound.handleNostrEvent(weak)
+        await drainMainQueue()
+
+        #expect(context.handledPublicMessages.isEmpty)
+    }
+
+    @Test @MainActor
+    func filterOn_alwaysShowsMyOwnMessages() async throws {
+        let context = MockChatNostrContext()
+        let coordinator = ChatNostrCoordinator(context: context, hidesMessagesWithoutWork: { true })
+        let me = try NostrIdentity.generate()
+        context.currentGeohash = "u4pruyd"
+        context.geohashIdentities["u4pruyd"] = me
+        // Older than the 15 s self-echo window: history of my own messages
+        // sent while proof of work was off.
+        let mine = try NostrEvent(
+            pubkey: me.publicKeyHex,
+            createdAt: Date().addingTimeInterval(-600),
+            kind: .ephemeralEvent,
+            tags: [["g", "u4pruyd"]],
+            content: "sent without work"
+        ).sign(with: me.schnorrSigningKey())
+
+        coordinator.inbound.handleNostrEvent(mine, isHistoryReplay: true)
+        await drainMainQueue()
+
+        #expect(context.handledPublicMessages.map(\.id) == [mine.id])
+    }
+
+    @Test @MainActor
+    func filterOn_keepsPresenceAndNearbyPreviewsConsistent() async throws {
+        let context = MockChatNostrContext()
+        let coordinator = ChatNostrCoordinator(context: context, hidesMessagesWithoutWork: { true })
+        let sender = try NostrIdentity.generate()
+
+        // A presence heartbeat carries no message, so the filter never
+        // touches it: the sender still counts as here.
+        let heartbeat = try NostrProtocol.createGeohashPresenceEvent(geohash: "u4pruyd", senderIdentity: sender)
+        coordinator.inbound.subscribeNostrEvent(heartbeat)
+        await drainMainQueue()
+        #expect(context.recordedParticipants == [sender.publicKeyHex])
+
+        // A sampled cell's message without work counts its sender but
+        // never reaches the nearby-conversation hint.
+        let cell = "zz" + String(UUID().uuidString.prefix(6)).lowercased()
+        let sampled = try Self.unminedMessage(from: sender, geohash: cell)
+        coordinator.presence.subscribeNostrEvent(sampled, gh: cell)
+        await drainMainQueue()
+        #expect(context.recordedSampledParticipants.map(\.geohash) == [cell])
+        #expect(GeohashChatActivityTracker.shared.messageCount(for: cell) == 0)
+        #expect(context.appendedGeohashMessages.isEmpty)
+    }
 }

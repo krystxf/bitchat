@@ -78,6 +78,33 @@ final class PTTCaptureGeneration: @unchecked Sendable {
     }
 }
 
+/// Bounded, lock-protected queue of input levels: written on the capture
+/// queue, drained by the recording bar's poll on the main actor.
+final class PTTInputLevelQueue: @unchecked Sendable {
+    /// About two seconds of chunks; a stalled poll drops the oldest.
+    private static let capacity = 64
+    private let lock = NSLock()
+    private var levels: [Float] = []
+
+    func append(_ newLevels: [Float]) {
+        guard !newLevels.isEmpty else { return }
+        lock.withLock {
+            levels.append(contentsOf: newLevels)
+            if levels.count > Self.capacity {
+                levels.removeFirst(levels.count - Self.capacity)
+            }
+        }
+    }
+
+    func drain() -> [Float] {
+        lock.withLock {
+            let drained = levels
+            levels.removeAll(keepingCapacity: true)
+            return drained
+        }
+    }
+}
+
 /// Captures microphone audio for a live push-to-talk burst, producing both:
 /// - live AAC frames via `onFrames` (called on the capture queue), and
 /// - a finalized `.m4a` voice note on `stop()` — the same artifact
@@ -91,7 +118,7 @@ final class PTTCaptureGeneration: @unchecked Sendable {
 final class PTTCaptureEngine: @unchecked Sendable {
     /// Hard cap matching `VoiceRecorder.maxRecordingDuration`: past it the
     /// engine keeps running (the UI owns the gesture) but stops encoding.
-    private static let maxCaptureDuration: TimeInterval = 120
+    private static let maxCaptureDuration: TimeInterval = VoiceRecorder.maxRecordingDuration
 
     /// Recreated on every `start()`: an engine whose input unit was
     /// instantiated against an earlier (playback-only or inactive) audio
@@ -102,6 +129,7 @@ final class PTTCaptureEngine: @unchecked Sendable {
     private let coordinator: AudioSessionCoordinator
     private let sessionLease: PTTCaptureSessionLease
     private let captureGeneration = PTTCaptureGeneration()
+    private let inputLevels = PTTInputLevelQueue()
 
     // Capture-queue-confined state.
     private var resampler: PTTInputResampler?
@@ -245,6 +273,12 @@ final class PTTCaptureEngine: @unchecked Sendable {
         releaseSessionToken()
     }
 
+    /// Input loudness in dBFS per ~40 ms chunk since the last call, for the
+    /// recording bar's live waveform.
+    func drainInputLevels() -> [Float] {
+        inputLevels.drain()
+    }
+
     /// Audio session interrupted (call, Siri) or the engine was reconfigured
     /// mid-capture: behave like `stop()` — finalize the `.m4a` container but
     /// keep `fileURL`/`encodedFrameCount` so the caller's pending `stop()`
@@ -300,6 +334,12 @@ final class PTTCaptureEngine: @unchecked Sendable {
               Date().timeIntervalSince(captureStart) < Self.maxCaptureDuration,
               let resampled = resampler?.resample(buffer)
         else { return }
+
+        if let samples = buffer.floatChannelData?[0] {
+            let frames = UnsafeBufferPointer(start: samples, count: Int(buffer.frameLength))
+            let chunk = Int(buffer.format.sampleRate * VoiceInputLevel.chunkDuration)
+            inputLevels.append(VoiceInputLevel.chunkDecibels(frames, chunkSize: chunk))
+        }
 
         do {
             try file?.write(from: resampled)

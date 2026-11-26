@@ -8,6 +8,7 @@
 
 import Testing
 import Foundation
+import SwiftUI
 import BitFoundation
 @testable import bitchat
 
@@ -20,12 +21,14 @@ private func makeTestableViewModel(
     panicMediaWipe: (() throws -> Void)? = nil,
     panicRecoveryOperations: PanicRecoveryOperations? = nil,
     panicNetworkLifecycle: PanicNetworkLifecycle = .noop,
-    locationManager: LocationChannelManager = .shared
+    messageWipeOperations: MessageWipeOperations? = nil,
+    locationManager: LocationChannelManager = .shared,
+    identityManager injectedIdentityManager: MockIdentityManager? = nil
 ) -> (viewModel: ChatViewModel, transport: MockTransport) {
     let keychain = injectedKeychain ?? MockKeychain()
     let keychainHelper = MockKeychainHelper()
     let idBridge = NostrIdentityBridge(keychain: keychainHelper)
-    let identityManager = MockIdentityManager(keychain)
+    let identityManager = injectedIdentityManager ?? MockIdentityManager(keychain)
     let transport = MockTransport()
 
     let viewModel = ChatViewModel(
@@ -36,7 +39,8 @@ private func makeTestableViewModel(
         locationManager: locationManager,
         panicMediaWipe: panicMediaWipe,
         panicRecoveryOperations: panicRecoveryOperations,
-        panicNetworkLifecycle: panicNetworkLifecycle
+        panicNetworkLifecycle: panicNetworkLifecycle,
+        messageWipeOperations: messageWipeOperations
     )
 
     return (viewModel, transport)
@@ -303,8 +307,8 @@ struct ChatViewModelCommandTests {
         viewModel.handleCommand("/bogus")
 
         let dmContents = viewModel.privateChats[peerID]?.map(\.content) ?? []
-        #expect(dmContents.contains { $0.hasPrefix("unknown command: /bogus") })
-        #expect(!viewModel.messages.contains { $0.content.hasPrefix("unknown command: /bogus") })
+        #expect(dmContents.contains { $0.hasPrefix("Unknown command: /bogus") })
+        #expect(!viewModel.messages.contains { $0.content.hasPrefix("Unknown command: /bogus") })
     }
 
     @Test @MainActor
@@ -313,25 +317,10 @@ struct ChatViewModelCommandTests {
 
         viewModel.handleCommand("/bogus")
 
-        #expect(viewModel.messages.last?.content.hasPrefix("unknown command: /bogus") == true)
+        #expect(viewModel.messages.last?.content.hasPrefix("Unknown command: /bogus") == true)
     }
 
-    @Test @MainActor
-    func handleCommand_msgSuccessLandsInNewlyOpenedChat() async {
-        let (viewModel, transport) = makeTestableViewModel()
-        let peerID = PeerID(str: "0000000000000002")
-        transport.simulateConnect(peerID, nickname: "Alice")
-        let resolved = await TestHelpers.waitUntil({
-            viewModel.getPeerIDForNickname("Alice") == peerID
-        }, timeout: TestConstants.negativeWaitWindow)
-        #expect(resolved)
 
-        viewModel.handleCommand("/msg Alice")
-
-        #expect(viewModel.selectedPrivateChatPeer == peerID)
-        #expect(viewModel.privateChats[peerID]?.last?.content == "started private chat with Alice")
-        #expect(!viewModel.messages.contains { $0.content == "started private chat with Alice" })
-    }
 }
 
 // MARK: - Composer Tests
@@ -706,10 +695,10 @@ struct ChatViewModelFormattingTests {
             senderPeerID: PeerID(str: "00000000000000b3")
         )
 
-        // The full text is cached first under the same scheme, theme and
-        // sender flags; the header lookup must not pick it up.
-        let fullText = viewModel.formatMessageAsText(message, colorScheme: .dark, theme: .matrix)
-        let header = viewModel.formatMessageHeader(message, colorScheme: .dark, theme: .matrix)
+        // The full text is cached first under the same scheme and sender
+        // flags; the header lookup must not pick it up.
+        let fullText = viewModel.formatMessageAsText(message, colorScheme: .dark)
+        let header = viewModel.formatMessageHeader(message, colorScheme: .dark)
 
         #expect(String(header.characters) == "<@Alice#a1b2> ")
         #expect(String(fullText.characters).hasPrefix("<@Alice#a1b2> hello"))
@@ -721,8 +710,196 @@ struct ChatViewModelFormattingTests {
             ) == header
         )
         // Later lookups are answered from each one's own cache entry.
-        #expect(viewModel.formatMessageHeader(message, colorScheme: .dark, theme: .matrix) == header)
-        #expect(viewModel.formatMessageAsText(message, colorScheme: .dark, theme: .matrix) == fullText)
+        #expect(viewModel.formatMessageHeader(message, colorScheme: .dark) == header)
+        #expect(viewModel.formatMessageAsText(message, colorScheme: .dark) == fullText)
+    }
+
+    @Test @MainActor
+    func formatMessageBody_isTheTextAloneColoredForItsSide() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let message = BitchatMessage(
+            id: "fmt-body-1",
+            sender: "Alice#a1b2",
+            content: "hi @bob see https://example.com #mesh",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: PeerID(str: "00000000000000b5")
+        )
+
+        let theirs = viewModel.formatMessageBody(message, isSelf: false, colorScheme: .light)
+        let mine = viewModel.formatMessageBody(message, isSelf: true, colorScheme: .light)
+
+        // No sender and no timestamp: the bubble row shows both beside it.
+        #expect(String(theirs.characters) == message.content)
+        #expect(String(mine.characters) == message.content)
+        #expect(theirs.runs.first?.swiftUI.foregroundColor == .primary)
+        #expect(mine.runs.first?.swiftUI.foregroundColor == .white)
+        #expect(theirs.runs.contains { $0.link == URL(string: "https://example.com") })
+    }
+
+    @Test @MainActor
+    func formatMessageBody_isCachedApartFromTheOtherFormats() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let message = BitchatMessage(
+            id: "fmt-body-2",
+            sender: "Alice#a1b2",
+            content: "hello",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: PeerID(str: "00000000000000b6")
+        )
+
+        let fullText = viewModel.formatMessageAsText(message, colorScheme: .dark)
+        let header = viewModel.formatMessageHeader(message, colorScheme: .dark)
+        let body = viewModel.formatMessageBody(message, isSelf: false, colorScheme: .dark)
+        let name = viewModel.formatSenderName(message, colorScheme: .dark)
+
+        #expect(String(body.characters) == "hello")
+        #expect(String(name.characters) == "Alice#a1b2")
+        #expect(
+            message.getCachedFormattedText(
+                isDark: true,
+                isSelf: false,
+                variant: ChatMessageFormatter.bodyCacheNamespace
+            ) == body
+        )
+        #expect(viewModel.formatMessageAsText(message, colorScheme: .dark) == fullText)
+        #expect(viewModel.formatMessageHeader(message, colorScheme: .dark) == header)
+        #expect(viewModel.formatMessageBody(message, isSelf: false, colorScheme: .dark) == body)
+        #expect(viewModel.formatSenderName(message, colorScheme: .dark) == name)
+    }
+
+    @Test @MainActor
+    func formatMessageBody_isEmptyForAMessageOfPaymentTokensOnly() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let message = BitchatMessage(
+            id: "fmt-body-3",
+            sender: "Alice#a1b2",
+            content: "cashuA" + String(repeating: "a", count: 40),
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: PeerID(str: "00000000000000b7")
+        )
+
+        // The token renders as a chip; an empty body lets the row skip the
+        // bubble instead of drawing one around a blank space.
+        #expect(viewModel.formatMessageBody(message, isSelf: false, colorScheme: .light).characters.isEmpty)
+    }
+
+    @Test @MainActor
+    func formatSenderName_linksToTheSendersActions() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let senderPeerID = PeerID(str: "00000000000000b8")
+        let message = BitchatMessage(
+            id: "fmt-name-1",
+            sender: "Alice#a1b2",
+            content: "hello",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: senderPeerID
+        )
+
+        let name = viewModel.formatSenderName(message, colorScheme: .light)
+
+        // The same link the name in the full text carries, so a tap still
+        // opens the sender's action sheet.
+        #expect(name.runs.allSatisfy { $0.link == URL(string: "bitchat://user/\(senderPeerID.id)") })
+        // Nova's secondary text color, never a palette hue: dark purples are
+        // unreadable on the dark backdrop. The token is a dynamic color, so
+        // compare what both resolve to.
+        if #available(iOS 17.0, macOS 14.0, *) {
+            var environment = EnvironmentValues()
+            environment.colorScheme = .light
+            let resolved = name.runs.first?.swiftUI.foregroundColor?.resolve(in: environment)
+            #expect(resolved == Color.novaSecondaryText.resolve(in: environment))
+        }
+    }
+
+    @Test @MainActor
+    func formatSenderName_prefersTheSavedPetname() async {
+        let (viewModel, transport) = makeTestableViewModel()
+        let senderPeerID = PeerID(str: "00000000000000b9")
+        let fingerprint = "fingerprint-bubble-petname"
+        let message = BitchatMessage(
+            id: "fmt-name-2",
+            sender: "Alice#a1b2",
+            content: "hello",
+            timestamp: Date(),
+            isRelay: false,
+            senderPeerID: senderPeerID
+        )
+        #expect(String(viewModel.formatSenderName(message, colorScheme: .dark).characters) == "Alice#a1b2")
+
+        transport.peerFingerprints[senderPeerID] = fingerprint
+        viewModel.identityManager.updateSocialIdentity(
+            SocialIdentity(
+                fingerprint: fingerprint,
+                localPetname: "Mom",
+                claimedNickname: "Alice",
+                trustLevel: .casual,
+                isFavorite: false,
+                isBlocked: false,
+                notes: nil
+            )
+        )
+
+        // The petname replaces the announced name and its suffix, and the
+        // cached label without it is not served.
+        #expect(String(viewModel.formatSenderName(message, colorScheme: .dark).characters) == "Mom")
+        #expect(viewModel.localPetname(for: senderPeerID) == "Mom")
+    }
+
+    @Test @MainActor
+    func blockedAccounts_listMeshAndLocationBlocksAndUnblockClearsThem() async {
+        let (viewModel, _) = makeTestableViewModel()
+        let fingerprint = "fingerprint-blocked-list"
+        let pubkey = String(repeating: "ab", count: 32)
+        viewModel.identityManager.updateSocialIdentity(
+            SocialIdentity(
+                fingerprint: fingerprint,
+                localPetname: nil,
+                claimedNickname: "mallory",
+                trustLevel: .unknown,
+                isFavorite: false,
+                isBlocked: true,
+                notes: nil
+            )
+        )
+        viewModel.identityManager.setNostrBlocked(pubkey, isBlocked: true)
+
+        let accounts = viewModel.blockedAccounts()
+        #expect(accounts.contains { $0.kind == .mesh(fingerprint: fingerprint) && $0.name == "mallory" })
+        #expect(accounts.contains { $0.kind == .nostr(pubkeyHex: pubkey) })
+
+        for account in accounts {
+            viewModel.unblock(account)
+        }
+        #expect(!viewModel.identityManager.isBlocked(fingerprint: fingerprint))
+        #expect(!viewModel.identityManager.isNostrBlocked(pubkeyHexLowercased: pubkey))
+        #expect(viewModel.blockedAccounts().isEmpty)
+    }
+
+    @Test @MainActor
+    func isSelfMessage_judgesBySenderIDNotNickname() async {
+        let (viewModel, transport) = makeTestableViewModel()
+        viewModel.nickname = "alice"
+        func row(_ sender: String, _ senderPeerID: PeerID?) -> BitchatMessage {
+            BitchatMessage(
+                sender: sender,
+                content: "hi",
+                timestamp: Date(),
+                isRelay: false,
+                senderPeerID: senderPeerID
+            )
+        }
+
+        // My ID makes a row mine, even under a name from before a rename.
+        #expect(viewModel.isSelfMessage(row("al", transport.myPeerID)))
+        // My name alone never does: a namesake must not render as me.
+        #expect(!viewModel.isSelfMessage(row("alice", nil)))
+        #expect(!viewModel.isSelfMessage(row("alice", PeerID(str: "00000000000000b4"))))
+        // Local system lines carry my ID but are nobody's message.
+        #expect(!viewModel.isSelfMessage(row("system", transport.myPeerID)))
     }
 }
 
@@ -2397,6 +2574,204 @@ struct ChatViewModelPanicTests {
         #expect(locationManager.bookmarks.isEmpty)
         #expect(storage.object(forKey: "locationChannel.teleportedSet") == nil)
         #expect(storage.object(forKey: "locationChannel.bookmarks") == nil)
+    }
+}
+
+// MARK: - Message Wipe Tests (extreme security mode)
+
+struct ChatViewModelMessageWipeTests {
+    private let peerID = PeerID(str: "00000000000000a1")
+
+    /// One public message, one unread private message, and a draft under a
+    /// key no other test uses (the draft store is process-wide).
+    @MainActor
+    private func seedConversations(
+        in viewModel: ChatViewModel,
+        draftKey: ComposerDraftStore.Key
+    ) {
+        viewModel.seedPublicMessages([
+            BitchatMessage(
+                id: "wipe-pub-1",
+                sender: "Bob",
+                content: "public before exit",
+                timestamp: Date(),
+                isRelay: false
+            )
+        ])
+        viewModel.seedPrivateChat([
+            BitchatMessage(
+                id: "wipe-pm-1",
+                sender: "Alice",
+                content: "private before exit",
+                timestamp: Date(),
+                isRelay: false,
+                isPrivate: true,
+                recipientNickname: viewModel.nickname,
+                senderPeerID: peerID
+            )
+        ], for: peerID)
+        viewModel.markPrivateChatUnread(peerID)
+        ComposerDraftStore.save("half-written secret", for: draftKey)
+    }
+
+    private func uniqueDraftKey() -> ComposerDraftStore.Key {
+        .privateChat(stableID: "wipe-test-\(UUID().uuidString)")
+    }
+
+    @Test @MainActor
+    func wipeMessages_clearsTimelinesUnreadStateAndDrafts() {
+        let (viewModel, _) = makeTestableViewModel()
+        let draftKey = uniqueDraftKey()
+        seedConversations(in: viewModel, draftKey: draftKey)
+
+        let completed = viewModel.wipeMessages()
+
+        #expect(completed)
+        #expect(viewModel.messages.isEmpty)
+        #expect(viewModel.publicMessages(for: .mesh).isEmpty)
+        #expect(viewModel.privateMessages(for: peerID).isEmpty)
+        #expect(viewModel.unreadPrivateMessages.isEmpty)
+        #expect(ComposerDraftStore.load(draftKey).isEmpty)
+        // Silent: unlike the panic wipe, leaving the app adds no notice.
+        #expect(!viewModel.messages.contains { $0.sender == "system" })
+    }
+
+    @Test @MainActor
+    func wipeMessages_keepsIdentityContactsAndSettings() {
+        let keychain = MockKeychain()
+        let identityManager = MockIdentityManager(keychain)
+        let favorite = String(repeating: "f", count: 64)
+        let blocked = String(repeating: "b", count: 64)
+        identityManager.updateSocialIdentity(SocialIdentity(
+            fingerprint: favorite,
+            localPetname: "mum",
+            claimedNickname: "alice",
+            trustLevel: .trusted,
+            isFavorite: true,
+            isBlocked: false,
+            notes: nil
+        ))
+        identityManager.setBlocked(blocked, isBlocked: true)
+        let (viewModel, transport) = makeTestableViewModel(
+            keychain: keychain,
+            identityManager: identityManager
+        )
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+        let nickname = viewModel.nickname
+        let myPeerID = transport.myPeerID
+        let hidePreviews = NotificationPrivacySettings.hideMessagePreviews
+        let autoReveal = MediaRevealSettings.autoRevealFavorites
+
+        viewModel.wipeMessages()
+
+        // Identity and keys
+        #expect(keychain.deleteAllCallCount == 0)
+        #expect(viewModel.nickname == nickname)
+        #expect(transport.myPeerID == myPeerID)
+        // Contacts
+        let contact = identityManager.getSocialIdentity(for: favorite)
+        #expect(contact?.isFavorite == true)
+        #expect(contact?.localPetname == "mum")
+        #expect(identityManager.isBlocked(fingerprint: blocked))
+        // Settings
+        #expect(NotificationPrivacySettings.hideMessagePreviews == hidePreviews)
+        #expect(MediaRevealSettings.autoRevealFavorites == autoReveal)
+    }
+
+    @Test @MainActor
+    func wipeMessages_deletesMediaArchiveNotificationsAndCachesBeforeReturning() {
+        var events: [String] = []
+        let operations = MessageWipeOperations.ephemeral(
+            deleteMediaFiles: { events.append("media") },
+            deletePublicArchive: { events.append("archive") },
+            removeNotifications: { events.append("notifications") },
+            clearMediaCaches: { events.append("caches") }
+        )
+        let (viewModel, transport) = makeTestableViewModel(messageWipeOperations: operations)
+
+        viewModel.wipeMessages()
+
+        #expect(Set(events) == ["media", "archive", "notifications", "caches"])
+        #expect(events.count == 4)
+        // The mesh's own carried copies go too, after the files.
+        #expect(transport.wipeCarriedMessagesCallCount == 1)
+    }
+
+    @Test @MainActor
+    func wipeMessages_reportsLeftoverMediaButStillClearsMessages() {
+        enum DiskFailure: Error { case busy }
+        let operations = MessageWipeOperations.ephemeral(
+            deleteMediaFiles: { throw DiskFailure.busy }
+        )
+        let (viewModel, transport) = makeTestableViewModel(messageWipeOperations: operations)
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+
+        let completed = viewModel.wipeMessages()
+
+        #expect(!completed)
+        #expect(viewModel.messages.isEmpty)
+        #expect(viewModel.privateMessages(for: peerID).isEmpty)
+        #expect(transport.wipeCarriedMessagesCallCount == 1)
+    }
+
+    @Test @MainActor
+    func wipeMessages_keepsTheOpenPrivateChatOpenAndEmpty() {
+        let (viewModel, _) = makeTestableViewModel()
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+        viewModel.selectedPrivateChatPeer = peerID
+
+        viewModel.wipeMessages()
+
+        #expect(viewModel.selectedPrivateChatPeer == peerID)
+        #expect(viewModel.conversations.selectedConversationID != nil)
+        #expect(viewModel.privateMessages(for: peerID).isEmpty)
+        #expect(viewModel.conversations.auditInvariants().isEmpty)
+    }
+
+    @Test @MainActor
+    func wipeMessages_keepsServicesRunningSoNewMessagesArrive() async {
+        let (viewModel, transport) = makeTestableViewModel()
+        seedConversations(in: viewModel, draftKey: uniqueDraftKey())
+        let startsBeforeWipe = transport.startServicesCallCount
+
+        viewModel.wipeMessages()
+        transport.simulateIncomingPublicMessage(
+            from: PeerID(str: "00000000000000b2"),
+            nickname: "Bob",
+            content: "hello after the wipe",
+            timestamp: Date(),
+            messageID: "wipe-pub-after"
+        )
+
+        let arrived = await TestHelpers.waitUntil({
+            viewModel.publicMessages(for: .mesh).contains { $0.content == "hello after the wipe" }
+        }, timeout: TestConstants.settleTimeout)
+        #expect(arrived)
+        #expect(transport.emergencyDisconnectCallCount == 0)
+        #expect(transport.startServicesCallCount == startsBeforeWipe)
+        #expect(viewModel.networkActivationAllowed)
+    }
+
+    @Test @MainActor
+    func panicClearAllData_runsTheSameMessageWipe() {
+        var events: [String] = []
+        let operations = MessageWipeOperations.ephemeral(
+            deleteMediaFiles: { events.append("media") },
+            deletePublicArchive: { events.append("archive") },
+            removeNotifications: { events.append("notifications") },
+            clearMediaCaches: { events.append("caches") }
+        )
+        let (viewModel, _) = makeTestableViewModel(messageWipeOperations: operations)
+        let draftKey = uniqueDraftKey()
+        seedConversations(in: viewModel, draftKey: draftKey)
+
+        viewModel.panicClearAllData()
+
+        #expect(ComposerDraftStore.load(draftKey).isEmpty)
+        #expect(Set(events) == ["archive", "notifications", "caches"])
+        // Panic deletes the media tree inside its own recovery transaction,
+        // so the non-transactional media step stays out of it.
+        #expect(!events.contains("media"))
     }
 }
 

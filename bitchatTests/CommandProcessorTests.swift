@@ -7,66 +7,22 @@ import BitFoundation
 struct CommandProcessorTests {
 
     @MainActor
-    @Test func slapNotFoundGrammar() {
+    @Test func hugAndSlapAreNoLongerCommands() {
         let identityManager = MockIdentityManager(MockKeychain())
         let processor = CommandProcessor(contextProvider: nil, meshService: nil, identityManager: identityManager)
-        let result = processor.process("/slap @system")
-        switch result {
-        case .error(let message):
-            #expect(message == "cannot slap system: not found")
-        default:
-            Issue.record("Expected error result")
+        for command in ["/hug @bob", "/slap @bob"] {
+            switch processor.process(command) {
+            case .error(let message):
+                #expect(message.hasPrefix("Unknown command: /"))
+            default:
+                Issue.record("Expected \(command) to be an unknown command")
+            }
         }
-    }
-
-    @MainActor
-    @Test func hugNotFoundGrammar() {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let processor = CommandProcessor(contextProvider: nil, meshService: nil, identityManager: identityManager)
-        let result = processor.process("/hug @system")
-        switch result {
-        case .error(let message):
-            #expect(message == "cannot hug system: not found")
-        default:
-            Issue.record("Expected error result")
-        }
-    }
-    
-    @MainActor
-    @Test func slapUsageMessage() {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let processor = CommandProcessor(contextProvider: nil, meshService: nil, identityManager: identityManager)
-        let result = processor.process("/slap")
-        switch result {
-        case .error(let message):
-            #expect(message == "usage: /slap <nickname>")
-        default:
-            Issue.record("Expected error result for usage message")
-        }
-    }
-
-    @MainActor
-    @Test func msgStartsPrivateChatAndSendsMessage() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider()
-        let peerID = PeerID(str: "abcd1234abcd1234")
-        context.nicknameToPeerID["alice"] = peerID
-        let processor = CommandProcessor(contextProvider: context, meshService: nil, identityManager: identityManager)
-
-        let result = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/msg @alice hello there")
-        }
-
-        switch result {
-        case .success(let message):
-            #expect(message == "started private chat with alice")
-        default:
-            Issue.record("Expected success result")
-        }
-        #expect(context.startedPrivateChats == [peerID])
-        #expect(context.sentPrivateMessages.count == 1)
-        #expect(context.sentPrivateMessages.first?.content == "hello there")
-        #expect(context.sentPrivateMessages.first?.peerID == peerID)
+        let suggested = CommandInfo.all(isGeoPublic: false, isGeoDM: false).map(\.alias)
+        #expect(!suggested.contains("/hug"))
+        #expect(!suggested.contains("/slap"))
+        #expect(!CommandProcessor.helpText.contains("/hug"))
+        #expect(!CommandProcessor.helpText.contains("/slap"))
     }
 
     @MainActor
@@ -86,7 +42,7 @@ struct CommandProcessorTests {
 
         switch result {
         case .success(let message):
-            #expect(message == "online: alice, bob")
+            #expect(message == "Online: alice, bob")
         default:
             Issue.record("Expected success result")
         }
@@ -112,7 +68,7 @@ struct CommandProcessorTests {
 
         switch result {
         case .success(let message):
-            #expect(message == "online: bob")
+            #expect(message == "Online: bob")
         default:
             Issue.record("Expected success result")
         }
@@ -165,55 +121,6 @@ struct CommandProcessorTests {
     }
 
     @MainActor
-    @Test func hugInPrivateChatSendsPersonalizedMessageAndLocalEcho() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider(nickname: "me")
-        let transport = MockTransport()
-        let peerID = PeerID(str: "abcd1234abcd1234")
-        context.selectedPrivateChatPeer = peerID
-        context.nicknameToPeerID["bob"] = peerID
-        transport.peerNicknames[peerID] = "Bob"
-        let processor = CommandProcessor(contextProvider: context, meshService: transport, identityManager: identityManager)
-
-        let result = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/hug @bob")
-        }
-
-        switch result {
-        case .handled:
-            break
-        default:
-            Issue.record("Expected handled result")
-        }
-        #expect(transport.sentPrivateMessages.count == 1)
-        #expect(transport.sentPrivateMessages.first?.content == "* 🫂 me hugs you *")
-        #expect(context.localPrivateSystemMessages.first?.content == "🫂 you hugged bob")
-        #expect(context.localPrivateSystemMessages.first?.peerID == peerID)
-    }
-
-    @MainActor
-    @Test func slapInPublicChatSendsPublicRawAndEcho() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider(nickname: "me")
-        let peerID = PeerID(str: "abcd1234abcd1234")
-        context.nicknameToPeerID["bob"] = peerID
-        let processor = CommandProcessor(contextProvider: context, meshService: MockTransport(), identityManager: identityManager)
-
-        let result = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/slap @bob")
-        }
-
-        switch result {
-        case .handled:
-            break
-        default:
-            Issue.record("Expected handled result")
-        }
-        #expect(context.sentPublicRawMessages == ["* 🐟 me slaps bob around a bit with a large trout *"])
-        #expect(context.publicSystemMessages == ["🐟 me slaps bob around a bit with a large trout"])
-    }
-
-    @MainActor
     @Test func blockWithoutArgsListsMeshAndGeohashBlocks() async {
         let identityManager = MockIdentityManager(MockKeychain())
         let context = MockCommandContextProvider()
@@ -234,7 +141,7 @@ struct CommandProcessorTests {
 
         switch result {
         case .success(let message):
-            #expect(message == "blocked peers: bob | geohash blocks: carol")
+            #expect(message == "Blocked peers: bob | geohash blocks: carol")
         default:
             Issue.record("Expected success result")
         }
@@ -257,7 +164,7 @@ struct CommandProcessorTests {
         case .success(let message):
             // "no longer see" — blocking filters at display time; packets still
             // arrive and relay, so "receive" overpromised (UX audit fix).
-            #expect(message == "blocked bob. you will no longer see their messages")
+            #expect(message == "Blocked bob. You will no longer see their messages")
         default:
             Issue.record("Expected success result")
         }
@@ -268,7 +175,7 @@ struct CommandProcessorTests {
         }
         switch unblockResult {
         case .success(let message):
-            #expect(message == "unblocked bob")
+            #expect(message == "Unblocked bob")
         default:
             Issue.record("Expected success result")
         }
@@ -287,7 +194,7 @@ struct CommandProcessorTests {
         }
         switch blockResult {
         case .success(let message):
-            #expect(message == "blocked carol in geohash chats")
+            #expect(message == "Blocked carol in geohash chats")
         default:
             Issue.record("Expected success result")
         }
@@ -300,79 +207,12 @@ struct CommandProcessorTests {
         }
         switch unblockResult {
         case .success(let message):
-            #expect(message == "unblocked carol in geohash chats")
+            #expect(message == "Unblocked carol in geohash chats")
         default:
             Issue.record("Expected success result")
         }
         #expect(!identityManager.isNostrBlocked(pubkeyHexLowercased: String(repeating: "d", count: 64)))
         #expect(context.geohashBlockListChangeCount == 2)
-    }
-
-    /// /fav must go through toggleFavorite (which persists by the real noise
-    /// key) — not write the hex peer ID into the favorites store, and not
-    /// send a second favorite notification.
-    @MainActor
-    @Test func favoriteCommandTogglesWithoutDirectStoreWrite() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider()
-        let processor = CommandProcessor(
-            contextProvider: context,
-            meshService: MockTransport(),
-            identityManager: identityManager
-        )
-        let peerID = PeerID(str: "00aa00bb00cc00dd")
-        context.nicknameToPeerID["alice"] = peerID
-
-        let result = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/fav alice")
-        }
-
-        switch result {
-        case .success(let message):
-            #expect(message == "added alice to favorites")
-        default:
-            Issue.record("Expected success result")
-        }
-        #expect(context.toggledFavorites == [peerID])
-        #expect(context.favoriteNotifications.isEmpty)
-        // The 8-byte routing ID must never be stored as a "noise key".
-        let bogusKey = Data(hexString: peerID.id)!
-        #expect(FavoritesPersistenceService.shared.getFavoriteStatus(for: bogusKey) == nil)
-
-        // Unfavoriting someone who is not a favorite is a no-op.
-        let unfavResult = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/unfav alice")
-        }
-        switch unfavResult {
-        case .success(let message):
-            #expect(message == "alice is not a favorite")
-        default:
-            Issue.record("Expected success result")
-        }
-        #expect(context.toggledFavorites == [peerID])
-    }
-
-    @MainActor
-    @Test func favoriteCommandIsRejectedOutsideMesh() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider()
-        let processor = CommandProcessor(
-            contextProvider: context,
-            meshService: MockTransport(),
-            identityManager: identityManager
-        )
-        let channel = ChannelID.location(GeohashChannel(level: .city, geohash: "u4pruy"))
-
-        let result = await withSelectedChannel(channel, context: context) {
-            processor.process("/fav alice")
-        }
-
-        switch result {
-        case .error(let message):
-            #expect(message == "favorites are only for mesh peers in #mesh")
-        default:
-            Issue.record("Expected error result")
-        }
     }
 
     // MARK: - /pay
@@ -382,7 +222,7 @@ struct CommandProcessorTests {
         let processor = makePayProcessor(context: MockCommandContextProvider())
         switch processor.process("/pay") {
         case .success(let message):
-            #expect(message?.contains("usage: /pay") == true)
+            #expect(message?.contains("Usage: /pay") == true)
         default:
             Issue.record("Expected success (usage) result")
         }
@@ -460,7 +300,7 @@ struct CommandProcessorTests {
         for bad in ["/pay \(truncatedV4)", "/pay \(junkV4)"] {
             switch processor.process(bad) {
             case .error(let message):
-                #expect(message.contains("invalid cashu token") == true)
+                #expect(message.contains("Invalid cashu token") == true)
             default:
                 Issue.record("Expected error for \(bad)")
             }
@@ -604,13 +444,10 @@ private final class MockCommandContextProvider: CommandContextProvider {
     private(set) var startedPrivateChats: [PeerID] = []
     private(set) var sentPrivateMessages: [(content: String, peerID: PeerID)] = []
     private(set) var clearCurrentPublicTimelineCallCount = 0
-    private(set) var sentPublicRawMessages: [String] = []
     private(set) var localPrivateSystemMessages: [(content: String, peerID: PeerID)] = []
     private(set) var publicSystemMessages: [String] = []
     private(set) var commandOutputs: [String] = []
     private(set) var commandOutputDestinations: [CommandOutputDestination] = []
-    private(set) var toggledFavorites: [PeerID] = []
-    private(set) var favoriteNotifications: [(peerID: PeerID, isFavorite: Bool)] = []
     private(set) var geohashBlockListChangeCount = 0
 
     init(nickname: String = "tester", idBridge: NostrIdentityBridge = NostrIdentityBridge(keychain: MockKeychain())) {
@@ -652,10 +489,6 @@ private final class MockCommandContextProvider: CommandContextProvider {
         privateChats[peerID] = []
     }
 
-    func sendPublicRaw(_ content: String) {
-        sentPublicRawMessages.append(content)
-    }
-
     private(set) var sentPublicMessages: [String] = []
     func sendPublicMessage(_ content: String) {
         sentPublicMessages.append(content)
@@ -681,35 +514,7 @@ private final class MockCommandContextProvider: CommandContextProvider {
         commandOutputDestinations.append(destination)
     }
 
-    func toggleFavorite(peerID: PeerID) {
-        toggledFavorites.append(peerID)
-    }
 
-    // Groups: record the parsed subcommand + argument the processor forwarded.
-    private(set) var groupCommands: [(subcommand: String, argument: String)] = []
 
-    func groupCreate(named name: String) -> CommandResult {
-        groupCommands.append(("create", name))
-        return .handled
-    }
 
-    func groupInvite(nickname: String) -> CommandResult {
-        groupCommands.append(("invite", nickname))
-        return .handled
-    }
-
-    func groupRemove(nickname: String) -> CommandResult {
-        groupCommands.append(("remove", nickname))
-        return .handled
-    }
-
-    func groupLeave() -> CommandResult {
-        groupCommands.append(("leave", ""))
-        return .handled
-    }
-
-    func groupList() -> CommandResult {
-        groupCommands.append(("list", ""))
-        return .handled
-    }
 }

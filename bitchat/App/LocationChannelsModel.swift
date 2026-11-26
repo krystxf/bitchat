@@ -80,6 +80,24 @@ final class LocationChannelsModel: ObservableObject {
         manager.select(channel)
     }
 
+    /// Opens the location channel for `geohash` from a list outside the
+    /// location channels sheet (the sidebar's channel and bookmark rows),
+    /// with the sheet's teleport rule: a channel among your regional ones
+    /// is local, any other is a teleport once your location is known.
+    func selectLocationChannel(geohash: String) {
+        let geohash = geohash.lowercased()
+        if case .location(let current) = selectedChannel, current.geohash.lowercased() == geohash {
+            return
+        }
+        if let regional = availableChannels.first(where: { $0.geohash.lowercased() == geohash }) {
+            markTeleported(for: geohash, false)
+            select(.location(regional))
+            return
+        }
+        markTeleported(for: geohash, !availableChannels.isEmpty)
+        select(.location(GeohashChannel(level: level(forLength: geohash.count), geohash: geohash)))
+    }
+
     func markTeleported(for geohash: String, _ flag: Bool) {
         manager.markTeleported(for: geohash, flag)
     }

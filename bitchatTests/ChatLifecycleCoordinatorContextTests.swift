@@ -269,7 +269,7 @@ struct ChatLifecycleCoordinatorContextTests {
         #expect(context.routedPrivateMessages.count == 1)
         #expect(context.routedPrivateMessages.first?.content == "* me took a screenshot *")
         #expect(context.routedPrivateMessages.first?.recipientNickname == "alice")
-        #expect(context.privateChats[peerID]?.map(\.content) == ["you took a screenshot"])
+        #expect(context.privateChats[peerID]?.map(\.content) == ["You took a screenshot"])
         #expect(context.privateChats[peerID]?.first?.sender == "system")
     }
 

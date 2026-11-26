@@ -47,7 +47,7 @@ struct MeshRadarView: View {
                     .truncatingRemainder(dividingBy: 1)
                 let radius = maxRadius * phase
                 guard radius > 1 else { continue }
-                let alpha = 0.45 * (1 - phase)
+                let alpha = 0.55 * (1 - phase)
                 let rect = CGRect(
                     x: center.x - radius,
                     y: center.y - radius,
@@ -56,13 +56,13 @@ struct MeshRadarView: View {
                 )
                 context.stroke(
                     Path(ellipseIn: rect),
-                    with: .color(palette.primary.opacity(alpha)),
-                    lineWidth: 1
+                    with: .color(palette.accent.opacity(alpha)),
+                    lineWidth: 1.5
                 )
             }
 
-            let dot = CGRect(x: center.x - 2, y: center.y - 2, width: 4, height: 4)
-            context.fill(Path(ellipseIn: dot), with: .color(palette.primary.opacity(0.9)))
+            let dot = CGRect(x: center.x - 4, y: center.y - 4, width: 8, height: 8)
+            context.fill(Path(ellipseIn: dot), with: .color(palette.accent))
         }
     }
 }

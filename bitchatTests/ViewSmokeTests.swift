@@ -124,8 +124,18 @@ private func installSmokeEnvironment<V: View>(
 }
 
 @MainActor
-private struct ContentPeopleSheetHarness: View {
-    @State private var showSidebar = true
+private struct ContentSidebarHarness: View {
+    @State private var selection: SidebarItem? = .mesh
+
+    var body: some View {
+        NavigationStack {
+            ContentSidebarView(selection: $selection)
+        }
+    }
+}
+
+@MainActor
+private struct PrivateChatDetailHarness: View {
     @State private var messageText = ""
     @State private var selectedMessageSender: String?
     @State private var selectedMessageSenderID: PeerID?
@@ -139,47 +149,42 @@ private struct ContentPeopleSheetHarness: View {
     #if os(iOS)
     @State private var showImagePicker = false
     @State private var imagePickerSourceType: UIImagePickerController.SourceType = .photoLibrary
-    #else
-    @State private var showMacImagePicker = false
     #endif
 
     var body: some View {
-        #if os(iOS)
-        ContentPeopleSheetView(
-            showSidebar: $showSidebar,
-            messageText: $messageText,
-            selectedMessageSender: $selectedMessageSender,
-            selectedMessageSenderID: $selectedMessageSenderID,
-            imagePreviewURL: $imagePreviewURL,
-            windowCountPublic: $windowCountPublic,
-            windowCountPrivate: $windowCountPrivate,
-            isAtBottomPrivate: $isAtBottomPrivate,
-            isTextFieldFocused: $isTextFieldFocused,
-            voiceRecordingVM: voiceRecordingVM,
-            autocompleteDebounceTimer: $autocompleteDebounceTimer,
-            headerHeight: 44,
-            onSendMessage: {},
-            showImagePicker: $showImagePicker,
-            imagePickerSourceType: $imagePickerSourceType
-        )
-        #else
-        ContentPeopleSheetView(
-            showSidebar: $showSidebar,
-            messageText: $messageText,
-            selectedMessageSender: $selectedMessageSender,
-            selectedMessageSenderID: $selectedMessageSenderID,
-            imagePreviewURL: $imagePreviewURL,
-            windowCountPublic: $windowCountPublic,
-            windowCountPrivate: $windowCountPrivate,
-            isAtBottomPrivate: $isAtBottomPrivate,
-            isTextFieldFocused: $isTextFieldFocused,
-            voiceRecordingVM: voiceRecordingVM,
-            autocompleteDebounceTimer: $autocompleteDebounceTimer,
-            headerHeight: 44,
-            onSendMessage: {},
-            showMacImagePicker: $showMacImagePicker
-        )
-        #endif
+        NavigationStack {
+            #if os(iOS)
+            PrivateChatDetailView(
+                messageText: $messageText,
+                selectedMessageSender: $selectedMessageSender,
+                selectedMessageSenderID: $selectedMessageSenderID,
+                imagePreviewURL: $imagePreviewURL,
+                windowCountPublic: $windowCountPublic,
+                windowCountPrivate: $windowCountPrivate,
+                isAtBottomPrivate: $isAtBottomPrivate,
+                isTextFieldFocused: $isTextFieldFocused,
+                voiceRecordingVM: voiceRecordingVM,
+                autocompleteDebounceTimer: $autocompleteDebounceTimer,
+                onSendMessage: {},
+                showImagePicker: $showImagePicker,
+                imagePickerSourceType: $imagePickerSourceType
+            )
+            #else
+            PrivateChatDetailView(
+                messageText: $messageText,
+                selectedMessageSender: $selectedMessageSender,
+                selectedMessageSenderID: $selectedMessageSenderID,
+                imagePreviewURL: $imagePreviewURL,
+                windowCountPublic: $windowCountPublic,
+                windowCountPrivate: $windowCountPrivate,
+                isAtBottomPrivate: $isAtBottomPrivate,
+                isTextFieldFocused: $isTextFieldFocused,
+                voiceRecordingVM: voiceRecordingVM,
+                autocompleteDebounceTimer: $autocompleteDebounceTimer,
+                onSendMessage: {}
+            )
+            #endif
+        }
     }
 }
 
@@ -335,27 +340,15 @@ struct ViewSmokeTests {
     }
 
     @Test
-    func meshPeerList_renders_emptyAndPopulatedStates() async {
+    func sidebar_renders_emptyAndPopulatedStates() async {
         let (viewModel, transport, identityManager) = makeSmokeViewModel()
         let featureModels = makeSmokeFeatureModels(for: viewModel)
         let connectedPeer = PeerID(str: "3132333435363738")
         let blockedPeer = PeerID(str: "4142434445464748")
         let blockedFingerprint = String(repeating: "ef", count: 32)
 
-        _ = mount(
-            MeshPeerList(
-                onTapPeer: { _ in },
-                onToggleFavorite: { _ in },
-                onShowFingerprint: { _ in }
-            )
-            .environmentObject(featureModels.peerListModel)
-        )
-        _ = MeshPeerList(
-            onTapPeer: { _ in },
-            onToggleFavorite: { _ in },
-            onShowFingerprint: { _ in }
-        )
-        .environmentObject(featureModels.peerListModel)
+        // Nobody around: the contacts section shows the empty row.
+        _ = mount(installSmokeEnvironment(ContentSidebarHarness(), featureModels: featureModels))
 
         transport.peerFingerprints[blockedPeer] = blockedFingerprint
         identityManager.setBlocked(blockedFingerprint, isBlocked: true)
@@ -366,14 +359,8 @@ struct ViewSmokeTests {
         try? await Task.sleep(nanoseconds: 50_000_000)
         viewModel.markPrivateChatUnread(blockedPeer)
 
-        _ = mount(
-            MeshPeerList(
-                onTapPeer: { _ in },
-                onToggleFavorite: { _ in },
-                onShowFingerprint: { _ in }
-            )
-            .environmentObject(featureModels.peerListModel)
-        )
+        // Strangers only: the unknown group with a count and an unread mark.
+        _ = mount(installSmokeEnvironment(ContentSidebarHarness(), featureModels: featureModels))
 
         #expect(viewModel.hasUnreadMessages(for: blockedPeer))
     }
@@ -505,12 +492,10 @@ struct ViewSmokeTests {
         // environment, so it can only render mounted with one installed.
         let appInfo = AppInfoView()
             .environmentObject(LocationChannelsModel(manager: makeSmokeLocationManager()))
-        let header = SectionHeader("app_info.features.title")
         let featureRow = FeatureRow(info: feature)
         let paymentCashu = PaymentChipView(paymentType: .cashu("cashuA_test-token"))
         let paymentLightning = PaymentChipView(paymentType: .lightning("lightning:lnbc1test"))
 
-        _ = header.body
         _ = featureRow.body
         _ = paymentCashu.body
         _ = paymentLightning.body
@@ -521,7 +506,6 @@ struct ViewSmokeTests {
         _ = DeliveryStatusView(status: .failed(reason: "offline")).body
         _ = DeliveryStatusView(status: .partiallyDelivered(reached: 2, total: 3)).body
         _ = mount(appInfo)
-        _ = mount(header)
         _ = mount(featureRow)
         _ = mount(paymentCashu)
         _ = mount(paymentLightning)
@@ -542,16 +526,18 @@ struct ViewSmokeTests {
         ])
         try? await Task.sleep(nanoseconds: 50_000_000)
 
-        // ContentView + people sheet must mount with the full feature-model
-        // set (peerList / publicChat / privateInbox included). Missing any of
-        // those crashes the NavigationStack sheet on some iOS versions (#1558).
+        // ContentView, its sidebar and the DM detail must mount with the
+        // full feature-model set (peerList / publicChat / privateInbox
+        // included).
         _ = mount(installSmokeEnvironment(ContentView(), featureModels: featureModels))
-        _ = mount(installSmokeEnvironment(ContentPeopleSheetHarness(), featureModels: featureModels))
+        _ = mount(installSmokeEnvironment(ContentSidebarHarness(), featureModels: featureModels))
 
         featureModels.privateConversationModel.startConversation(with: peerID)
         try? await Task.sleep(nanoseconds: 50_000_000)
 
-        _ = mount(installSmokeEnvironment(ContentPeopleSheetHarness(), featureModels: featureModels))
+        _ = mount(installSmokeEnvironment(ContentView(), featureModels: featureModels))
+        _ = mount(installSmokeEnvironment(ContentSidebarHarness(), featureModels: featureModels))
+        _ = mount(installSmokeEnvironment(PrivateChatDetailHarness(), featureModels: featureModels))
 
         #expect(featureModels.privateConversationModel.selectedPeerID == peerID)
         #expect(featureModels.privateConversationModel.selectedHeaderState?.headerPeerID == peerID)
@@ -572,11 +558,10 @@ struct ViewSmokeTests {
         )
     }
 
-    @Test("People-sheet Bluetooth alert waits for local verification sheet")
-    func peopleSheetBluetoothAlertGuard_includesVerificationSheet() {
-        #expect(!ContentPeopleSheetModalPresentationState().hasPresentation)
+    @Test("Root Bluetooth alert waits for the verification sheet")
+    func rootBluetoothAlertGuard_includesVerificationSheet() {
         #expect(
-            ContentPeopleSheetModalPresentationState(
+            ContentRootModalPresentationState(
                 isVerificationSheetPresented: true
             ).hasPresentation
         )
@@ -586,11 +571,6 @@ struct ViewSmokeTests {
     func bluetoothAlertGuards_includeVoiceAlert() {
         #expect(
             ContentRootModalPresentationState(
-                isVoiceAlertPresented: true
-            ).hasPresentation
-        )
-        #expect(
-            ContentPeopleSheetModalPresentationState(
                 isVoiceAlertPresented: true
             ).hasPresentation
         )
@@ -617,14 +597,14 @@ struct ViewSmokeTests {
         )
     }
 
-    @Test("People-sheet Bluetooth alert waits for legacy media consent")
+    @Test("Root Bluetooth alert waits for legacy media consent")
     @MainActor
-    func peopleSheetBluetoothAlertGuard_tracksLegacyConsentState() async {
+    func rootBluetoothAlertGuard_tracksLegacyConsentState() async {
         let (viewModel, _, _) = makeSmokeViewModel()
         let featureModels = makeSmokeFeatureModels(for: viewModel)
 
         #expect(
-            !ContentPeopleSheetModalPresentationState(
+            !ContentRootModalPresentationState(
                 legacyPrivateMediaConsentRequest:
                     featureModels.conversationUIModel
                         .legacyPrivateMediaConsentRequest
@@ -646,7 +626,7 @@ struct ViewSmokeTests {
             consentPropagated
         )
         #expect(
-            ContentPeopleSheetModalPresentationState(
+            ContentRootModalPresentationState(
                 legacyPrivateMediaConsentRequest:
                     featureModels.conversationUIModel
                         .legacyPrivateMediaConsentRequest
@@ -655,12 +635,75 @@ struct ViewSmokeTests {
     }
 
     @Test
+    func sidebarRows_renderEveryKindOfRow() {
+        let (viewModel, _, _) = makeSmokeViewModel()
+        let featureModels = makeSmokeFeatureModels(for: viewModel)
+        func meshPeer(_ id: String, connected: Bool, favorite: Bool, blocked: Bool, unread: Bool) -> MeshPeerRow {
+            MeshPeerRow(
+                peerID: PeerID(str: id),
+                displayName: "peer#\(id.suffix(4))",
+                isMe: false,
+                hasUnread: unread,
+                isBlocked: blocked,
+                isFavorite: favorite,
+                isConnected: connected,
+                isReachable: connected,
+                isMutualFavorite: favorite,
+                encryptionStatus: .noiseVerified,
+                showsVerifiedBadgeWhenOffline: !connected,
+                showsVouchedBadge: false,
+                isVerified: true,
+                hasAcceptedConversation: false
+            )
+        }
+        let rows = List {
+            SidebarMeshPeerRows(
+                peers: [
+                    meshPeer("4142434445464748", connected: true, favorite: true, blocked: false, unread: true),
+                    meshPeer("5152535455565758", connected: false, favorite: true, blocked: false, unread: false),
+                    meshPeer("6162636465666768", connected: false, favorite: false, blocked: true, unread: false)
+                ],
+                onOpen: { _ in }
+            )
+            SidebarChatRows(
+                chats: [
+                    RecentChatRow(
+                        peerID: PeerID(nostr_: String(repeating: "ab", count: 32)),
+                        displayName: "stranger",
+                        hasUnread: true,
+                        lastActivity: Date(),
+                        isFavorite: false,
+                        isVerified: false,
+                        hasAcceptedConversation: false
+                    )
+                ],
+                onOpen: { _ in }
+            )
+            SidebarBridgedPeopleRows(people: [
+                BridgeService.BridgedParticipant(pubkey: String(repeating: "cd", count: 32), nickname: "far", lastSeen: Date())
+            ])
+            SidebarGroupRow(group: GroupChatRow(
+                peerID: PeerID(groupID: Data(repeating: 0xAB, count: 16)),
+                name: "crew",
+                memberCount: 3,
+                isCreator: true,
+                hasUnread: true
+            ))
+        }
+
+        _ = mount(installSmokeEnvironment(rows, featureModels: featureModels))
+    }
+
+    @Test
     func geohashAndTextMessageViews_renderCoreBranches() {
         let (viewModel, _, _) = makeSmokeViewModel()
         let featureModels = makeSmokeFeatureModels(for: viewModel)
-        let geohashPeopleList = GeohashPeopleList(
-            onTapPerson: {}
-        )
+        let geohashPeopleRows = List {
+            SidebarGeohashPeopleRows(
+                people: featureModels.peerListModel.geohashPeople,
+                onOpen: { _ in }
+            )
+        }
         let truncatableMessage = BitchatMessage(
             sender: viewModel.nickname,
             content: String(repeating: "verylongtoken ", count: 160),
@@ -682,8 +725,8 @@ struct ViewSmokeTests {
             deliveryStatus: .partiallyDelivered(reached: 1, total: 2)
         )
 
-        _ = mount(geohashPeopleList.environmentObject(featureModels.peerListModel))
-        _ = mount(geohashPeopleList.environmentObject(featureModels.peerListModel))
+        _ = mount(installSmokeEnvironment(geohashPeopleRows, featureModels: featureModels))
+        _ = mount(installSmokeEnvironment(geohashPeopleRows, featureModels: featureModels))
         _ = mount(TextMessageView(message: truncatableMessage).environmentObject(featureModels.conversationUIModel))
         _ = mount(TextMessageView(message: paymentMessage).environmentObject(featureModels.conversationUIModel))
 

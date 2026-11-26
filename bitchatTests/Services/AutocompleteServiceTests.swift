@@ -74,11 +74,9 @@ struct AutocompleteServiceTests {
         let service = AutocompleteService()
 
         let mentionResult = service.applySuggestion("@alice", to: "hi @al", range: NSRange(location: 3, length: 3))
-        let msgCommand = service.applySuggestion("/msg", to: "/m", range: NSRange(location: 0, length: 2))
         let clearCommand = service.applySuggestion("/clear", to: "/c", range: NSRange(location: 0, length: 2))
 
         #expect(mentionResult == "hi @alice")
-        #expect(msgCommand == "/msg ")
         #expect(clearCommand == "/clear")
     }
 }

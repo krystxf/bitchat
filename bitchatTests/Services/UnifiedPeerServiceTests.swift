@@ -289,6 +289,10 @@ private final class TestIdentityManager: SecureIdentityStateManagerProtocol {
         blockedNostr
     }
 
+    func getBlockedSocialIdentities() -> [SocialIdentity] {
+        []
+    }
+
     func registerEphemeralSession(peerID: PeerID, handshakeState: HandshakeState) {}
 
     func clearAllIdentityData() {

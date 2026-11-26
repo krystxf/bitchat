@@ -17,7 +17,7 @@ import BitFoundation
 final class MockTransport: Transport, PrivateMediaDeletionPersisting,
     MeshFileTransferring, MeshVerifying, MeshCourierTransporting,
     MeshDiagnosing, MeshPublicArchiving, MeshVoiceStreaming,
-    MeshGroupMessaging, MeshBoardBroadcasting {
+    MeshGroupMessaging, MeshBoardBroadcasting, MessageWipingTransport {
 
     // MARK: - Protocol Properties
 
@@ -339,6 +339,11 @@ final class MockTransport: Transport, PrivateMediaDeletionPersisting,
     }
     func purgeAllArchivedPublicMessages() {
         purgedAllArchived = true
+    }
+
+    private(set) var wipeCarriedMessagesCallCount = 0
+    func wipeCarriedMessages() {
+        wipeCarriedMessagesCallCount += 1
     }
 
     private(set) var sentVoiceFrames: [(Data, PeerID)] = []

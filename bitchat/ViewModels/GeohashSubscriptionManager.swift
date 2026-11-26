@@ -125,6 +125,8 @@ final class GeohashSubscriptionManager {
     /// Tor is still bootstrapping), and history arriving after it counts as
     /// live activity. See `NostrInboundPipeline`'s `isHistoryReplay`.
     private var replayingGeoSubscriptionID: String?
+    /// Gift-wrap subscriptions also replay their initial lookback window.
+    private var replayingGiftWrapSubscriptionIDs = Set<String>()
 
     init(context: any GeohashSubscriptionContext, inbound: NostrInboundPipeline, presence: GeoPresenceTracker) {
         self.context = context
@@ -169,21 +171,26 @@ final class GeohashSubscriptionManager {
 
         if let dmSub = context.geoDmSubscriptionID {
             NostrRelayManager.shared.unsubscribe(id: dmSub)
+            replayingGiftWrapSubscriptionIDs.remove(dmSub)
             context.setGeoDmSubscriptionID(nil)
         }
 
         if let identity = try? context.deriveNostrIdentity(forGeohash: channel.geohash) {
             let dmSub = "geo-dm-\(channel.geohash)"
             context.setGeoDmSubscriptionID(dmSub)
+            replayingGiftWrapSubscriptionIDs.insert(dmSub)
             let dmFilter = NostrFilter.giftWrapsFor(
                 pubkey: identity.publicKeyHex,
                 since: Date().addingTimeInterval(-TransportConfig.nostrDMSubscribeLookbackSeconds)
             )
-            NostrRelayManager.shared.subscribe(filter: dmFilter, id: dmSub) { [weak self] giftWrap in
+            NostrRelayManager.shared.subscribe(filter: dmFilter, id: dmSub, handler: { [weak self] giftWrap in
                 Task { @MainActor [weak self] in
-                    self?.inbound.subscribeGiftWrap(giftWrap, id: identity)
+                    guard let self else { return }
+                    self.inbound.subscribeGiftWrap(giftWrap, id: identity, isHistoryReplay: self.replayingGiftWrapSubscriptionIDs.contains(dmSub))
                 }
-            }
+            }, onEOSE: { [weak self] in
+                Task { @MainActor [weak self] in self?.replayingGiftWrapSubscriptionIDs.remove(dmSub) }
+            })
         }
     }
 
@@ -221,6 +228,7 @@ final class GeohashSubscriptionManager {
         }
         if let dmSub = context.geoDmSubscriptionID {
             NostrRelayManager.shared.unsubscribe(id: dmSub)
+            replayingGiftWrapSubscriptionIDs.remove(dmSub)
             context.setGeoDmSubscriptionID(nil)
         }
         context.currentGeohash = nil
@@ -276,6 +284,7 @@ final class GeohashSubscriptionManager {
 
         let dmSub = "geo-dm-\(channel.geohash)"
         context.setGeoDmSubscriptionID(dmSub)
+        replayingGiftWrapSubscriptionIDs.insert(dmSub)
         if TorManager.shared.isReady {
             SecureLogger.debug("GeoDM: subscribing DMs pub=\(identity.publicKeyHex.prefix(8))… sub=\(dmSub)", category: .session)
         }
@@ -283,11 +292,14 @@ final class GeohashSubscriptionManager {
             pubkey: identity.publicKeyHex,
             since: Date().addingTimeInterval(-TransportConfig.nostrDMSubscribeLookbackSeconds)
         )
-        NostrRelayManager.shared.subscribe(filter: dmFilter, id: dmSub) { [weak self] giftWrap in
+        NostrRelayManager.shared.subscribe(filter: dmFilter, id: dmSub, handler: { [weak self] giftWrap in
             Task { @MainActor [weak self] in
-                self?.inbound.handleGiftWrap(giftWrap, id: identity)
+                guard let self else { return }
+                self.inbound.handleGiftWrap(giftWrap, id: identity, isHistoryReplay: self.replayingGiftWrapSubscriptionIDs.contains(dmSub))
             }
-        }
+        }, onEOSE: { [weak self] in
+            Task { @MainActor [weak self] in self?.replayingGiftWrapSubscriptionIDs.remove(dmSub) }
+        })
     }
 
     @MainActor
@@ -418,10 +430,15 @@ final class GeohashSubscriptionManager {
             since: Date().addingTimeInterval(-TransportConfig.nostrDMSubscribeLookbackSeconds)
         )
 
-        context.nostrRelayManager?.subscribe(filter: filter, id: "chat-messages") { [weak self] event in
+        let subID = "chat-messages"
+        replayingGiftWrapSubscriptionIDs.insert(subID)
+        context.nostrRelayManager?.subscribe(filter: filter, id: subID, handler: { [weak self] event in
             Task { @MainActor [weak self] in
-                self?.inbound.handleNostrMessage(event)
+                guard let self else { return }
+                self.inbound.handleNostrMessage(event, isHistoryReplay: self.replayingGiftWrapSubscriptionIDs.contains(subID))
             }
-        }
+        }, onEOSE: { [weak self] in
+            Task { @MainActor [weak self] in self?.replayingGiftWrapSubscriptionIDs.remove(subID) }
+        })
     }
 }

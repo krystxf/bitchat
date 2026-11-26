@@ -11,11 +11,10 @@ import UserNotifications
 
 @main
 struct BitchatApp: App {
-    static let bundleID = Bundle.main.bundleIdentifier ?? "chat.bitchat"
+    static let bundleID = Bundle.main.bundleIdentifier ?? "chat.nova"
     static let groupID = "group.\(bundleID)"
 
     @StateObject private var runtime: AppRuntime
-    @AppStorage(AppTheme.storageKey) private var appThemeRawValue = AppTheme.matrix.rawValue
     #if os(iOS)
     @Environment(\.scenePhase) var scenePhase
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -24,14 +23,19 @@ struct BitchatApp: App {
     #endif
 
     init() {
+        // Before anything localizes: hand the language back to the system
+        // setting if the removed in-app picker had overridden it.
+        AppLanguageSettings.clearLegacyOverride()
         _runtime = StateObject(wrappedValue: AppRuntime())
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+        #if os(iOS)
+        NovaType.applyToNavigationBars()
+        #endif
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.appTheme, AppTheme(rawValue: appThemeRawValue) ?? .matrix)
                 .environmentObject(runtime.publicChatModel)
                 .environmentObject(runtime.privateInboxModel)
                 .environmentObject(runtime.privateConversationModel)
@@ -42,6 +46,7 @@ struct BitchatApp: App {
                 .environmentObject(runtime.appChromeModel)
                 .environmentObject(runtime.boardAlertsModel)
                 .environmentObject(runtime.sharedContentImportModel)
+                .overlay { LaunchHandoffOverlay() }
                 .onAppear {
                     appDelegate.runtime = runtime
                     runtime.start()
@@ -61,9 +66,21 @@ struct BitchatApp: App {
                     runtime.handleMacDidBecomeActiveNotification()
                 }
                 #endif
+                .novaFontDesign()
         }
         #if os(macOS)
-        .windowStyle(.hiddenTitleBar)
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button {
+                    runtime.appChromeModel.presentAppInfo()
+                } label: {
+                    Text(verbatim: String(localized: "app_info.tab.settings", comment: "Settings") + "…")
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
+        }
+        #endif
+        #if os(macOS)
         .windowResizability(.contentSize)
         #endif
     }
@@ -97,7 +114,10 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        // AppKit asks this as the last window closes: that is leaving the
+        // app for extreme security mode, even before the quit that follows.
+        runtime?.handleAppExitEvent(.lastWindowClosed)
+        return true
     }
 }
 #endif

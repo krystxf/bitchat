@@ -120,7 +120,7 @@ final class BridgeService: ObservableObject {
     }
 
     /// A person currently visible across the bridge (fresh, not attributed
-    /// to the local island), for the people sheet.
+    /// to the local island), for the sidebar.
     struct BridgedParticipant: Identifiable, Equatable {
         let pubkey: String
         let nickname: String?

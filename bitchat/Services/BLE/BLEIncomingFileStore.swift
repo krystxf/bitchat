@@ -200,17 +200,7 @@ struct BLEIncomingFileStore: @unchecked Sendable {
         // while payload coordination retains save/delete reservations. Always
         // invalidate both on return, including partial-failure paths, so no
         // pre-panic receiver decision survives after identity reset.
-        defer {
-            privateMediaReceipts.resetForPanic()
-            payloadCoordination.lock.lock()
-            payloadCoordination.pendingDeliveryPaths.removeAll(
-                keepingCapacity: false
-            )
-            payloadCoordination.deletionReservations.removeAll(
-                keepingCapacity: false
-            )
-            payloadCoordination.lock.unlock()
-        }
+        defer { forgetPayloadStateAfterWipe() }
 
         let markerError: Error?
         do {
@@ -225,21 +215,7 @@ struct BLEIncomingFileStore: @unchecked Sendable {
         }
 
         do {
-            let filesDirectory = try rootDirectory()
-                .appendingPathComponent("files", isDirectory: true)
-            if fileManager.fileExists(atPath: filesDirectory.path) {
-                try fileManager.removeItem(at: filesDirectory)
-            }
-            for subdirectory in Self.mediaSubdirectories {
-                try fileManager.createDirectory(
-                    at: filesDirectory.appendingPathComponent(
-                        subdirectory,
-                        isDirectory: true
-                    ),
-                    withIntermediateDirectories: true,
-                    attributes: Self.mediaProtectionAttributes
-                )
-            }
+            try removeMediaTree()
         } catch {
             if let markerError {
                 throw PanicRecoveryError.markerWriteAndMediaWipeFailed(
@@ -253,6 +229,108 @@ struct BLEIncomingFileStore: @unchecked Sendable {
         if let markerError, !hasDurablePendingMarker {
             throw PanicRecoveryError.markerWriteFailed(markerError)
         }
+    }
+
+    /// Deletes every managed incoming and outgoing media file before
+    /// returning, outside any panic transaction: the panic-recovery markers
+    /// stay as they are, so the next launch does not mistake this for an
+    /// unfinished panic. Extreme security mode's message wipe uses it.
+    ///
+    /// Throws when a file may remain on disk.
+    func wipeAllMedia() throws {
+        // Same reasoning as `panicWipe`: receipts and reservations name
+        // files that no longer exist once this returns.
+        defer { forgetPayloadStateAfterWipe() }
+        try removeMediaTree()
+    }
+
+    /// Removes the whole `files/` tree (images, voice notes, files, live
+    /// captures, the private-media receipt ledger, and anything an older
+    /// build left there), then recreates the empty media directories so
+    /// capture and receive paths keep working.
+    ///
+    /// Removing the tree in one call can stop at the first entry it cannot
+    /// delete. A wipe must not leave every later file behind because of one
+    /// busy file, so a failure falls back to deleting entry by entry, and
+    /// throws only when a file is still there afterwards.
+    private func removeMediaTree() throws {
+        let filesDirectory = try rootDirectory()
+            .appendingPathComponent("files", isDirectory: true)
+        if fileManager.fileExists(atPath: filesDirectory.path) {
+            do {
+                try fileManager.removeItem(at: filesDirectory)
+            } catch {
+                removeEachEntry(in: filesDirectory)
+                if containsFile(in: filesDirectory) {
+                    throw error
+                }
+            }
+        }
+        for subdirectory in Self.mediaSubdirectories {
+            try fileManager.createDirectory(
+                at: filesDirectory.appendingPathComponent(
+                    subdirectory,
+                    isDirectory: true
+                ),
+                withIntermediateDirectories: true,
+                attributes: Self.mediaProtectionAttributes
+            )
+        }
+    }
+
+    /// Best-effort, depth-first deletion of everything under `directory`.
+    /// Each failure is skipped, so one entry cannot protect the others.
+    private func removeEachEntry(in directory: URL) {
+        guard let entries = try? fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: []
+        ) else {
+            return
+        }
+        for entry in entries {
+            let isDirectory = (try? entry.resourceValues(
+                forKeys: [.isDirectoryKey]
+            ).isDirectory) == true
+            if isDirectory {
+                removeEachEntry(in: entry)
+            }
+            try? fileManager.removeItem(at: entry)
+        }
+    }
+
+    /// Whether anything other than a directory is left under `directory`.
+    private func containsFile(in directory: URL) -> Bool {
+        guard let enumerator = fileManager.enumerator(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: []
+        ) else {
+            return fileManager.fileExists(atPath: directory.path)
+        }
+        while let entry = enumerator.nextObject() as? URL {
+            let isDirectory = (try? entry.resourceValues(
+                forKeys: [.isDirectoryKey]
+            ).isDirectory) == true
+            if !isDirectory {
+                return true
+            }
+        }
+        return false
+    }
+
+    /// Drops the receipt index and the save/delete reservations, which name
+    /// files a wipe just deleted.
+    private func forgetPayloadStateAfterWipe() {
+        privateMediaReceipts.resetForPanic()
+        payloadCoordination.lock.lock()
+        payloadCoordination.pendingDeliveryPaths.removeAll(
+            keepingCapacity: false
+        )
+        payloadCoordination.deletionReservations.removeAll(
+            keepingCapacity: false
+        )
+        payloadCoordination.lock.unlock()
     }
 
     func markPanicRecoveryPending() throws {

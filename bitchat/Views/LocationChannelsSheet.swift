@@ -32,19 +32,19 @@ struct LocationChannelsSheet: View {
         static let bookmarked: LocalizedStringKey = "location_channels.bookmarked_section_title"
         // Same string the settings pane shows under the tor toggle — the
         // warning belongs wherever the exposure is about to happen.
-        static let torOffWarning = String(localized: "app_info.settings.tor.off_warning", defaultValue: "tor is off: every relay you connect to can see your IP address, including relays carrying your private messages.", comment: "Warning shown under the tor toggle while tor is switched off, stating that relay operators can see the device IP address")
+        static let torOffWarning = String(localized: "app_info.settings.tor.off_warning", defaultValue: "Tor is off: every relay you connect to can see your IP address, including relays carrying your private messages.", comment: "Warning shown under the tor toggle while tor is switched off, stating that relay operators can see the device IP address")
 
-        static let quickJoinTitle = String(localized: "location_channels.quick_join.title", defaultValue: "quick join", comment: "Section header in the location channels sheet for the one-tap suggestion of the region channel derived from the device region")
+        static let quickJoinTitle = String(localized: "location_channels.quick_join.title", defaultValue: "Quick Join", comment: "Section header in the location channels sheet for the one-tap suggestion of the region channel derived from the device region")
         static func quickJoinDescription(_ regionName: String) -> String {
             String(
-                format: String(localized: "location_channels.quick_join.description", defaultValue: "the region channel where people from %@ tend to gather — the wide cell around the main population center, not your location. it's public and well-known, so assume it's watched: quick join saves typing a geohash; it doesn't hide you or bypass blocks.", comment: "Caption under the quick join row; %@ is the localized country/region name. States plainly that the cell is the main population center's (not the person's location), that the channel must be assumed watched, and that quick join is discovery, not circumvention"),
+                format: String(localized: "location_channels.quick_join.description", defaultValue: "The region channel where people from %@ tend to gather — the wide cell around the main population center, not your location. It's public and well-known, so assume it's watched: quick join saves typing a geohash; it doesn't hide you or bypass blocks.", comment: "Caption under the quick join row; %@ is the localized country/region name. States plainly that the cell is the main population center's (not the person's location), that the channel must be assumed watched, and that quick join is discovery, not circumvention"),
                 locale: .current,
                 regionName
             )
         }
         static func quickJoinLabel(_ regionName: String) -> String {
             String(
-                format: String(localized: "location_channels.quick_join.join_label", defaultValue: "join the %@ region channel", comment: "Accessibility label for the quick join row; %@ is the localized country/region name"),
+                format: String(localized: "location_channels.quick_join.join_label", defaultValue: "Join the %@ region channel", comment: "Accessibility label for the quick join row; %@ is the localized country/region name"),
                 locale: .current,
                 regionName
             )
@@ -54,11 +54,11 @@ struct LocationChannelsSheet: View {
         static let switchChannelHint = String(localized: "location_channels.accessibility.switch_hint", comment: "Accessibility hint on a channel row explaining activation switches to it")
         static let addBookmark = String(localized: "location_channels.accessibility.add_bookmark", comment: "Accessibility action name for bookmarking a channel")
         static let removeBookmark = String(localized: "location_channels.accessibility.remove_bookmark", comment: "Accessibility action name for removing a channel bookmark")
-        static let shareChannel = String(localized: "channel.share.action", defaultValue: "share channel", comment: "Context-menu / accessibility action that shares a location-channel invite")
-        static let sharePrecisionTitle = String(localized: "channel.share.precision_warning.title", defaultValue: "share a precise location channel?", comment: "Title of the confirmation before sharing a neighborhood-or-finer geohash invite")
-        static let sharePrecisionMessage = String(localized: "channel.share.precision_warning.message", defaultValue: "this channel covers a small area. an invite sent over sms or imessage is visible to the carrier and both handsets — it discloses interest in that place, not only that someone uses bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite")
-        static let shareAnyway = String(localized: "channel.share.precision_warning.confirm", defaultValue: "share anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")
-        static let openMap = String(localized: "location_channels.accessibility.open_map", defaultValue: "open map", comment: "Accessibility label for the button that opens the globe geohash picker")
+        static let shareChannel = String(localized: "channel.share.action", defaultValue: "Share Channel", comment: "Context-menu / accessibility action that shares a location-channel invite")
+        static let sharePrecisionTitle = String(localized: "channel.share.precision_warning.title", defaultValue: "Share a Precise Location Channel?", comment: "Title of the confirmation before sharing a neighborhood-or-finer geohash invite")
+        static let sharePrecisionMessage = String(localized: "channel.share.precision_warning.message", defaultValue: "This Channel Covers a Small Area. An Invite Sent Over Sms or Imessage Is Visible to the Carrier and Both Handsets — It Discloses Interest in That Place, Not Only That Someone Uses Bitchat.", comment: "Body of the confirmation before sharing a fine-precision geohash invite")
+        static let shareAnyway = String(localized: "channel.share.precision_warning.confirm", defaultValue: "Share Anyway", comment: "Confirms sharing a fine-precision location channel after the OpSec warning")
+        static let openMap = String(localized: "location_channels.accessibility.open_map", defaultValue: "Open Map", comment: "Accessibility label for the button that opens the globe geohash picker")
 
         static func meshTitle(_ count: Int) -> String {
             let label = String(localized: "location_channels.mesh_label", comment: "Label for the mesh channel row")
@@ -121,71 +121,67 @@ struct LocationChannelsSheet: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    Text(Strings.title)
-                        .bitchatFont(size: 18)
-                    Spacer()
-                    closeButton
-                }
-                Text(Strings.description)
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.secondary)
-
-                // The description's tor claim is only true while tor is on;
-                // when it's off, say what that exposes right where the person
-                // is about to join a channel, not just in settings.
-                if !locationChannelsModel.userTorEnabled {
-                    Text(verbatim: Strings.torOffWarning)
-                        .bitchatFont(size: 11)
-                        .foregroundColor(palette.alertRed)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Group {
-                    switch locationChannelsModel.permissionState {
-                    case .notDetermined:
-                        Button(action: { locationChannelsModel.enableLocationChannels() }) {
-                            Text(Strings.requestPermissions)
-                                .bitchatFont(size: 12)
-                                .foregroundColor(standardGreen)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 6)
-                                .background(standardGreen.opacity(0.12))
-                                .cornerRadius(6)
-                        }
-                        .buttonStyle(.plain)
-                    case .denied, .restricted:
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(Strings.permissionDenied)
-                                .bitchatFont(size: 12)
-                                .foregroundColor(palette.secondary)
-                            Button(Strings.openSettings, action: SystemSettings.location.open)
-                            .buttonStyle(.plain)
-                        }
-                    case .authorized:
-                        EmptyView()
+        TimelineView(.periodic(from: .now, by: 5)) { _ in
+          List {
+            Section {
+                switch locationChannelsModel.permissionState {
+                case .notDetermined:
+                    Button {
+                        locationChannelsModel.enableLocationChannels()
+                    } label: {
+                        Label(Strings.requestPermissions, systemImage: "location.fill")
                     }
+                case .denied, .restricted:
+                    Label {
+                        Text(Strings.permissionDenied)
+                    } icon: {
+                        Image(systemName: "location.slash.fill")
+                    }
+                    .foregroundStyle(.novaSecondaryText)
+                    Button(Strings.openSettings, action: SystemSettings.location.open)
+                case .authorized:
+                    EmptyView()
                 }
 
-                channelList
-                Spacer()
+                if !locationChannelsModel.userTorEnabled {
+                    Label {
+                        Text(verbatim: Strings.torOffWarning)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(palette.alertRed)
+                }
+            } header: {
+                // The explanation leads the sheet, as a page's intro text
+                // in Settings, not inside a row.
+                Text(Strings.description)
+                    .font(.footnote)
+                    .foregroundStyle(.novaSecondaryText)
+                    .textCase(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 4)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .themedSurface()
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarHidden(true)
-            #else
-            .navigationTitle("")
-            #endif
+            .novaRows()
+
+            channelListContent
+                .novaRows()
+          }
         }
+        #if os(iOS)
+        .listStyle(.insetGrouped)
+        #else
+        .listStyle(.inset)
+        #endif
+        .novaGroupedList()
+        .sheetChrome(title: Text(Strings.title), onClose: { isPresented = false })
         #if os(macOS)
         .frame(minWidth: 420, minHeight: 520)
+        #else
+        // Picking a channel fits in half the screen, as in Maps; drag up
+        // for the full list.
+        .presentationDetents([.medium, .large])
         #endif
-        .themedSheetBackground()
         .onAppear {
             // Refresh channels when opening
             if locationChannelsModel.permissionState == .authorized {
@@ -250,6 +246,9 @@ struct LocationChannelsSheet: View {
         return GeohashPickerView(
             initialGeohash: initial,
             nearbyGeohashes: locationChannelsModel.availableChannels.map(\.geohash),
+            clusters: locationChannelsModel.availableChannels.map {
+                GeohashMapCluster(geohash: $0.geohash, peopleCount: peerListModel.participantCount(for: $0.geohash))
+            },
             onSelect: { geohash in
                 pickedGeohash = geohash
                 showGlobePicker = false
@@ -280,53 +279,37 @@ struct LocationChannelsSheet: View {
         activeSharePayload = ChannelSharePayload(text: ChannelShare.payload(forGeohash: geohash))
     }
 
-    private var closeButton: some View {
-        SheetCloseButton { isPresented = false }
-    }
-
-    /// Participant counts mean "active in the last five minutes": they change
-    /// as people arrive and as quiet ones age out, neither of which publishes
-    /// anything this sheet observes, so re-read them every few seconds while
-    /// the sheet is open.
-    private var channelList: some View {
-        TimelineView(.periodic(from: .now, by: 5)) { _ in
-            channelListContent
-        }
-    }
-
+    /// Participant counts change as peers arrive and age out. Refresh them
+    /// periodically while keeping the system List row layout.
+    @ViewBuilder
     private var channelListContent: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                channelRow(title: Strings.meshTitle(peerListModel.reachableMeshPeerCount), subtitlePrefix: Strings.subtitlePrefix(geohash: "bluetooth", coverage: bluetoothRangeString()), isSelected: isMeshSelected, titleColor: standardBlue, titleBold: peerListModel.reachableMeshPeerCount > 0) {
+            Section {
+                channelRow(
+                    title: Strings.meshTitle(peerListModel.reachableMeshPeerCount),
+                    subtitlePrefix: Strings.subtitlePrefix(geohash: "bluetooth", coverage: bluetoothRangeString()),
+                    isSelected: isMeshSelected,
+                    icon: "antenna.radiowaves.left.and.right",
+                    tileColor: ChannelTitle.meshAvatarColor
+                ) {
                     locationChannelsModel.select(ChannelID.mesh)
                     isPresented = false
                 }
-                .padding(.vertical, 6)
+            }
 
+            Section {
                 let nearby = locationChannelsModel.availableChannels.filter { $0.level != .building }
                 if !nearby.isEmpty {
                     ForEach(nearby) { channel in
-                        sectionDivider
-                        let coverage = coverageString(forPrecision: channel.geohash.count)
-                        let nameBase = locationName(for: channel.level)
-                        let namePart = nameBase.map { formattedNamePrefix(for: channel.level) + $0 }
-                        let participantCount = peerListModel.participantCount(for: channel.geohash)
-                        let subtitlePrefix = Strings.subtitlePrefix(geohash: channel.geohash, coverage: coverage)
-                        let highlight = participantCount > 0
+                        let name = locationName(for: channel.level).map { formattedNamePrefix(for: channel.level) + $0 }
+                        let count = peerListModel.participantCount(for: channel.geohash)
                         channelRow(
-                            title: Strings.levelTitle(for: channel.level, count: participantCount),
-                            subtitlePrefix: subtitlePrefix,
-                            subtitleName: namePart,
+                            title: Strings.levelTitle(for: channel.level, count: count),
+                            subtitlePrefix: Strings.subtitlePrefix(geohash: channel.geohash, coverage: coverageString(forPrecision: channel.geohash.count)),
+                            subtitleName: name,
                             isSelected: isSelected(channel),
-                            titleBold: highlight,
+                            icon: iconName(for: channel.level),
                             trailingAccessory: {
-                                Button(action: { locationChannelsModel.toggleBookmark(channel.geohash) }) {
-                                    Image(systemName: locationChannelsModel.isBookmarked(channel.geohash) ? "bookmark.fill" : "bookmark")
-                                        .font(.bitchatSystem(size: 14))
-                                }
-                                .buttonStyle(.plain)
-                                .padding(.leading, 8)
-                                .accessibilityLabel(locationChannelsModel.isBookmarked(channel.geohash) ? Strings.removeBookmark : Strings.addBookmark)
+                                bookmarkButton(for: channel.geohash)
                             },
                             accessoryActionTitle: locationChannelsModel.isBookmarked(channel.geohash) ? Strings.removeBookmark : Strings.addBookmark,
                             accessoryAction: { locationChannelsModel.toggleBookmark(channel.geohash) },
@@ -338,80 +321,66 @@ struct LocationChannelsSheet: View {
                             isPresented = false
                         }
                         .contextMenu {
-                            Button {
-                                requestShare(forGeohash: channel.geohash)
-                            } label: {
+                            Button { requestShare(forGeohash: channel.geohash) } label: {
                                 Label(Strings.shareChannel, systemImage: "square.and.arrow.up")
                             }
                         }
-                        .padding(.vertical, 6)
                     }
                 } else if locationChannelsModel.permissionState == .authorized {
-                    sectionDivider
-                    HStack(spacing: 8) {
-                        ProgressView()
+                    Label {
                         Text(Strings.loadingNearby)
-                            .bitchatFont(size: 12)
+                    } icon: {
+                        ProgressView()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 10)
+                    .foregroundStyle(.novaSecondaryText)
                 } else {
-                    // No permission means no fix is coming: an honest hint
-                    // beats a spinner that would never finish.
-                    sectionDivider
                     Text(Strings.grantToFind)
-                        .bitchatFont(size: 12)
-                        .foregroundColor(palette.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 10)
+                        .font(.subheadline)
+                        .foregroundStyle(.novaSecondaryText)
                 }
-
-                sectionDivider
-                customTeleportSection
-                    .padding(.vertical, 8)
-
-                if QuickJoinSuggestion.current() != nil {
-                    sectionDivider
-                    quickJoinSection
-                        .padding(.vertical, 8)
-                }
-
-                let bookmarkedList = locationChannelsModel.bookmarks
-                if !bookmarkedList.isEmpty {
-                    sectionDivider
-                    bookmarkedSection(bookmarkedList)
-                        .padding(.vertical, 8)
-                }
-
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 6)
-            .themedSurface()
-        }
-        .themedSurface()
+
+            customTeleportSection
+
+            if QuickJoinSuggestion.current() != nil {
+                quickJoinSection
+            }
+
+            let bookmarks = locationChannelsModel.bookmarks
+            if !bookmarks.isEmpty {
+                Section {
+                    bookmarkedRows(bookmarks)
+                } header: {
+                    Text(Strings.bookmarked)
+                        .foregroundColor(.novaSecondaryText)
+                }
+            }
     }
 
-    private var sectionDivider: some View {
-        Rectangle()
-            .fill(dividerColor)
-            .frame(height: 1)
-    }
-
-    private var dividerColor: Color { palette.divider }
-
+    /// Teleport to a typed geohash, or pick one on the map: the field with
+    /// the map button beside it, then the teleport action.
     private var customTeleportSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 2) {
+        let normalized = customGeohash
+            .trimmed
+            .lowercased()
+            .replacingOccurrences(of: "#", with: "")
+        let isValid = validateGeohash(normalized)
+        return Section {
+            HStack(spacing: 8) {
                 Text(verbatim: "#")
-                    .bitchatFont(size: 14)
-                    .foregroundColor(palette.secondary)
+                    .foregroundStyle(.novaSecondaryText)
                 TextField("geohash", text: $customGeohash)
                     #if os(iOS)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled(true)
                     .keyboardType(.asciiCapable)
                     #endif
-                    .bitchatFont(size: 14)
+                    .textFieldStyle(.plain)
+                    .onSubmit {
+                        guard isValid else { return }
+                        locationChannelsModel.teleport(to: normalized)
+                        isPresented = false
+                    }
                     .onChange(of: customGeohash) { newValue in
                         let allowed = Set("0123456789bcdefghjkmnpqrstuvwxyz")
                         let filtered = newValue
@@ -424,149 +393,115 @@ struct LocationChannelsSheet: View {
                             customGeohash = filtered
                         }
                     }
-                let normalized = customGeohash
-                    .trimmed
-                    .lowercased()
-                    .replacingOccurrences(of: "#", with: "")
-                let isValid = validateGeohash(normalized)
                 Button(action: { showGlobePicker = true }) {
                     Image(systemName: "map")
-                        .font(.bitchatSystem(size: 16))
-                        .foregroundColor(palette.secondary)
-                        .frame(width: 36, height: 36)
+                        .frame(minWidth: 32, minHeight: 32)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .accessibilityLabel(Strings.openMap)
-                Button(action: {
-                    let gh = normalized
-                    guard isValid else { customError = Strings.invalidGeohash; return }
-                    locationChannelsModel.teleport(to: gh)
-                    isPresented = false
-                }) {
-                    HStack(spacing: 6) {
-                        Text(Strings.teleport)
-                            .bitchatFont(size: 14)
-                        Image(systemName: "face.dashed")
-                            .font(.bitchatSystem(size: 14))
-                    }
-                }
-                .buttonStyle(.plain)
-                .bitchatFont(size: 14)
-                .padding(.vertical, 6)
-                .padding(.horizontal, 10)
-                .background(palette.secondary.opacity(0.12))
-                .cornerRadius(6)
-                .opacity(isValid ? 1.0 : 0.4)
-                .disabled(!isValid)
+                .help(Strings.openMap)
             }
+            Button(action: {
+                guard isValid else { customError = Strings.invalidGeohash; return }
+                locationChannelsModel.teleport(to: normalized)
+                isPresented = false
+            }) {
+                Label(Strings.teleport, systemImage: "location.north.circle")
+                    // A row action in the accent; gray until the geohash
+                    // is valid.
+                    .foregroundStyle(isValid ? Color.novaAccent : Color.novaSecondaryText)
+            }
+            .disabled(!isValid)
+        } footer: {
             if let err = customError {
                 Text(err)
-                    .bitchatFont(size: 12)
-                    .foregroundColor(.red)
+                    .foregroundStyle(palette.alertRed)
             }
         }
     }
 
     /// One tap into the region channel around the device region's main
     /// population center — derived from the locale, no location access, no
-    /// roster (see QuickJoinSuggestion). The caption is deliberately blunt
+    /// roster (see QuickJoinSuggestion). The footer is deliberately blunt
     /// that the cell is public and watched: discovery, not circumvention.
     @ViewBuilder
     private var quickJoinSection: some View {
         if let suggestion = QuickJoinSuggestion.current() {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(Strings.quickJoinTitle)
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.secondary)
-
+            Section {
                 Button(action: {
                     locationChannelsModel.teleport(to: suggestion.geohash)
                     isPresented = false
                 }) {
-                    HStack {
-                        Text(verbatim: "\(suggestion.flag) \(suggestion.localizedName)")
-                            .bitchatFont(size: 14)
-                            .foregroundColor(palette.primary)
-                        Spacer()
+                    HStack(spacing: 12) {
+                        Text(verbatim: suggestion.flag)
+                            .font(.title2)
+                            .frame(width: 32)
+                        Text(verbatim: suggestion.localizedName)
+                            // Color.primary: inside a button, .primary
+                            // takes the tint.
+                            .foregroundStyle(Color.primary)
+                        Spacer(minLength: 8)
                         Text(verbatim: "#\(suggestion.geohash)")
-                            .bitchatFont(size: 12)
-                            .foregroundColor(palette.secondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.novaSecondaryText)
                     }
-                    .padding(.vertical, 6)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
                 .accessibilityLabel(Strings.quickJoinLabel(suggestion.localizedName))
                 .accessibilityHint(Strings.switchChannelHint)
-
+            } header: {
+                Text(Strings.quickJoinTitle)
+                    .foregroundColor(.novaSecondaryText)
+            } footer: {
                 Text(Strings.quickJoinDescription(suggestion.localizedName))
-                    .bitchatFont(size: 11)
-                    .foregroundColor(palette.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .novaSectionText()
             }
         }
     }
 
-    private func bookmarkedSection(_ entries: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(Strings.bookmarked)
-                .bitchatFont(size: 12)
-                .foregroundColor(palette.secondary)
-            LazyVStack(spacing: 0) {
-                ForEach(Array(entries.enumerated()), id: \.offset) { index, gh in
-                    let level = levelForLength(gh.count)
-                    let channel = GeohashChannel(level: level, geohash: gh)
-                    let coverage = coverageString(forPrecision: gh.count)
-                    let subtitle = Strings.subtitlePrefix(geohash: gh, coverage: coverage)
-                    let name = locationChannelsModel.bookmarkNames[gh]
-                    let participantCount = peerListModel.participantCount(for: gh)
-                    channelRow(
-                        title: Strings.bookmarkTitle(geohash: gh, count: participantCount),
-                        subtitlePrefix: subtitle,
-                        subtitleName: name.map { formattedNamePrefix(for: level) + $0 },
-                        isSelected: locationChannelsModel.isSelected(channel),
-                        trailingAccessory: {
-                            Button(action: { locationChannelsModel.toggleBookmark(gh) }) {
-                                Image(systemName: locationChannelsModel.isBookmarked(gh) ? "bookmark.fill" : "bookmark")
-                                    .font(.bitchatSystem(size: 14))
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.leading, 8)
-                            .accessibilityLabel(locationChannelsModel.isBookmarked(gh) ? Strings.removeBookmark : Strings.addBookmark)
-                        },
-                        accessoryActionTitle: locationChannelsModel.isBookmarked(gh) ? Strings.removeBookmark : Strings.addBookmark,
-                        accessoryAction: { locationChannelsModel.toggleBookmark(gh) },
-                        shareGeohash: gh,
-                        onShare: { requestShare(forGeohash: gh) }
-                    ) {
-                        let inRegional = locationChannelsModel.availableChannels.contains { $0.geohash == gh }
-                        if !inRegional && !locationChannelsModel.availableChannels.isEmpty {
-                            locationChannelsModel.markTeleported(for: gh, true)
-                        } else {
-                            locationChannelsModel.markTeleported(for: gh, false)
-                        }
-                        locationChannelsModel.select(ChannelID.location(channel))
-                        isPresented = false
-                    }
-                    .contextMenu {
-                        Button {
-                            requestShare(forGeohash: gh)
-                        } label: {
-                            Label(Strings.shareChannel, systemImage: "square.and.arrow.up")
-                        }
-                    }
-                    .padding(.vertical, 6)
-                    .onAppear { locationChannelsModel.resolveBookmarkNameIfNeeded(for: gh) }
-
-                    if index < entries.count - 1 {
-                        sectionDivider
-                    }
+    @ViewBuilder
+    private func bookmarkedRows(_ entries: [String]) -> some View {
+        ForEach(entries, id: \.self) { gh in
+            let level = levelForLength(gh.count)
+            let channel = GeohashChannel(level: level, geohash: gh)
+            let coverage = coverageString(forPrecision: gh.count)
+            let subtitle = Strings.subtitlePrefix(geohash: gh, coverage: coverage)
+            let name = locationChannelsModel.bookmarkNames[gh]
+            let participantCount = peerListModel.participantCount(for: gh)
+            channelRow(
+                title: Strings.bookmarkTitle(geohash: gh, count: participantCount),
+                subtitlePrefix: subtitle,
+                subtitleName: name.map { formattedNamePrefix(for: level) + $0 },
+                isSelected: locationChannelsModel.isSelected(channel),
+                icon: iconName(for: level),
+                trailingAccessory: {
+                    bookmarkButton(for: gh)
+                },
+                accessoryActionTitle: locationChannelsModel.isBookmarked(gh) ? Strings.removeBookmark : Strings.addBookmark,
+                accessoryAction: { locationChannelsModel.toggleBookmark(gh) },
+                shareGeohash: gh,
+                onShare: { requestShare(forGeohash: gh) }
+            ) {
+                let inRegional = locationChannelsModel.availableChannels.contains { $0.geohash == gh }
+                if !inRegional && !locationChannelsModel.availableChannels.isEmpty {
+                    locationChannelsModel.markTeleported(for: gh, true)
+                } else {
+                    locationChannelsModel.markTeleported(for: gh, false)
+                }
+                locationChannelsModel.select(ChannelID.location(channel))
+                isPresented = false
+            }
+            .contextMenu {
+                Button {
+                    requestShare(forGeohash: gh)
+                } label: {
+                    Label(Strings.shareChannel, systemImage: "square.and.arrow.up")
                 }
             }
+            .onAppear { locationChannelsModel.resolveBookmarkNameIfNeeded(for: gh) }
         }
     }
-
 
     private func isSelected(_ channel: GeohashChannel) -> Bool {
         locationChannelsModel.isSelected(channel)
@@ -577,15 +512,13 @@ struct LocationChannelsSheet: View {
         return false
     }
 
-    @ViewBuilder
     private func channelRow(
         title: String,
         subtitlePrefix: String,
         subtitleName: String? = nil,
-        subtitleNameBold _: Bool = false,
         isSelected: Bool,
-        titleColor: Color? = nil,
-        titleBold: Bool = false,
+        icon: String,
+        tileColor: AvatarIdentity.RGB = ChannelTitle.locationAvatarColor,
         @ViewBuilder trailingAccessory: () -> some View = { EmptyView() },
         accessoryActionTitle: String? = nil,
         accessoryAction: (() -> Void)? = nil,
@@ -593,62 +526,88 @@ struct LocationChannelsSheet: View {
         onShare: (() -> Void)? = nil,
         action: @escaping () -> Void
     ) -> some View {
-        HStack(alignment: .center, spacing: 8) {
-            VStack(alignment: .leading) {
-                // Render title with smaller font for trailing count in parentheses
-                let parts = splitTitleAndCount(title)
-                HStack(spacing: 4) {
-                    Text(parts.base)
-                            .bitchatFont(size: 14)
-                            .fontWeight(titleBold ? .bold : .regular)
-                            .foregroundColor(titleColor ?? palette.primary)
-                        if let count = parts.countSuffix, !count.isEmpty {
-                            Text(count)
-                                .bitchatFont(size: 11)
-                                .foregroundColor(palette.secondary)
-                        }
+        let parts = splitTitleAndCount(title)
+        return HStack(spacing: 4) {
+            Button(action: action) {
+                HStack(spacing: 12) {
+                    // The channel's glyph on the tile its info page shows.
+                    ConversationGlyphAvatar(systemImage: icon, color: tileColor, size: 32)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(parts.base)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Text(Strings.subtitle(prefix: subtitlePrefix, name: subtitleName))
+                            .font(.footnote)
+                            .foregroundStyle(.novaSecondaryText)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
                     }
-                let subtitleFull = Strings.subtitle(prefix: subtitlePrefix, name: subtitleName)
-                Text(subtitleFull)
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
+                    Spacer(minLength: 4)
+                    if let count = parts.countSuffix, !count.isEmpty {
+                        Text(count)
+                            .font(.subheadline)
+                            .foregroundStyle(.novaSecondaryText)
+                            .lineLimit(1)
+                            .layoutPriority(1)
+                    }
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(.novaAccent)
+                            .accessibilityHidden(true)
+                    }
                 }
-                Spacer()
-                if isSelected {
-                    Text(verbatim: "✔︎")
-                        .bitchatFont(size: 16)
-                        .foregroundColor(standardGreen)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(verbatim: "\(title), \(Strings.subtitle(prefix: subtitlePrefix, name: subtitleName))"))
+            .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+            .accessibilityHint(Strings.switchChannelHint)
+            .accessibilityAction(.default, action)
+            .accessibilityActions {
+                if let accessoryActionTitle, let accessoryAction {
+                    Button(accessoryActionTitle, action: accessoryAction)
                 }
-                trailingAccessory()
+                if shareGeohash != nil, let onShare {
+                    Button(Strings.shareChannel, action: onShare)
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture(perform: action)
-        // The row is a plain HStack with a tap gesture, which VoiceOver reads
-        // as disconnected static text. Expose it as one activatable button;
-        // the visible bookmark accessory is mirrored as a named action.
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: "\(title), \(Strings.subtitle(prefix: subtitlePrefix, name: subtitleName))"))
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : [.isButton])
-        .accessibilityHint(Strings.switchChannelHint)
-        .accessibilityAction(.default, action)
-        .accessibilityActions {
-            if let accessoryActionTitle, let accessoryAction {
-                Button(accessoryActionTitle, action: accessoryAction)
-            }
-            if shareGeohash != nil, let onShare {
-                Button(Strings.shareChannel, action: onShare)
-            }
+            trailingAccessory()
         }
     }
 
-    // Split a title like "#mesh [3 people]" into base and suffix "[3 people]"
+    private func bookmarkButton(for geohash: String) -> some View {
+        Button {
+            locationChannelsModel.toggleBookmark(geohash)
+        } label: {
+            Image(systemName: locationChannelsModel.isBookmarked(geohash) ? "bookmark.fill" : "bookmark")
+                .foregroundStyle(.novaAccent)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(locationChannelsModel.isBookmarked(geohash) ? Strings.removeBookmark : Strings.addBookmark)
+    }
+
+    private func iconName(for level: GeohashChannelLevel) -> String {
+        switch level {
+        case .block, .building: "mappin.and.ellipse"
+        case .neighborhood: "house"
+        case .city: "building.2"
+        case .province: "map"
+        case .region: "globe.americas"
+        }
+    }
+
+    /// Splits a title like "Mesh [3 people]" into the name and the
+    /// count, "3 people", which the row shows at its trailing edge.
     private func splitTitleAndCount(_ s: String) -> (base: String, countSuffix: String?) {
         guard let idx = s.lastIndex(of: "[") else { return (s, nil) }
         let prefix = String(s[..<idx]).trimmed
         let suffix = String(s[idx...])
+            .trimmingCharacters(in: CharacterSet(charactersIn: "[] "))
         return (prefix, suffix)
     }
     private func validateGeohash(_ s: String) -> Bool {
@@ -668,14 +627,6 @@ struct LocationChannelsSheet: View {
         default: return .block
         }
     }
-}
-
-// MARK: - Standardized Colors
-// (The tor and internet-gateway toggles moved to AppInfoView's Settings pane;
-// IRCToggleStyle now lives in Views/Components.)
-extension LocationChannelsSheet {
-    private var standardGreen: Color { palette.primary }
-    private var standardBlue: Color { palette.accentBlue }
 }
 
 // MARK: - Coverage helpers

@@ -53,7 +53,6 @@
 /// - `/nick <name>`: Change nickname
 /// - `/msg <user> <message>`: Send private message
 /// - `/who`: List connected peers
-/// - `/slap <user>`: Fun interaction
 /// - `/clear`: Clear message history
 /// - `/help`: Show available commands
 ///
@@ -122,7 +121,7 @@ private struct PendingPrivateChatClear {
 /// Manages the application state and business logic for BitChat.
 /// Acts as the primary coordinator between UI components and backend services,
 /// implementing the BitchatDelegate protocol to handle network events.
-final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessageTransportEventDelegate, CommandContextProvider, GeohashParticipantContext, MessageFormattingContext {
+final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessageTransportEventDelegate, CommandContextProvider, GeohashParticipantContext {
     // Use MessageFormattingEngine.Patterns for regex matching (shared, precompiled)
     typealias Patterns = MessageFormattingEngine.Patterns
 
@@ -170,7 +169,6 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     }
     private var visibleMessagesCache: [BitchatMessage]?
     @Published var currentColorScheme: ColorScheme = .light
-    @Published var currentTheme: AppTheme = .matrix
     @Published var isConnected = false
     @Published private(set) var panicRecoveryBlocked = false
     var networkActivationAllowed: Bool { !panicRecoveryBlocked }
@@ -331,6 +329,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     let keychain: KeychainManagerProtocol
     private let panicRecoveryOperations: PanicRecoveryOperations
     private let panicNetworkLifecycle: PanicNetworkLifecycle
+    private let messageWipeOperations: MessageWipeOperations
     private var isPanicResetting = false
     /// Private group membership: keys in the keychain, metadata on disk.
     let groupStore: GroupStore
@@ -340,9 +339,9 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         get { conversations.activeChannel }
         set {
             guard conversations.activeChannel != newValue else { return }
-            // Leaving a channel expedites any in-flight NIP-13 mining: the
-            // pending message still sends, at the difficulty already reached.
-            outgoingCoordinator.expeditePendingGeohashMining()
+            // Leaving a channel drops location messages still mining their
+            // proof of work: they are not sent, and their bubbles end failed.
+            outgoingCoordinator.abandonPendingGeohashSends()
             conversations.setActiveChannel(newValue)
             visibleMessagesCache = nil
             objectWillChange.send()
@@ -1020,6 +1019,28 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         conversations.conversation(for: ConversationID(channelID: channel)).messages
     }
 
+    @MainActor
+    func publicMessage(withID messageID: String) -> BitchatMessage? {
+        for (conversationID, conversation) in conversations.conversationsByID {
+            switch conversationID {
+            case .mesh, .geohash:
+                if let message = conversation.message(withID: messageID) { return message }
+            case .direct:
+                continue
+            }
+        }
+        return nil
+    }
+
+    @MainActor
+    func privateMessage(withID messageID: String) -> BitchatMessage? {
+        for (conversationID, conversation) in conversations.conversationsByID {
+            guard case .direct = conversationID else { continue }
+            if let message = conversation.message(withID: messageID) { return message }
+        }
+        return nil
+    }
+
     /// `true` when the conversation contains a message with `messageID`.
     @MainActor
     func publicConversationContainsMessage(withID messageID: String, in conversationID: ConversationID) -> Bool {
@@ -1142,7 +1163,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
             outboxStore: MessageOutboxStore(keychain: keychain),
             sfMetrics: .shared,
             panicRecoveryOperations: panicRecoveryOperations,
-            panicNetworkLifecycle: .live
+            panicNetworkLifecycle: .live,
+            messageWipeOperations: .live
         )
     }
 
@@ -1163,7 +1185,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         sfMetrics: StoreAndForwardMetrics? = nil,
         panicMediaWipe: (() throws -> Void)? = nil,
         panicRecoveryOperations: PanicRecoveryOperations? = nil,
-        panicNetworkLifecycle: PanicNetworkLifecycle = .noop
+        panicNetworkLifecycle: PanicNetworkLifecycle = .noop,
+        messageWipeOperations: MessageWipeOperations? = nil
     ) {
         let conversations = conversations ?? ConversationStore()
         let peerIdentityStore = peerIdentityStore ?? PeerIdentityStore()
@@ -1181,6 +1204,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         self.panicRecoveryOperations = panicRecoveryOperations
             ?? .ephemeral(wipeMedia: panicMediaWipe ?? {})
         self.panicNetworkLifecycle = panicNetworkLifecycle
+        self.messageWipeOperations = messageWipeOperations ?? .ephemeral()
         self.groupStore = GroupStore(keychain: keychain)
         self.idBridge = idBridge
         self.identityManager = identityManager
@@ -1315,6 +1339,12 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         outgoingCoordinator.sendMessage(content)
     }
 
+    /// Sends any location message still doing its proof of work right away,
+    /// with the work done so far (the "send now" button while mining).
+    func expeditePendingGeohashMining() {
+        outgoingCoordinator.expeditePendingGeohashMining()
+    }
+
     /// Sends a 👋 to the mesh channel regardless of the active channel.
     @MainActor
     func sendMeshWave() {
@@ -1420,6 +1450,41 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     @MainActor
     func unblockMeshPeer(peerID: PeerID, displayName: String) {
         setMeshPeerBlocked(peerID, blocked: false, displayName: displayName)
+    }
+
+    /// Everyone the user blocked, mesh and location channels together, for
+    /// the blocked accounts list in settings.
+    @MainActor
+    func blockedAccounts() -> [BlockedAccount] {
+        let mesh = identityManager.getBlockedSocialIdentities().map { identity -> BlockedAccount in
+            let petname = identity.localPetname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let claimed = identity.claimedNickname.trimmingCharacters(in: .whitespacesAndNewlines)
+            // A block placed before any announce leaves the "Unknown"
+            // placeholder; the short fingerprint tells those rows apart.
+            let name = !petname.isEmpty ? petname
+                : (!claimed.isEmpty && claimed != "Unknown" ? claimed : "anon\(identity.fingerprint.prefix(4))")
+            return BlockedAccount(kind: .mesh(fingerprint: identity.fingerprint), name: name)
+        }
+        let nostr = identityManager.getBlockedNostrPubkeys().map { pubkey in
+            BlockedAccount(
+                kind: .nostr(pubkeyHex: pubkey),
+                name: geohashDisplayName(for: PeerID(nostr: pubkey))
+            )
+        }
+        return BlockedAccount.sorted(mesh + nostr)
+    }
+
+    /// Undoes a block from the blocked accounts list, through the same
+    /// stores `/unblock` writes.
+    @MainActor
+    func unblock(_ account: BlockedAccount) {
+        switch account.kind {
+        case .mesh(let fingerprint):
+            unifiedPeerService.setBlocked(fingerprint: fingerprint, blocked: false)
+            objectWillChange.send()
+        case .nostr(let pubkeyHex):
+            unblockGeohashUser(pubkeyHexLowercased: pubkeyHex, displayName: account.name)
+        }
     }
 
     @MainActor
@@ -1553,6 +1618,119 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         peerIdentityCoordinator.getPeerIDForNickname(nickname)
     }
 
+    // MARK: - Message Wipe
+
+    /// Extreme security mode's wipe: deletes every message the user could
+    /// read again, and nothing else, before returning.
+    ///
+    /// Deleted:
+    /// - every public timeline (mesh, geohash), direct message and group
+    ///   chat, with unread state and queued system notices;
+    /// - composer drafts and content staged by the share extension;
+    /// - received and sent images, voice notes and files, live voice
+    ///   captures, the private-media receipt ledger, and cached thumbnails;
+    /// - the outbox of own messages not delivered yet. It holds their text,
+    ///   so they are dropped, not sent later;
+    /// - the carried public message archive (memory and disk), its echo
+    ///   bookkeeping, and the sampled nearby-chat previews;
+    /// - delivered notifications, which can quote messages.
+    ///
+    /// Kept: identity and keys, favorites, petnames, verifications, blocks,
+    /// settings, group memberships and keys, chat backgrounds, board posts
+    /// and location notes (public notices, not conversations), and sealed
+    /// traffic carried for other people: courier mail (unreadable here;
+    /// deleting it would drop friends' messages) and the group ciphertext
+    /// the mesh sync store serves to every group's members (the app never
+    /// shows it from there). Dedup and processed-event records hold message
+    /// IDs only; they stay, so a peer's sync or a relay cannot bring a
+    /// deleted message back. Services keep running, so new messages arrive
+    /// as usual.
+    ///
+    /// `panicClearAllData()` runs the same `clearMessageContent()` inside its
+    /// larger wipe. Returns false when a media file may remain on disk.
+    @MainActor
+    @discardableResult
+    func wipeMessages() -> Bool {
+        clearMessageContent()
+        // The screen the person was on stays open, now empty.
+        conversations.restoreDerivedSelection()
+
+        let mediaDeleted: Bool
+        do {
+            try messageWipeOperations.deleteMediaFiles()
+            mediaDeleted = true
+        } catch {
+            mediaDeleted = false
+            SecureLogger.error(
+                "Message wipe could not delete every media file: \(error)",
+                category: .security
+            )
+        }
+        // After the files are gone, so the transport's receipt cache
+        // rebuilds from the empty directory.
+        (meshService as? MessageWipingTransport)?.wipeCarriedMessages()
+
+        if mediaDeleted {
+            SecureLogger.info("🗑️ Message wipe finished", category: .security)
+        }
+        return mediaDeleted
+    }
+
+    /// The message content both wipes delete, except the media files: the
+    /// panic wipe deletes those inside its recovery transaction, and
+    /// `wipeMessages()` right after this returns.
+    @MainActor
+    private func clearMessageContent() {
+        // Invalidate detached media preparation and close live capture file
+        // handles before clearing state or removing the media directory.
+        mediaTransferCoordinator.resetForPanic()
+        liveVoiceCoordinator.resetForPanic()
+        privateChatClearGeneration &+= 1
+        queuedPrivateChatClears.removeAll(keepingCapacity: false)
+        privateChatClearInFlight = false
+
+        // Deny and release any clear-media confirmations before message
+        // state and local files are wiped.
+        cancelAllLegacyPrivateMediaConsents()
+
+        // Rows waiting for the batched timeline flush would land after the
+        // wipe.
+        publicMessagePipeline.discardBuffered()
+
+        // Clear all messages (public timelines and private chats live in the
+        // single-writer ConversationStore; the derived `messages` view and
+        // the legacy mirror empty with it)
+        conversations.clearAll()
+        visibleMessagesCache = nil
+        pendingGeohashSystemMessages.removeAll()
+
+        // Half-written messages. The composer drops its own text through
+        // AppChromeModel's wipe preparation before this runs.
+        ComposerDraftStore.reset()
+
+        // Drop any share-extension handoff staged in the app group: it is
+        // content on its way into a message. AppChromeModel also clears the
+        // import offer on screen, but the panic crash-recovery replay calls
+        // the view model directly and would otherwise let a staged envelope
+        // survive. Clearing only removes the app-group key, so doing it twice
+        // is harmless.
+        if let sharedDefaults = UserDefaults(suiteName: BitchatApp.groupID) {
+            SharedContentStore(defaults: sharedDefaults).discardAll()
+        }
+
+        // Our own undelivered messages, kept sealed on disk for retry.
+        messageRouter.wipeOutbox()
+
+        // The carried public history and what was derived from it: echo
+        // keys (which hold message text) and sampled nearby-chat previews.
+        messageWipeOperations.deletePublicArchive()
+        publicConversationCoordinator.forgetArchivedEchoes()
+        GeohashChatActivityTracker.shared.clear()
+
+        messageWipeOperations.clearMediaCaches()
+        messageWipeOperations.removeNotifications()
+    }
+
     // MARK: - Emergency Functions
 
     // PANIC: Emergency data clearing for activist safety
@@ -1580,23 +1758,11 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
             meshService.emergencyDisconnectAll()
         }
 
-        // Invalidate detached media preparation and close live capture file
-        // handles before clearing state or removing the media directory.
-        mediaTransferCoordinator.resetForPanic()
-        liveVoiceCoordinator.resetForPanic()
-        privateChatClearGeneration &+= 1
-        queuedPrivateChatClears.removeAll(keepingCapacity: false)
-        privateChatClearInFlight = false
-
-        // Deny and release any clear-media confirmations before identities,
-        // message state, and local files are wiped.
-        cancelAllLegacyPrivateMediaConsents()
-
-        // Clear all messages (public timelines and private chats live in the
-        // single-writer ConversationStore; the derived `messages` view and
-        // the legacy mirror empty with it)
-        conversations.clearAll()
-        pendingGeohashSystemMessages.removeAll()
+        // Every message, draft, outbox entry, carried archive and notification
+        // goes through the list extreme security mode uses, so the two wipes
+        // cannot drift apart. The media files themselves are deleted by the
+        // recovery transaction below, after the identity reset.
+        clearMessageContent()
 
         // Delete all keychain data (including Noise and Nostr keys)
         let keychainWipeCompleted = keychain.deleteAllKeychainData()
@@ -1633,22 +1799,26 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         // Clear persistent favorites from keychain
         FavoritesPersistenceService.shared.clearAllFavorites()
 
-        // Drop courier mail carried for third parties (memory and disk),
-        // our own queued outbox, the carried public history, and the
-        // counters describing all of it
+        // Drop courier mail carried for third parties (memory and disk) and
+        // the counters describing it. Our own outbox and the carried public
+        // history went with the message content above.
         CourierStore.shared.wipe()
         BridgeCourierService.shared.wipe()
-        messageRouter.wipeOutbox()
-        GossipMessageArchive.wipeDefault()
         StoreAndForwardMetrics.shared.reset()
 
-        // Ambient-liveliness bookkeeping: sampled nearby-chat previews, the
-        // daily sightings tally, and the echoes-dismissed watermark
-        GeohashChatActivityTracker.shared.clear()
+        // Ambient-liveliness bookkeeping: the daily sightings tally and the
+        // echoes-dismissed watermark (the message wipe above set it; a wiped
+        // device keeps no date of its own).
         MeshSightingsTracker.shared.clear()
         MeshEchoSettings.reset()
         NotificationPrivacySettings.reset()
-        ComposerDraftStore.reset()
+        MediaRevealSettings.reset()
+        MessageBubbleColorSettings.reset()
+        ConversationMessageColorStore.shared.reset()
+        DefaultChatBackgroundSettings.reset()
+        ExtremeSecuritySettings.reset()
+        LocationProofOfWorkSettings.reset()
+        ChatBackgroundStore.shared.reset()
         // A hand-added relay names an operator someone chose to route through,
         // which is the kind of trace a wipe should not leave behind.
         NostrRelaySettings.reset()
@@ -1662,15 +1832,6 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         // Drop bulletin-board posts and tombstones (memory and disk); board
         // posts are signed with our identity key and persist for days.
         BoardStore.shared.wipe()
-
-        // Drop any share-extension handoff staged in the app group. The normal
-        // panic path clears this through AppChromeModel.onPanicWipe, but the
-        // crash-recovery replay calls this method directly and would otherwise
-        // let a staged envelope survive the wipe. Clearing here is idempotent
-        // (it only removes the app-group key), so the double-clear is harmless.
-        if let sharedDefaults = UserDefaults(suiteName: BitchatApp.groupID) {
-            SharedContentStore(defaults: sharedDefaults).discardAll()
-        }
 
         // Identity manager has cleared persisted identity data above
 
@@ -1789,7 +1950,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         // natural response to uncertainty is to trigger the wipe again.
         // The failure case surfaces separately via `panicRecoveryBlocked`.
         addMeshOnlySystemMessage(
-            String(localized: "system.panic.completed", defaultValue: "all data wiped — new identity created", comment: "System message confirming a successful panic wipe")
+            String(localized: "system.panic.completed", defaultValue: "All data wiped — new identity created", comment: "System message confirming a successful panic wipe")
         )
 
         return true
@@ -1831,13 +1992,28 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     // MARK: - Message Formatting
 
     @MainActor
-    func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme? = nil) -> AttributedString {
-        messageFormatter.formatMessageAsText(message, colorScheme: colorScheme, theme: theme ?? currentTheme)
+    func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatMessageAsText(message, colorScheme: colorScheme)
     }
 
     @MainActor
-    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme, theme: AppTheme? = nil) -> AttributedString {
-        messageFormatter.formatMessageHeader(message, colorScheme: colorScheme, theme: theme ?? currentTheme)
+    func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatMessageHeader(message, colorScheme: colorScheme)
+    }
+
+    @MainActor
+    func formatMessageBody(_ message: BitchatMessage, isSelf: Bool, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatMessageBody(message, isSelf: isSelf, colorScheme: colorScheme)
+    }
+
+    @MainActor
+    func formatSenderName(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+        messageFormatter.formatSenderName(message, colorScheme: colorScheme)
+    }
+
+    @MainActor
+    func prewarmMessageRow(_ message: BitchatMessage, colorScheme: ColorScheme) {
+        messageFormatter.prewarmRow(message, colorScheme: colorScheme)
     }
 
     // MARK: - Noise Protocol Support
@@ -1896,25 +2072,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     }
 
     @MainActor
-    private func peerColor(for message: BitchatMessage, isDark: Bool) -> Color {
-        messageFormatter.senderColor(for: message, isDark: isDark)
-    }
-
-    // MARK: - MessageFormattingContext Protocol
-
-    @MainActor
     func isSelfMessage(_ message: BitchatMessage) -> Bool {
         messageFormatter.isSelfMessage(message)
-    }
-
-    @MainActor
-    func senderColor(for message: BitchatMessage, isDark: Bool) -> Color {
-        peerColor(for: message, isDark: isDark)
-    }
-
-    @MainActor
-    func peerURL(for peerID: PeerID) -> URL? {
-        messageFormatter.peerURL(for: peerID)
     }
 
     // Public helpers for views to color peers consistently in lists
@@ -1943,6 +2102,19 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     @MainActor
     func getFingerprint(for peerID: PeerID) -> String? {
         peerIdentityCoordinator.getFingerprint(for: peerID)
+    }
+
+    /// The name the user saved for this peer (a petname), if any. Chats show
+    /// it instead of the nickname the peer announced for themselves.
+    @MainActor
+    func localPetname(for peerID: PeerID) -> String? {
+        guard let fingerprint = getFingerprint(for: peerID),
+              let petname = identityManager.getSocialIdentity(for: fingerprint)?.localPetname?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+              !petname.isEmpty else {
+            return nil
+        }
+        return petname
     }
 
     /// Helper to resolve nickname for a peer ID through various sources
@@ -1989,7 +2161,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
 
     /// Processes IRC-style commands starting with '/'.
     /// - Parameter command: The full command string including the leading slash
-    /// - Note: Supports commands like /msg, /who, /slap, /clear, /help
+    /// - Note: Supports commands like /msg, /who, /clear, /help
     @MainActor
     func handleCommand(_ command: String) {
         let result = commandProcessor.process(command)
@@ -2311,13 +2483,6 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
         )
         appendGeohashMessageIfAbsent(systemMessage, toGeohash: geohash)
     }
-    // Send a public message without adding a local user echo.
-    // Used for emotes where we want a local system-style confirmation instead.
-    @MainActor
-    func sendPublicRaw(_ content: String) {
-        publicConversationCoordinator.sendPublicRaw(content)
-    }
-
     // Send a normal public message (with local echo) to the active channel.
     // CommandContextProvider hook for commands that post real messages
     // (`/pay`); only called when no private chat is selected.
@@ -2346,8 +2511,8 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
     /// Handle an incoming public Nostr message with its validated NIP-13
     /// difficulty; sufficient PoW relaxes the per-sender rate limit.
     @MainActor
-    func handlePublicMessage(_ message: BitchatMessage, powBits: Int) {
-        publicConversationCoordinator.handlePublicMessage(message, powBits: powBits)
+    func handlePublicMessage(_ message: BitchatMessage, powBits: Int, allowHaptic: Bool = true) {
+        publicConversationCoordinator.handlePublicMessage(message, powBits: powBits, allowHaptic: allowHaptic)
     }
 
     /// Check for mentions and send notifications

@@ -31,6 +31,34 @@ final class NotificationServiceTests: XCTestCase {
         XCTAssertEqual(authorizer.lastOptions, [.alert, .sound, .badge])
     }
 
+    func test_removeAllNotifications_clearsDeliveredAndQueuedAlerts() {
+        let clearer = RecordingNotificationClearer()
+        let service = NotificationService(
+            isRunningTestsProvider: { false },
+            authorizer: RecordingNotificationAuthorizer(),
+            requestDeliverer: RecordingNotificationRequestDeliverer(),
+            clearer: clearer
+        )
+
+        service.removeAllNotifications()
+
+        XCTAssertEqual(clearer.removeAllCallCount, 1)
+    }
+
+    func test_removeAllNotifications_skipsWhenRunningTests() {
+        let clearer = RecordingNotificationClearer()
+        let service = NotificationService(
+            isRunningTestsProvider: { true },
+            authorizer: RecordingNotificationAuthorizer(),
+            requestDeliverer: RecordingNotificationRequestDeliverer(),
+            clearer: clearer
+        )
+
+        service.removeAllNotifications()
+
+        XCTAssertEqual(clearer.removeAllCallCount, 0)
+    }
+
     func test_sendLocalNotification_buildsImmediateRequestWithUserInfo() {
         let deliverer = RecordingNotificationRequestDeliverer()
         let service = NotificationService(
@@ -143,5 +171,13 @@ private final class RecordingNotificationRequestDeliverer: NotificationRequestDe
 private extension Array {
     var singleValue: Element? {
         count == 1 ? self[0] : nil
+    }
+}
+
+private final class RecordingNotificationClearer: NotificationClearing {
+    private(set) var removeAllCallCount = 0
+
+    func removeAllNotifications() {
+        removeAllCallCount += 1
     }
 }

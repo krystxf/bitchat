@@ -17,6 +17,12 @@ struct MeshPeerRow: Identifiable, Equatable {
     /// Vouched-for by someone I verified, without an explicit verification of
     /// mine — rendered as the unfilled seal (verified gets the filled one).
     let showsVouchedBadge: Bool
+    /// I verified this person's fingerprint.
+    let isVerified: Bool
+    /// I wrote in a direct conversation with this person.
+    let hasAcceptedConversation: Bool
+    /// I saved a name (petname) for this person.
+    var hasPetname = false
 
     var id: String { peerID.id }
 }
@@ -27,6 +33,8 @@ struct GeohashPersonRow: Identifiable, Equatable {
     let isMe: Bool
     let isTeleported: Bool
     let isBlocked: Bool
+    /// I wrote in a geohash DM with this person.
+    let hasAcceptedConversation: Bool
 }
 
 struct GroupChatRow: Identifiable, Equatable {
@@ -49,6 +57,13 @@ struct RecentChatRow: Identifiable, Equatable {
     let displayName: String
     let hasUnread: Bool
     let lastActivity: Date
+    let isFavorite: Bool
+    let isVerified: Bool
+    /// I wrote in this conversation. A chat that only holds messages from
+    /// the other side is a message request, even after I opened it.
+    let hasAcceptedConversation: Bool
+    /// I saved a name (petname) for this person.
+    var hasPetname = false
 
     var id: String { peerID.id }
 }
@@ -71,6 +86,10 @@ final class PeerListModel: ObservableObject {
     /// The mesh roster `refresh()` builds rows from. Not published: no view
     /// reads it, and publishing it would re-render on every mesh snapshot.
     private var allPeers: [BitchatPeer] = []
+    /// Direct conversations I opened or wrote in, by routing peer ID. Their
+    /// people count as contacts. Held in memory only, like the
+    /// conversations themselves; an entry goes when its conversation does.
+    private var acceptedConversationPeerIDs = Set<PeerID>()
     private var cancellables = Set<AnyCancellable>()
     private var refreshScheduled = false
 
@@ -92,28 +111,20 @@ final class PeerListModel: ObservableObject {
         refresh()
     }
 
-    func colorForMeshPeer(id peerID: PeerID, isDark: Bool) -> Color {
-        chatViewModel.colorForMeshPeer(id: peerID, isDark: isDark)
-    }
-
-    func colorForGeohashPerson(id: String, isDark: Bool) -> Color {
-        chatViewModel.colorForNostrPubkey(id, isDark: isDark)
-    }
-
     func participantCount(for geohash: String) -> Int {
         chatViewModel.geohashParticipantCount(for: geohash)
-    }
-
-    func startConversation(with peerID: PeerID) {
-        chatViewModel.startPrivateChat(with: peerID)
     }
 
     func toggleFavorite(peerID: PeerID) {
         chatViewModel.toggleFavorite(peerID: peerID)
     }
 
-    func openGeohashDirectMessage(with pubkeyHex: String) {
-        chatViewModel.startGeohashDM(withPubkeyHex: pubkeyHex)
+    /// The full Nostr pubkey behind a geohash DM key, while the person is in
+    /// the location channel's roster. A geohash row is tagged with the short
+    /// DM key, and opening the DM needs the full key.
+    func geohashPubkeyHex(forConversation peerID: PeerID) -> String? {
+        guard peerID.isGeoDM else { return nil }
+        return geohashPeople.first { PeerID(nostr_: $0.id) == peerID }?.id
     }
 
     func blockGeohashUser(pubkeyHexLowercased: String, displayName: String) {
@@ -167,12 +178,14 @@ final class PeerListModel: ObservableObject {
 
         // Direct-conversation changes reorder or create recent-chat rows.
         // Filtered to `.direct` so public-timeline traffic (every mesh or
-        // geohash message emits a change) doesn't rebuild the sheet.
+        // geohash message emits a change) doesn't rebuild the sidebar.
         conversations.changes
             .receive(on: DispatchQueue.main)
             .sink { [weak self] change in
+                guard let self else { return }
+                self.noteAcceptance(from: change)
                 guard case .direct = Self.changedConversationID(change) else { return }
-                self?.setNeedsRefresh()
+                self.setNeedsRefresh()
             }
             .store(in: &cancellables)
 
@@ -233,13 +246,6 @@ final class PeerListModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Rebuilds the rows now. The geohash roster republishes only when
-    /// membership or names change, so its recency order goes stale while the
-    /// same people stay active; the people sheet calls this as it opens.
-    func refreshNow() {
-        refresh()
-    }
-
     /// Coalesces bursts of triggers into one rebuild per main-queue turn: a
     /// participant event republishes the roster and the teleport set, and a
     /// mesh snapshot touches peers, unread and encryption state at once.
@@ -256,6 +262,11 @@ final class PeerListModel: ObservableObject {
     }
 
     private func refresh() {
+        pruneAcceptedConversations()
+        let acceptance = AcceptedConversations(
+            peerIDs: acceptedConversationPeerIDs,
+            fingerprints: Set(acceptedConversationPeerIDs.compactMap { chatViewModel.getFingerprint(for: $0) })
+        )
         let myPeerID = chatViewModel.meshService.myPeerID
         let meshRows = allPeers.map { peer in
             let isMe = peer.peerID == myPeerID
@@ -278,7 +289,10 @@ final class PeerListModel: ObservableObject {
                 isMutualFavorite: peer.isMutualFavorite,
                 encryptionStatus: chatViewModel.getEncryptionStatus(for: peer.peerID),
                 showsVerifiedBadgeWhenOffline: verifiedBadge,
-                showsVouchedBadge: vouchedBadge
+                showsVouchedBadge: vouchedBadge,
+                isVerified: isVerifiedFingerprint,
+                hasAcceptedConversation: !isMe && acceptance.contains(peer.peerID, fingerprint: fingerprint),
+                hasPetname: !isMe && chatViewModel.localPetname(for: peer.peerID) != nil
             )
         }
 
@@ -292,12 +306,16 @@ final class PeerListModel: ObservableObject {
             }
         }
 
-        let geohashPeople = buildGeohashPeople()
+        let geohashPeople = buildGeohashPeople(acceptance: acceptance)
         let groupRows = buildGroupRows()
-        let recentChatRows = buildRecentChatRows(meshRows: meshRows, geohashPeople: geohashPeople)
+        let recentChatRows = buildRecentChatRows(
+            meshRows: meshRows,
+            geohashPeople: geohashPeople,
+            acceptance: acceptance
+        )
 
         // Assign only what changed: every @Published write re-renders every
-        // view observing this model (root, header, the open sheet).
+        // view observing this model (root, header, sidebar).
         if self.meshRows != meshRows { self.meshRows = meshRows }
         if reachableMeshPeerCount != meshCounts.reachable { reachableMeshPeerCount = meshCounts.reachable }
         if connectedMeshPeerCount != meshCounts.connected { connectedMeshPeerCount = meshCounts.connected }
@@ -314,7 +332,8 @@ final class PeerListModel: ObservableObject {
     /// private-chat coordinators consolidate on open.
     private func buildRecentChatRows(
         meshRows: [MeshPeerRow],
-        geohashPeople: [GeohashPersonRow]
+        geohashPeople: [GeohashPersonRow],
+        acceptance: AcceptedConversations
     ) -> [RecentChatRow] {
         // A conversation can be keyed by the stable Noise peer ID while the
         // roster lists the ephemeral one — compare fingerprints too.
@@ -343,7 +362,7 @@ final class PeerListModel: ObservableObject {
             let peerID = handle.routingPeerID
             // Groups have their own section; blocked people get no row.
             guard !peerID.isGroup else { continue }
-            guard let lastMessage = conversation.messages.last else { continue }
+            guard let lastActivity = Self.lastActivity(in: conversation.messages) else { continue }
             guard !chatViewModel.isPeerBlocked(peerID) else { continue }
 
             let fingerprint = chatViewModel.getFingerprint(for: peerID)
@@ -352,22 +371,35 @@ final class PeerListModel: ObservableObject {
 
             let identityKey = fingerprint ?? peerID.id
             if let existing = bestByIdentity[identityKey],
-               existing.lastActivity >= lastMessage.timestamp {
+               existing.lastActivity >= lastActivity {
                 continue
             }
-            bestByIdentity[identityKey] = Candidate(peerID: peerID, lastActivity: lastMessage.timestamp)
+            bestByIdentity[identityKey] = Candidate(peerID: peerID, lastActivity: lastActivity)
         }
 
         return bestByIdentity.values
             .sorted { $0.lastActivity > $1.lastActivity }
             .map { candidate in
-                RecentChatRow(
+                let fingerprint = chatViewModel.getFingerprint(for: candidate.peerID)
+                return RecentChatRow(
                     peerID: candidate.peerID,
                     displayName: displayName(for: candidate.peerID),
                     hasUnread: chatViewModel.hasUnreadMessages(for: candidate.peerID),
-                    lastActivity: candidate.lastActivity
+                    lastActivity: candidate.lastActivity,
+                    isFavorite: !candidate.peerID.isGeoDM && chatViewModel.isFavorite(peerID: candidate.peerID),
+                    isVerified: fingerprint.map { peerIdentityStore.isVerified($0) } ?? false,
+                    hasAcceptedConversation: acceptance.contains(candidate.peerID, fingerprint: fingerprint),
+                    hasPetname: chatViewModel.localPetname(for: candidate.peerID) != nil
                 )
             }
+    }
+
+    /// When a chat row last saw activity: the time of its newest message
+    /// that shows as a row. Reaction lines do not count, so a reaction
+    /// neither previews in the sidebar nor moves the chat up. Nil when
+    /// nothing shows.
+    static func lastActivity(in messages: [BitchatMessage]) -> Date? {
+        messages.last(where: { !$0.isReactionLine })?.timestamp
     }
 
     /// GeoDM conversations resolve through the Nostr mapping —
@@ -408,7 +440,7 @@ final class PeerListModel: ObservableObject {
         }
     }
 
-    private func buildGeohashPeople() -> [GeohashPersonRow] {
+    private func buildGeohashPeople(acceptance: AcceptedConversations) -> [GeohashPersonRow] {
         let myHex = currentGeohashIdentityHex()
         let teleportedSet = Set(locationPresenceStore.teleportedGeo.map { $0.lowercased() })
 
@@ -419,8 +451,53 @@ final class PeerListModel: ObservableObject {
                 displayName: person.displayName,
                 isMe: isMe,
                 isTeleported: teleportedSet.contains(person.id.lowercased()) || (isMe && locationChannelsModel.teleported),
-                isBlocked: !isMe && chatViewModel.isGeohashUserBlocked(pubkeyHexLowercased: person.id)
+                isBlocked: !isMe && chatViewModel.isGeohashUserBlocked(pubkeyHexLowercased: person.id),
+                hasAcceptedConversation: !isMe && acceptance.contains(PeerID(nostr_: person.id), fingerprint: nil)
             )
+        }
+    }
+
+    // MARK: - Accepted conversations
+
+    /// The accepted conversations as the row builders match them: by
+    /// routing peer ID, or by fingerprint, because a conversation can be
+    /// keyed by the stable Noise peer ID while the roster lists the
+    /// ephemeral one.
+    private struct AcceptedConversations {
+        let peerIDs: Set<PeerID>
+        let fingerprints: Set<String>
+
+        func contains(_ peerID: PeerID, fingerprint: String?) -> Bool {
+            if peerIDs.contains(peerID) { return true }
+            guard let fingerprint else { return false }
+            return fingerprints.contains(fingerprint)
+        }
+    }
+
+    /// Writing in a conversation accepts it, and an accepted conversation
+    /// stays accepted when it moves to the stable peer ID.
+    private func noteAcceptance(from change: ConversationChange) {
+        switch change {
+        case .appended(.direct(let handle), let message):
+            let myPeerID = chatViewModel.meshService.myPeerID
+            guard message.isOwn(myPeerID: myPeerID, myGeoChatPeerID: nil) else { return }
+            acceptedConversationPeerIDs.insert(handle.routingPeerID)
+        case .migrated(.direct(let source), .direct(let destination)):
+            guard acceptedConversationPeerIDs.contains(source.routingPeerID) else { return }
+            acceptedConversationPeerIDs.insert(destination.routingPeerID)
+        default:
+            break
+        }
+    }
+
+    /// Forgets the acceptance of conversations that no longer exist, so a
+    /// panic wipe or a removed chat leaves no trace of who was a contact.
+    private func pruneAcceptedConversations() {
+        let kept = acceptedConversationPeerIDs.filter { peerID in
+            conversations.conversationsByID[.directPeer(peerID)] != nil
+        }
+        if kept.count != acceptedConversationPeerIDs.count {
+            acceptedConversationPeerIDs = kept
         }
     }
 

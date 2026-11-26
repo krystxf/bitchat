@@ -86,31 +86,27 @@ struct ConnectivityStatusBanner: View {
     }
 
     var body: some View {
-        Group {
-            if let destination = settingsDestination {
-                Button(action: { destination.open() }) {
-                    label
-                }
-                .buttonStyle(.plain)
-            } else {
-                label
+        if let destination = settingsDestination {
+            Button(action: { destination.open() }) {
+                label(showsChevron: true)
             }
+            .buttonStyle(.plain)
+        } else {
+            label(showsChevron: false)
         }
     }
 
-    private var label: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Image(systemName: issue == .torBlocked ? "network.slash" : "antenna.radiowaves.left.and.right.slash")
-                .bitchatFont(size: 11, weight: .semibold)
+    private func label(showsChevron: Bool) -> some View {
+        ChatBanner(
+            systemImage: issue == .torBlocked ? "network.slash" : "antenna.radiowaves.left.and.right.slash",
+            symbolColor: palette.alertRed,
+            showsChevron: showsChevron
+        ) {
             Text(message)
-                .bitchatFont(size: 11)
+                .font(.footnote)
+                .foregroundStyle(palette.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .foregroundColor(palette.alertRed)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.red.opacity(0.12))
         .accessibilityElement(children: .combine)
     }
 }

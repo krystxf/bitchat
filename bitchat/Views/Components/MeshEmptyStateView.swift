@@ -42,7 +42,6 @@ struct MeshEmptyStateView: View {
 
     private enum Strings {
         static let meshIntro = String(localized: "content.empty.mesh_intro", comment: "First line of the empty mesh timeline explaining what the mesh channel is")
-        static let switchHint = String(localized: "content.empty.switch_hint", comment: "Empty timeline hint pointing at the channel switcher and the help screen")
         static let sightingsOne = String(localized: "content.empty.sightings_one", comment: "Empty mesh timeline stat when exactly one device came within range today")
         static let checkNotes = String(localized: "content.empty.check_notes", comment: "Empty mesh timeline action that starts looking for notes left at this place; before tapping, no lookup runs")
 
@@ -83,40 +82,30 @@ struct MeshEmptyStateView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 16) {
             if compact {
                 if isSearchingForPeers {
                     radarBlock
                 }
-                if let conversation = nearbyConversation {
-                    conversationHint(conversation)
-                }
-                if showsCheckNotesHint {
-                    checkNotesHint
-                }
+                actions
             } else {
-                // The radar + tally already say "scanning, nobody yet", so
-                // the narration stays to two lines with the live hint after
-                // them, not wedged in between.
-                narrationLine(Strings.meshIntro)
-                narrationLine(Strings.switchHint)
-                if let conversation = nearbyConversation {
-                    conversationHint(conversation)
+                Spacer(minLength: 24)
+                ChatEmptyStateHeader(
+                    title: "#mesh",
+                    message: Strings.meshIntro
+                ) {
+                    if isSearchingForPeers {
+                        radarBlock
+                    } else {
+                        ChatEmptyStateSymbol(systemImage: "antenna.radiowaves.left.and.right")
+                    }
                 }
-                if showsCheckNotesHint {
-                    checkNotesHint
-                }
-
-                // The radar centers in whatever space is left below the
-                // text — the flexible spacers split it evenly.
-                if isSearchingForPeers {
-                    Spacer(minLength: 24)
-                    radarBlock
-                    Spacer(minLength: 12)
-                }
+                actions
+                Spacer(minLength: 24)
             }
         }
-        .frame(minHeight: compact ? 0 : fillHeight, alignment: .top)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: compact ? 0 : fillHeight)
         .onReceive(refreshTimer) { _ in
             refreshTick += 1
             // Roll the tally over if the local day changed while idle.
@@ -124,15 +113,27 @@ struct MeshEmptyStateView: View {
         }
     }
 
-    /// The radar with today's tally as its caption — the stat belongs to
-    /// the scanning visual, not the narration lines.
+    /// What there is to do while nobody is here: join the liveliest nearby
+    /// location channel, or look for notes left at this place.
+    @ViewBuilder
+    private var actions: some View {
+        if let conversation = nearbyConversation {
+            conversationHint(conversation)
+        }
+        if showsCheckNotesHint {
+            checkNotesHint
+        }
+    }
+
+    /// The radar with today's tally as its caption: the stat belongs to
+    /// the scanning visual.
     private var radarBlock: some View {
-        VStack(spacing: 4) {
-            MeshRadarView(height: compact ? 44 : 72)
+        VStack(spacing: 8) {
+            MeshRadarView(height: compact ? 56 : 112)
             if sightingsTracker.todayCount > 0 {
                 Text(verbatim: sightingsText)
-                    .bitchatFont(size: 11)
-                    .foregroundColor(palette.secondary.opacity(0.8))
+                    .font(.footnote)
+                    .foregroundColor(palette.secondary)
             }
         }
         .frame(maxWidth: .infinity)
@@ -160,13 +161,11 @@ private extension MeshEmptyStateView {
         Button {
             NearbyNotesCounter.shared.reveal()
         } label: {
-            actionLine("📍 \(Strings.checkNotes)")
-                .contentShape(Rectangle())
+            Label(Strings.checkNotes, systemImage: "mappin.and.ellipse")
+                .font(.subheadline.weight(.semibold))
         }
-        .buttonStyle(.plain)
-        // The visual label carries decorative asterisks and an emoji; expose
-        // just the localized action text to assistive tech.
-        .accessibilityLabel(Strings.checkNotes)
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
     }
 
     var sightingsText: String {
@@ -184,13 +183,38 @@ private extension MeshEmptyStateView {
             locationChannelsModel.markTeleported(for: conversation.channel.geohash, false)
             locationChannelsModel.select(.location(conversation.channel))
         } label: {
-            VStack(alignment: .leading, spacing: 2) {
-                actionLine("💬 \(headline)")
-                narrationLine("  \(previewText(for: conversation.lastMessage))")
+            HStack(spacing: 12) {
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .font(.title3)
+                    .foregroundStyle(palette.accent)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: headline)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(palette.primary)
+                    Text(verbatim: previewText(for: conversation.lastMessage))
+                        .font(.footnote)
+                        .foregroundStyle(palette.secondary)
+                        .lineLimit(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
             }
-            .contentShape(Rectangle())
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(maxWidth: 420)
+            .background(Color.novaSurface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(Color.novaHairline, lineWidth: 1)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
     }
 
     func previewText(for message: GeohashChatPreview) -> String {
@@ -202,25 +226,51 @@ private extension MeshEmptyStateView {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         let ago = formatter.localizedString(for: message.timestamp, relativeTo: Date())
-        return "<\(message.senderName)> \(content) · \(ago)"
+        return "\(message.senderName): \(content) · \(ago)"
     }
+}
 
-    func narrationLine(_ text: String) -> some View {
-        emptyStateLine(text, color: palette.secondary.opacity(0.9))
-    }
+/// The centered heart of an empty conversation, as the system's empty
+/// states lay it out: a symbol or picture, a title, and a short message
+/// under it.
+struct ChatEmptyStateHeader<Visual: View>: View {
+    let title: String
+    let message: String
+    @ViewBuilder let visual: () -> Visual
 
-    /// Tappable lines render in the primary color so they read as actions
-    /// amid the grey narration.
-    func actionLine(_ text: String) -> some View {
-        emptyStateLine(text, color: palette.primary)
-    }
+    @ThemedPalette private var palette
 
-    func emptyStateLine(_ text: String, color: Color) -> some View {
-        // Non-breaking space before the closing asterisk so a tight wrap
-        // can't orphan a lone "*" onto its own line.
-        Text(verbatim: "* \(text)\u{00A0}*")
-            .bitchatFont(size: 13)
-            .foregroundColor(color)
+    var body: some View {
+        VStack(spacing: 16) {
+            visual()
+            VStack(spacing: 6) {
+                Text(verbatim: title)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(palette.primary)
+                    .accessibilityAddTraits(.isHeader)
+                Text(verbatim: message)
+                    .font(.subheadline)
+                    .foregroundStyle(palette.secondary)
+            }
+            .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: 420)
+        }
+        .padding(.horizontal, 24)
+    }
+}
+
+/// A large symbol for an empty state, in the secondary color.
+struct ChatEmptyStateSymbol: View {
+    let systemImage: String
+
+    @ThemedPalette private var palette
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 44, weight: .regular))
+            .foregroundStyle(palette.secondary)
+            .frame(height: 64)
+            .accessibilityHidden(true)
     }
 }

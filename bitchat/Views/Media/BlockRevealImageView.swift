@@ -57,6 +57,12 @@ struct BlockRevealImageView: View {
         self.initiallyBlurred = initiallyBlurred
         self.onOpen = onOpen
         self.onDelete = onDelete
+        // Size the row before the first layout: the header gives the aspect
+        // ratio without decoding, and a row scrolling back in reuses its
+        // cached thumbnail. Otherwise the row grows after the image decodes
+        // and the timeline jumps.
+        _aspectRatio = State(initialValue: ChatImageCache.aspectRatio(for: url) ?? 1)
+        _platformImage = State(initialValue: ChatImageCache.cachedThumbnail(for: url))
     }
 
     private var fraction: Double {
@@ -81,7 +87,7 @@ struct BlockRevealImageView: View {
             if let onCancel = onCancel, isSending {
                 Button(action: onCancel) {
                     Image(systemName: "xmark")
-                        .font(.bitchatSystem(size: 12, weight: .bold))
+                        .font(.caption.weight(.bold))
                         .padding(8)
                         .background(Circle().fill(Color.black.opacity(0.7)))
                         .foregroundColor(.white)
@@ -140,9 +146,9 @@ struct BlockRevealImageView: View {
             Image(platformImage: image)
                 .resizable()
                 .aspectRatio(aspectRatio, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous)
                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                 )
                 .mask(
@@ -156,29 +162,29 @@ struct BlockRevealImageView: View {
                 .blur(radius: isBlurred ? 20 : 0)
                 .overlay {
                     if isBlurred {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous)
                             .fill(Color.black.opacity(0.35))
                             .overlay(
                                 VStack(spacing: 6) {
                                     Image(systemName: "eye.slash.fill")
-                                        .font(.bitchatSystem(size: 24, weight: .semibold))
+                                        .font(.title2.weight(.semibold))
                                     Text(verbatim: Strings.tapToReveal)
-                                        // Themed: monospaced under matrix,
-                                        // system under liquid glass.
-                                        .bitchatFont(size: 12, weight: .medium)
+                                        .font(.caption.weight(.medium))
                                 }
                                 .foregroundColor(.white.opacity(0.85))
                             )
                     }
                 }
         } else {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: MessageBubbleStyle.cornerRadius, style: .continuous)
                 .fill(palette.secondary.opacity(0.2))
-                .frame(height: 200)
+                // Same shape as the image it stands in for, so nothing moves
+                // when the image arrives.
+                .aspectRatio(aspectRatio, contentMode: .fit)
                 .overlay {
                     if loadFailed {
                         Image(systemName: "photo")
-                            .font(.bitchatSystem(size: 24, weight: .semibold))
+                            .font(.title2.weight(.semibold))
                             .foregroundColor(palette.secondary)
                     } else {
                         ProgressView()
@@ -229,19 +235,28 @@ struct BlockRevealImageView: View {
 
     private func loadImage() {
         loadFailed = false
+        if let ratio = ChatImageCache.aspectRatio(for: url) {
+            aspectRatio = ratio
+        }
+        if let cached = ChatImageCache.cachedThumbnail(for: url) {
+            platformImage = cached
+            return
+        }
+        let url = url
         DispatchQueue.global(qos: .userInitiated).async {
-            #if os(iOS)
-            let image = UIImage(contentsOfFile: url.path)
-            #else
-            let image = NSImage(contentsOf: url)
-            #endif
+            // A downsampled thumbnail: the bubble is at most 280 pt wide, so
+            // decoding the full photo only costs memory and scroll time.
+            let image = ChatImageCache.loadThumbnail(for: url)
             DispatchQueue.main.async {
+                guard self.url == url else { return }
                 guard let image else {
                     self.loadFailed = true
                     return
                 }
                 self.platformImage = image
-                self.aspectRatio = image.size.height > 0 ? image.size.width / image.size.height : 1
+                if image.size.height > 0 {
+                    self.aspectRatio = image.size.width / image.size.height
+                }
             }
         }
     }

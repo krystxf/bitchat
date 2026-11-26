@@ -62,6 +62,26 @@ private final class MockChatOutgoingContext: ChatOutgoingContext {
         return true
     }
 
+    private(set) var replacedMessageIDs: [String] = []
+
+    @discardableResult
+    func replacePublicMessage(withID messageID: String, by message: BitchatMessage, in conversationID: ConversationID) -> Bool {
+        guard let index = appendedPublicMessages.firstIndex(where: {
+            $0.message.id == messageID && $0.conversationID == conversationID
+        }) else { return false }
+        appendedPublicMessages[index] = (message, conversationID)
+        replacedMessageIDs.append(messageID)
+        return true
+    }
+
+    func setPublicMessageDeliveryStatus(_ status: DeliveryStatus, forMessageID messageID: String, in conversationID: ConversationID) {
+        if let entry = appendedPublicMessages.first(where: {
+            $0.message.id == messageID && $0.conversationID == conversationID
+        }) {
+            entry.message.deliveryStatus = status
+        }
+    }
+
     func addSystemMessage(_ content: String) { systemMessages.append(content) }
 
     // Content dedup
@@ -102,9 +122,18 @@ private final class MockChatOutgoingContext: ChatOutgoingContext {
         createdAt: Date(timeIntervalSince1970: 0)
     )
 
+    /// A key no event can be signed with, for the signing-failure path.
+    static let unsignableIdentity = NostrIdentity(
+        privateKey: Data(count: 32),
+        publicKey: Data(repeating: 0x33, count: 32),
+        npub: "npub1unsignable",
+        createdAt: Date(timeIntervalSince1970: 0)
+    )
+    var identity = MockChatOutgoingContext.dummyIdentity
+
     func deriveNostrIdentity(forGeohash geohash: String) throws -> NostrIdentity {
         if let deriveNostrIdentityError { throw deriveNostrIdentityError }
-        return Self.dummyIdentity
+        return identity
     }
 }
 
@@ -191,7 +220,7 @@ struct ChatOutgoingCoordinatorContextTests {
     @Test @MainActor
     func sendMessage_onLocationChannel_sendsGeohashEventOrFailsWithSystemMessage() async {
         let context = MockChatOutgoingContext()
-        let coordinator = ChatOutgoingCoordinator(context: context)
+        let coordinator = ChatOutgoingCoordinator(context: context, miningStatus: LocationPoWMiningStatus(), finishAnimationDuration: 0)
         let channel = GeohashChannel(level: .city, geohash: "u4pruydq")
         context.activeChannel = .location(channel)
         context.isTeleported = true
@@ -227,9 +256,177 @@ struct ChatOutgoingCoordinatorContextTests {
     }
 
     @Test @MainActor
+    func sendMessage_onLocationChannel_minesTheTargetFromSettingsAtSendTime() async throws {
+        let context = MockChatOutgoingContext()
+        var target = 12
+        let coordinator = ChatOutgoingCoordinator(context: context, powTargetBits: { target }, miningStatus: LocationPoWMiningStatus(), finishAnimationDuration: 0)
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        coordinator.sendMessage("mined")
+        await coordinator.geohashMiningTask?.value
+        // Proof of work switched off between sends: the next send mines
+        // nothing, so the setting is read per send, not once.
+        target = 0
+        coordinator.sendMessage("not mined")
+        await coordinator.geohashMiningTask?.value
+        await drainMainActorTasks()
+
+        #expect(context.sentGeohashContexts.count == 2)
+        let mined = context.sentGeohashContexts[0].event
+        let nonceTag = try #require(mined.tags.first { $0.first == "nonce" })
+        let committed = try #require(Int(nonceTag[2]))
+        // 12 bits is ~4,096 hashes, far inside the 2 s cap; a step-down would
+        // still be an honest, lower commitment.
+        #expect(committed == 12 || committed == 6)
+        #expect(NostrPoW.validatedDifficulty(idHex: mined.id, tags: mined.tags) == committed)
+
+        let unmined = context.sentGeohashContexts[1].event
+        #expect(!unmined.tags.contains { $0.first == "nonce" })
+        // The local echo still carries the signed event's ID.
+        #expect(context.appendedPublicMessages.map(\.message.id) == [mined.id, unmined.id])
+    }
+
+    @Test @MainActor
+    func sendMessage_onLocationChannel_reportsMiningUntilTheEventIsSigned() async {
+        let context = MockChatOutgoingContext()
+        let status = LocationPoWMiningStatus()
+        var target = 8
+        let coordinator = ChatOutgoingCoordinator(context: context, powTargetBits: { target }, miningStatus: status, finishAnimationDuration: 0)
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        // The send is pending from the moment it is sent, so its bubble can
+        // show progress, and stops once the message is out.
+        coordinator.sendMessage("mined")
+        #expect(status.isMining)
+        await coordinator.geohashMiningTask?.value
+        #expect(!status.isMining)
+        #expect(context.sentGeohashContexts.count == 1)
+
+        // With proof of work off there is nothing to wait for or show.
+        target = 0
+        coordinator.sendMessage("not mined")
+        #expect(!status.isMining)
+        await coordinator.geohashMiningTask?.value
+        #expect(!status.isMining)
+        #expect(context.sentGeohashContexts.count == 2)
+    }
+
+    @Test @MainActor
+    func expeditingASlowSendStillSendsItWithAnHonestLowerCommitment() async throws {
+        let context = MockChatOutgoingContext()
+        let status = LocationPoWMiningStatus()
+        // 40 bits is out of reach, so only expediting ("send now") ends it.
+        let coordinator = ChatOutgoingCoordinator(context: context, powTargetBits: { 40 }, miningStatus: status, finishAnimationDuration: 0)
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        coordinator.sendMessage("send it now")
+        #expect(status.isMining)
+        coordinator.expeditePendingGeohashMining()
+        await coordinator.geohashMiningTask?.value
+
+        #expect(!status.isMining)
+        let event = try #require(context.sentGeohashContexts.first?.event)
+        let nonceTag = try #require(event.tags.first { $0.first == "nonce" })
+        let committed = try #require(Int(nonceTag[2]))
+        #expect(committed < 40)
+        #expect(NostrPoW.validatedDifficulty(idHex: event.id, tags: event.tags) == committed)
+    }
+
+    @Test @MainActor
+    func aMinedSendShowsItsBubbleAtOnceAndKeepsItsPlace() async throws {
+        let context = MockChatOutgoingContext()
+        let status = LocationPoWMiningStatus()
+        // Out of reach, so the bubble is certainly still pending below.
+        let coordinator = ChatOutgoingCoordinator(
+            context: context, powTargetBits: { 40 }, miningStatus: status, finishAnimationDuration: 0
+        )
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        coordinator.sendMessage("hello @bob")
+
+        // The bubble is there before any mining finished: mine, pending,
+        // under a temporary ID, in the channel's conversation.
+        #expect(context.appendedPublicMessages.count == 1)
+        let pending = context.appendedPublicMessages[0]
+        #expect(pending.conversationID == .geohash("u4pruydq"))
+        #expect(pending.message.id.hasPrefix(ChatOutgoingCoordinator.pendingMessageIDPrefix))
+        #expect(pending.message.deliveryStatus == .sending)
+        #expect(pending.message.content == "hello @bob")
+        #expect(pending.message.mentions == ["bob"])
+        #expect(pending.message.isUnsentLocationMessage)
+        #expect(status.send(for: pending.message.id)?.isMining == true)
+        #expect(context.sentGeohashContexts.isEmpty)
+
+        coordinator.expeditePendingGeohashMining()
+        await coordinator.geohashMiningTask?.value
+
+        // The sent message took the bubble's place: same timestamp (the
+        // event's created_at), the event's ID, and no pending state left.
+        let event = try #require(context.sentGeohashContexts.first?.event)
+        #expect(context.replacedMessageIDs == [pending.message.id])
+        #expect(context.appendedPublicMessages.count == 1)
+        let sent = context.appendedPublicMessages[0].message
+        #expect(sent.id == event.id)
+        #expect(sent.timestamp == pending.message.timestamp)
+        #expect(event.created_at == Int(pending.message.timestamp.timeIntervalSince1970))
+        #expect(!sent.isUnsentLocationMessage)
+        #expect(status.send(for: pending.message.id) == nil)
+    }
+
+    @Test @MainActor
+    func leavingTheChannelDropsASendThatIsStillMining() async throws {
+        let context = MockChatOutgoingContext()
+        let status = LocationPoWMiningStatus()
+        var target = 40
+        let coordinator = ChatOutgoingCoordinator(
+            context: context, powTargetBits: { target }, miningStatus: status, finishAnimationDuration: 0
+        )
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        coordinator.sendMessage("never mind")
+        let pendingID = try #require(context.appendedPublicMessages.first?.message.id)
+        coordinator.abandonPendingGeohashSends()
+        await coordinator.geohashMiningTask?.value
+
+        // Not sent, and the bubble says so the way a failed message does.
+        #expect(context.sentGeohashContexts.isEmpty)
+        #expect(context.recordedActivityKeys.isEmpty)
+        #expect(context.appendedPublicMessages.map(\.message.id) == [pendingID])
+        #expect(context.appendedPublicMessages[0].message.deliveryStatus
+                == .failed(reason: ChatOutgoingCoordinator.leftChannelReason))
+        #expect(status.send(for: pendingID) == nil)
+
+        // Leaving drops only what was pending then: the next send goes out.
+        target = 8
+        coordinator.sendMessage("back again")
+        await coordinator.geohashMiningTask?.value
+        #expect(context.sentGeohashContexts.count == 1)
+        #expect(context.appendedPublicMessages.count == 2)
+    }
+
+    @Test @MainActor
+    func aSendThatCannotBeSignedLeavesItsBubbleFailed() async throws {
+        let context = MockChatOutgoingContext()
+        let status = LocationPoWMiningStatus()
+        context.identity = MockChatOutgoingContext.unsignableIdentity
+        let coordinator = ChatOutgoingCoordinator(context: context, powTargetBits: { 8 }, miningStatus: status, finishAnimationDuration: 0)
+        context.activeChannel = .location(GeohashChannel(level: .city, geohash: "u4pruydq"))
+
+        coordinator.sendMessage("doomed")
+        await coordinator.geohashMiningTask?.value
+
+        #expect(context.sentGeohashContexts.isEmpty)
+        let failed = try #require(context.appendedPublicMessages.first?.message)
+        #expect(failed.deliveryStatus == .failed(reason: ChatOutgoingCoordinator.sendErrorReason))
+        // The bubble tells; no extra system message on top.
+        #expect(context.systemMessages.isEmpty)
+        #expect(status.sends.isEmpty)
+    }
+
+    @Test @MainActor
     func sendMessage_onLocationChannel_serializesRapidSendsInSendOrder() async {
         let context = MockChatOutgoingContext()
-        let coordinator = ChatOutgoingCoordinator(context: context)
+        let coordinator = ChatOutgoingCoordinator(context: context, miningStatus: LocationPoWMiningStatus(), finishAnimationDuration: 0)
         let channel = GeohashChannel(level: .city, geohash: "u4pruydq")
         context.activeChannel = .location(channel)
 
