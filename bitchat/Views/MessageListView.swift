@@ -343,6 +343,14 @@ struct MessageListView: View {
                 updateReactionBarForScrolling(phase.isScrolling)
             }
 #endif
+#if os(iOS)
+            // A drag through the conversation puts the keyboard away, as in
+            // Messages; the draft stays in the composer. The list's own
+            // scrolls (new messages, the jump to the latest) are no drag
+            // and leave the keyboard up. The composer sits outside this
+            // scroll view, so its own scrolling keeps the keyboard too.
+            .scrollDismissesKeyboard(.immediately)
+#endif
             .overlay(alignment: .bottomTrailing) {
                 if !isAtBottom && !messageItems.isEmpty {
                     jumpToLatestPill(proxy: proxy)
