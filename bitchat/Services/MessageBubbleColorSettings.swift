@@ -34,6 +34,22 @@ enum MessageBubbleColor: String, CaseIterable, Identifiable {
         return Color(.sRGB, red: value.red, green: value.green, blue: value.blue, opacity: 1)
     }
 
+    /// The color's localized name, for menus, row values and VoiceOver.
+    var label: String {
+        switch self {
+        case .blue: String(localized: "appearance.message_color.blue", defaultValue: "Blue", comment: "Name of the blue message bubble color")
+        case .purple: String(localized: "appearance.message_color.purple", defaultValue: "Purple", comment: "Name of the purple message bubble color")
+        case .pink: String(localized: "appearance.message_color.pink", defaultValue: "Pink", comment: "Name of the pink message bubble color")
+        case .red: String(localized: "appearance.message_color.red", defaultValue: "Red", comment: "Name of the red message bubble color")
+        case .orange: String(localized: "appearance.message_color.orange", defaultValue: "Orange", comment: "Name of the orange message bubble color")
+        case .green: String(localized: "appearance.message_color.green", defaultValue: "Green", comment: "Name of the green message bubble color")
+        case .teal: String(localized: "appearance.message_color.teal", defaultValue: "Teal", comment: "Name of the teal (blue-green) message bubble color")
+        case .graphite: String(localized: "appearance.message_color.graphite", defaultValue: "Graphite", comment: "Name of the graphite (dark gray) message bubble color")
+        case .indigo: String(localized: "appearance.message_color.indigo", defaultValue: "Indigo", comment: "Name of the indigo (deep blue-violet) message bubble color")
+        case .gold: String(localized: "appearance.message_color.gold", defaultValue: "Gold", comment: "Name of the gold message bubble color")
+        }
+    }
+
     /// WCAG 2.1 contrast ratio against white.
     var whiteContrastRatio: Double {
         let value = rgb

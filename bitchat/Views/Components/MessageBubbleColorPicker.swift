@@ -25,16 +25,11 @@ struct MessageBubbleColorPicker: View {
                         .contentShape(Circle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("#\(hexLabel(for: option))")
+                    .accessibilityLabel(option.label)
                     .accessibilityAddTraits(selection == option.rawValue ? .isSelected : [])
                 }
             }
             .accessibilityElement(children: .contain)
         }
-    }
-
-    private func hexLabel(for option: MessageBubbleColor) -> String {
-        let rgb = option.rgb
-        return String(format: "%02X%02X%02X", Int(rgb.red * 255), Int(rgb.green * 255), Int(rgb.blue * 255))
     }
 }
