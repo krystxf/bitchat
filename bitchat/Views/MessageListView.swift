@@ -604,42 +604,37 @@ private extension MessageListView {
         return messageItems.allSatisfy { $0.message.isArchivedEcho || $0.message.sender == "system" }
     }
 
-    /// Terminal-styled narration for an empty public timeline: says which
-    /// channel this is, that the app is waiting for peers, and where to go
-    /// next. Rendered inside the ScrollView; disappears with the first row.
-    /// The mesh case fills the visible chat height so its radar can center
-    /// in the space below the text.
+    /// The empty public timeline, centered as the system's empty states
+    /// are: which channel this is and who it reaches. Rendered inside the
+    /// ScrollView; it goes away with the first row. It fills the visible
+    /// chat height, so it sits in the middle of the screen.
+    @ViewBuilder
     func publicEmptyState(fillHeight: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            switch locationChannelsModel.selectedChannel {
-            case .mesh:
-                MeshEmptyStateView(
-                    fillHeight: max(0, fillHeight - 24),
-                    bluetoothAvailable: bluetoothCanScan
-                )
-            case .location(let channel):
-                emptyStateLine(
-                    String(
+        switch locationChannelsModel.selectedChannel {
+        case .mesh:
+            MeshEmptyStateView(
+                fillHeight: max(0, fillHeight - 24),
+                bluetoothAvailable: bluetoothCanScan
+            )
+            .padding(.horizontal, 12)
+        case .location(let channel):
+            VStack {
+                Spacer(minLength: 24)
+                ChatEmptyStateHeader(
+                    title: "#\(channel.geohash)",
+                    message: String(
                         format: String(localized: "content.empty.location_intro", comment: "First line of an empty geohash timeline naming the channel"),
                         locale: .current,
                         channel.geohash
                     )
-                )
-                emptyStateLine(String(localized: "content.empty.switch_hint", comment: "Empty timeline hint pointing at the channel switcher and the help screen"))
+                ) {
+                    ChatEmptyStateSymbol(systemImage: "mappin.and.ellipse")
+                }
+                Spacer(minLength: 24)
             }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: max(0, fillHeight - 24))
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    func emptyStateLine(_ text: String) -> some View {
-        // Non-breaking space before the closing asterisk so a tight wrap
-        // can't orphan a lone "*" onto its own line.
-        Text(verbatim: "* \(text)\u{00A0}*")
-            .bitchatFont(size: 13)
-            .foregroundColor(palette.secondary.opacity(0.9))
-            .fixedSize(horizontal: false, vertical: true)
     }
 
     /// A failed private text message of our own can be resent through the
