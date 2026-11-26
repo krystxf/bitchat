@@ -50680,7 +50680,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verify encryption"
+            "value" : "Verify Encryption"
           }
         },
         "es" : {
@@ -61810,7 +61810,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verification: show my QR or scan a friend"
+            "value" : "Show your QR code or scan a friend's."
           }
         },
         "es" : {

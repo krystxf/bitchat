@@ -35,19 +35,27 @@ struct ProfileSheet: View {
 
     var body: some View {
         Form {
+            // The avatar and name others see, as the header of an account
+            // page. No row background: it sits on the sheet.
             Section {
-                HStack {
-                    Spacer()
-                    InitialsAvatar(name: appChromeModel.nickname, peerID: appChromeModel.myPeerID, size: 72)
-                    Spacer()
+                VStack(spacing: 12) {
+                    InitialsAvatar(name: appChromeModel.nickname, peerID: appChromeModel.myPeerID, size: 88)
+                    if !appChromeModel.nickname.isEmpty {
+                        Text(verbatim: appChromeModel.nickname)
+                            .font(.title2.weight(.semibold))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
                 }
+                .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)
+                .accessibilityElement(children: .combine)
             }
 
             Section {
                 HStack(spacing: 2) {
                     Text(verbatim: "@")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.novaSecondaryText)
                     TextField(
                         "content.input.nickname_placeholder",
                         text: nickname,
@@ -64,12 +72,15 @@ struct ProfileSheet: View {
                 }
             } header: {
                 Text(verbatim: Strings.nicknameHeader)
+                    .foregroundStyle(.novaSecondaryText)
             } footer: {
                 Text(verbatim: Strings.nicknameFooter)
+                    .foregroundStyle(.novaSecondaryText)
                     // Wrap once at the given width; a footer whose height
                     // depends on a width that depends on its height shakes.
                     .fixedSize(horizontal: false, vertical: true)
             }
+            .listRowBackground(Color.novaSurface)
 
             // My QR code and the scanner, to verify encryption in person.
             Section {
@@ -86,25 +97,31 @@ struct ProfileSheet: View {
                                 .foregroundStyle(.primary)
                             Text(verbatim: Strings.verificationDetail)
                                 .font(.footnote)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.novaSecondaryText)
                         }
                         Spacer(minLength: 8)
                         Image(systemName: "chevron.right")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.novaSecondaryText)
                     }
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
+            .listRowBackground(Color.novaSurface)
         }
         .formStyle(.grouped)
+        .novaListBackground()
         .sheet(isPresented: $showsVerification) {
             VerificationSheetView(isPresented: $showsVerification)
                 .environmentObject(verificationModel)
         }
         .sheetChrome(title: Text(verbatim: Strings.title), onClose: commitAndClose)
+        #if os(macOS)
+        // On iPhone the keyboard would cover half the sheet before the user
+        // chose to edit; there, a tap on the field starts editing.
         .onAppear { isNicknameFocused = true }
+        #endif
         // Swipe-to-dismiss skips the close button; save on the way out too.
         .onDisappear { appChromeModel.validateAndSaveNickname() }
         #if os(macOS)
