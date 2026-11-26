@@ -268,22 +268,33 @@ private struct ChatBackgroundImageView: View {
     /// Bumped when a new image replaces the old one at the same URL.
     @State private var revision = 0
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
+        // A clear frame that ignores every safe area (bars, home indicator,
+        // keyboard) sets the size, and the photo fills it. A GeometryReader
+        // here measured only the safe area, so the photo was framed smaller
+        // than the screen and the edges showed through.
+        Color.clear
+            .overlay {
                 if let image {
-                    image.resizable().scaledToFill().frame(width: proxy.size.width, height: proxy.size.height).clipped()
-                } else { Color.black }
-                (isDark ? Color.black.opacity(0.34) : Color.white.opacity(0.42))
-                (isDark ? Color.black.opacity(0.12) : Color.white.opacity(0.08)).blur(radius: 10)
+                    image.resizable().scaledToFill()
+                } else {
+                    Color.black
+                }
+            }
+            .clipped()
+            .overlay {
+                ZStack {
+                    (isDark ? Color.black.opacity(0.34) : Color.white.opacity(0.42))
+                    (isDark ? Color.black.opacity(0.12) : Color.white.opacity(0.08)).blur(radius: 10)
+                }
             }
             .ignoresSafeArea()
+            .accessibilityHidden(true)
             .task(id: ChatBackgroundImageLoadID(url: url, revision: revision)) {
                 image = await Task.detached(priority: .utility) { ChatBackgroundRasterCache.shared.image(at: url) }.value
             }
             .onReceive(NotificationCenter.default.publisher(for: .chatBackgroundImageDidChange)) { _ in
                 revision &+= 1
             }
-        }
     }
 }
 
