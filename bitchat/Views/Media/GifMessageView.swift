@@ -198,11 +198,11 @@ struct GifMessageView: View {
                 VStack(spacing: 6) {
                     placeholderIcon
                     Text(verbatim: placeholderTitle)
-                        .bitchatFont(size: 13, weight: .semibold)
+                        .font(.footnote.weight(.semibold))
                         .foregroundColor(palette.primary)
                     if let caption = placeholderCaption {
                         Text(verbatim: caption)
-                            .bitchatFont(size: 11, weight: .medium)
+                            .font(.caption2.weight(.medium))
                             .foregroundColor(palette.secondary)
                     }
                 }
@@ -221,7 +221,7 @@ struct GifMessageView: View {
                 .progressViewStyle(.circular)
         case .failed:
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.bitchatSystem(size: 20, weight: .semibold))
+                .font(.title3.weight(.semibold))
                 .foregroundColor(palette.secondary)
         case .waitingForTap, .loaded:
             gifBadge
@@ -244,7 +244,7 @@ struct GifMessageView: View {
     /// "GIF" on Liquid Glass, as a GIF keyboard labels its results.
     private var gifBadge: some View {
         Text(verbatim: "GIF")
-            .bitchatFont(size: 11, weight: .bold)
+            .font(.caption2.weight(.bold))
             .foregroundColor(.primary)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
@@ -256,7 +256,7 @@ struct GifMessageView: View {
             playsDespiteReduceMotion = true
         } label: {
             Image(systemName: "play.fill")
-                .font(.bitchatSystem(size: 18, weight: .semibold))
+                .font(.body.weight(.semibold))
                 .frame(width: 28, height: 28)
         }
         .glassButtonStyle()
@@ -270,7 +270,7 @@ struct GifMessageView: View {
             playsDespiteReduceMotion = false
         } label: {
             Image(systemName: "pause.fill")
-                .font(.bitchatSystem(size: 12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .frame(width: 18, height: 18)
         }
         .glassButtonStyle()

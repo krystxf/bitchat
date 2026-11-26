@@ -47,7 +47,7 @@ final class ChatMessageFormatter {
             var senderStyle = AttributeContainer()
             senderStyle.foregroundColor = baseColor
             let fontWeight: Font.Weight = isSelf ? .bold : .medium
-            senderStyle.font = .bitchatSystem(size: 14, weight: fontWeight, design: design)
+            senderStyle.font = .system(.subheadline, design: design).weight(fontWeight)
             if let spid = message.senderPeerID,
                let url = URL(string: "bitchat://user/\(spid.toPercentEncoded())") {
                 senderStyle.link = url
@@ -73,9 +73,9 @@ final class ChatMessageFormatter {
                 to: &result,
                 style: ContentStyle(
                     textFont: isSelf
-                        ? .bitchatSystem(size: 14, weight: .bold, design: design)
-                        : .bitchatSystem(size: 14, design: design),
-                    emphasisFont: .bitchatSystem(size: 14, weight: isSelf ? .bold : .semibold, design: design),
+                        ? .system(.subheadline, design: design).weight(.bold)
+                        : .system(.subheadline, design: design),
+                    emphasisFont: .system(.subheadline, design: design).weight(isSelf ? .bold : .semibold),
                     textColor: baseColor,
                     linkColor: isSelf ? .orange : .blue,
                     mentionOfMeColor: .orange
@@ -85,19 +85,19 @@ final class ChatMessageFormatter {
             let timestamp = AttributedString(" [\(message.formattedTimestamp)]")
             var timestampStyle = AttributeContainer()
             timestampStyle.foregroundColor = Color.gray.opacity(0.7)
-            timestampStyle.font = .bitchatSystem(size: 10, design: design)
+            timestampStyle.font = .system(.caption2, design: design)
             result.append(timestamp.mergingAttributes(timestampStyle))
         } else {
             var contentStyle = AttributeContainer()
             contentStyle.foregroundColor = Color.gray
             let content = AttributedString("* \(message.content) *")
-            contentStyle.font = .bitchatSystem(size: 12, design: design).italic()
+            contentStyle.font = .system(.caption, design: design).italic()
             result.append(content.mergingAttributes(contentStyle))
 
             let timestamp = AttributedString(" [\(message.formattedTimestamp)]")
             var timestampStyle = AttributeContainer()
             timestampStyle.foregroundColor = Color.gray.opacity(0.5)
-            timestampStyle.font = .bitchatSystem(size: 10, design: design)
+            timestampStyle.font = .system(.caption2, design: design)
             result.append(timestamp.mergingAttributes(timestampStyle))
         }
 
@@ -127,7 +127,7 @@ final class ChatMessageFormatter {
         if message.sender == "system" {
             var style = AttributeContainer()
             style.foregroundColor = baseColor
-            style.font = .bitchatSystem(size: 14, weight: .medium, design: design)
+            style.font = .system(.subheadline, design: design).weight(.medium)
             let header = AttributedString(message.sender).mergingAttributes(style)
             message.setCachedFormattedText(header, isDark: isDark, isSelf: isSelf, variant: cacheVariant)
             return header
@@ -137,7 +137,7 @@ final class ChatMessageFormatter {
         let (baseName, suffix) = message.sender.splitSuffix()
         var senderStyle = AttributeContainer()
         senderStyle.foregroundColor = baseColor
-        senderStyle.font = .bitchatSystem(size: 14, weight: isSelf ? .bold : .medium, design: design)
+        senderStyle.font = .system(.subheadline, design: design).weight(isSelf ? .bold : .medium)
         if let spid = message.senderPeerID,
            let url = URL(string: "bitchat://user/\(spid.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? spid.id)") {
             senderStyle.link = url
@@ -561,7 +561,7 @@ private extension ChatMessageFormatter {
         var sealStyle = AttributeContainer()
         // Match the peer-list verified seal: filled checkmark in the sender tint.
         sealStyle.foregroundColor = baseColor
-        sealStyle.font = .bitchatSystem(size: 11, weight: .semibold, design: design)
+        sealStyle.font = .system(.caption2, design: design).weight(.semibold)
         result.append(AttributedString(" ✓").mergingAttributes(sealStyle))
     }
 

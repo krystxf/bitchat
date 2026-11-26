@@ -676,7 +676,7 @@ private extension MessageListView {
             // stretching into a capsule when it also shows the new count.
             HStack(spacing: 6) {
                 Image(systemName: "arrow.down")
-                    .font(.bitchatSystem(size: 17, weight: .semibold))
+                    .font(.callout.weight(.semibold))
                 if unseenCount > 0 {
                     Text(
                         String(
@@ -685,7 +685,7 @@ private extension MessageListView {
                             unseenCount
                         )
                     )
-                    .bitchatFont(size: 14, weight: .medium)
+                    .font(.subheadline.weight(.medium))
                 }
             }
             .foregroundColor(palette.primary)

@@ -47,7 +47,7 @@ struct GifPlaybackView: View {
                 .overlay {
                     if decodeFailed {
                         Image(systemName: "photo")
-                            .font(.bitchatSystem(size: 24, weight: .semibold))
+                            .font(.title2.weight(.semibold))
                             .foregroundColor(.secondary)
                     } else {
                         ProgressView()

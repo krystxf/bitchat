@@ -61,7 +61,7 @@ struct VoiceNoteView: View {
         HStack(spacing: 10) {
             Button(action: playback.togglePlayback) {
                 Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.bitchatSystem(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(foregroundColor)
                     .frame(width: 38, height: 38)
                     .background(foregroundColor.opacity(0.16), in: Circle())
@@ -100,7 +100,7 @@ struct VoiceNoteView: View {
             } else {
                 Button(action: playback.cyclePlaybackRate) {
                     Text(speedLabel)
-                        .bitchatFont(size: 12, weight: .semibold)
+                        .font(.caption.weight(.semibold))
                         .foregroundColor(foregroundColor)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
@@ -114,7 +114,7 @@ struct VoiceNoteView: View {
 
             if !isLive {
                 Text(timeLabel)
-                    .bitchatFont(size: 12, weight: .medium)
+                    .font(.caption.weight(.medium))
                     .monospacedDigit()
                     .foregroundColor(foregroundColor.opacity(0.78))
                     .frame(minWidth: 42, alignment: .trailing)
@@ -124,7 +124,7 @@ struct VoiceNoteView: View {
             if let onCancel = onCancel, isSending {
                 Button(action: onCancel) {
                     Image(systemName: "xmark")
-                        .font(.bitchatSystem(size: 11, weight: .bold))
+                        .font(.caption2.weight(.bold))
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(Color.red.opacity(0.9)))
                         .foregroundColor(.white)

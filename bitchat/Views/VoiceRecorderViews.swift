@@ -72,14 +72,14 @@ struct VoiceRecorderLockPill: View {
                     .frame(width: 36, height: 36)
                     .transition(.scale.combined(with: .opacity))
                 Image(systemName: "lock.fill")
-                    .font(.bitchatSystem(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
             } else {
                 VStack(spacing: 3) {
                     Image(systemName: "lock")
-                        .font(.bitchatSystem(size: 14, weight: .medium))
+                        .font(.subheadline.weight(.medium))
                     Image(systemName: "chevron.up")
-                        .font(.bitchatSystem(size: 9, weight: .bold))
+                        .font(.caption2.weight(.bold))
                         .opacity(0.6 + 0.4 * progress)
                 }
                 .foregroundColor(palette.secondary)
