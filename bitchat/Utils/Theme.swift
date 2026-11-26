@@ -359,10 +359,6 @@ private struct GlassPanel<S: Shape>: ViewModifier {
 }
 
 extension View {
-    func bitchatFont(size: CGFloat, weight: Font.Weight = .regular) -> some View {
-        font(.bitchatSystem(size: size, weight: weight))
-    }
-
     /// Chrome surface for the header: floats the content as an inset Liquid
     /// Glass panel (content is expected to scroll underneath via safe-area
     /// insets).
