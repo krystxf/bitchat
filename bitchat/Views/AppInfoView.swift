@@ -47,7 +47,6 @@ struct AppInfoView: View {
     // MARK: - Constants
     private enum Strings {
         static let appName: LocalizedStringKey = "app_info.app_name"
-        static let tagline: LocalizedStringKey = "app_info.tagline"
 
         /// New keys carry their English copy inline (defaultValue) until the
         /// i18n pass lands them in the catalog; moved keys keep their homes.
@@ -84,7 +83,7 @@ struct AppInfoView: View {
             static let relaysTitle = String(localized: "app_info.settings.relays.title", defaultValue: "Private Message Relays", comment: "Title of the relay list editor in settings")
             static let relaysSubtitle = String(localized: "app_info.settings.relays.subtitle", defaultValue: "When the mesh can't reach someone, private messages travel through these relays. The built-in ones are well-known addresses that a network filter can block, so you can add your own — including .onion addresses.", comment: "Subtitle explaining what the relay list is for and why someone would add a relay")
             static let relayBuiltIn = String(localized: "app_info.settings.relays.built_in", defaultValue: "Built in", comment: "Label marking a relay as one of the built-in relays, which cannot be removed")
-            static let relayPlaceholder = String(localized: "app_info.settings.relays.placeholder", defaultValue: "Wss://relay.example.com", comment: "Placeholder text in the field for adding a relay address")
+            static let relayPlaceholder = String(localized: "app_info.settings.relays.placeholder", defaultValue: "wss://relay.example.com", comment: "Placeholder text in the field for adding a relay address")
             static let relayAdd = String(localized: "app_info.settings.relays.add", defaultValue: "Add", comment: "Button that adds the typed relay address to the list")
             static let relayRemove = String(localized: "app_info.settings.relays.remove", defaultValue: "Remove Relay", comment: "Accessibility label for the button that removes an added relay")
 
@@ -121,8 +120,8 @@ struct AppInfoView: View {
             static let extremeSecurityConfirmAction = String(localized: "app_info.settings.extreme_security.confirm_action", defaultValue: "Turn on", comment: "Destructive button in the confirmation dialog that turns extreme security mode on")
 
             static let dangerTitle = String(localized: "app_info.settings.danger.title", defaultValue: "Danger Zone", comment: "Section header (uppercase) for destructive actions in settings")
-            static let panicButton = String(localized: "app_info.settings.danger.panic_button", defaultValue: "Panic wipe", comment: "Button in the settings danger zone that erases all local data after confirmation")
-            static let panicNote = String(localized: "app_info.settings.danger.panic_note", defaultValue: "Erases all messages, keys, and identity. Triple-tapping the bitchat/ logo does the same.", comment: "Caption under the panic wipe button explaining what it does and the triple-tap shortcut")
+            static let panicButton = String(localized: "app_info.settings.danger.panic_button", defaultValue: "Panic Wipe", comment: "Button in the settings danger zone that erases all local data after confirmation")
+            static let panicNote = String(localized: "app_info.settings.danger.panic_note", defaultValue: "Erases all messages, keys, and identity.", comment: "Caption under the panic wipe button explaining what it erases")
             static let panicConfirmTitle = String(localized: "app_info.settings.danger.panic_confirm_title", defaultValue: "Wipe all data?", comment: "Title of the confirmation dialog before a panic wipe")
             static let panicConfirmAction = String(localized: "app_info.settings.danger.panic_confirm_action", defaultValue: "Wipe everything", comment: "Destructive confirmation button that performs the panic wipe")
         }
@@ -282,23 +281,23 @@ struct AppInfoView: View {
 
     // MARK: - Settings pane
 
-    /// A native settings form: grouped sections, system text styles and
-    /// system controls (inset grouped on iOS, the System Settings look on
-    /// macOS).
+    /// A native settings form, laid out like the system Settings app:
+    /// grouped sections, a colored icon tile on each row, and each long
+    /// explanation in its section's footer rather than under the row.
     private var settingsContent: some View {
         Form {
             // Panic wipe first: under duress it must not need scrolling.
             if onPanicWipe != nil {
                 dangerSection
             }
+            appearanceSection
+            privacySection
             voiceSection
             bridgeSection
             torSection
             relaySection
             locationSection
             LocationProofOfWorkSection()
-            bubbleAppearanceSection
-            privacySection
         }
         .formStyle(.grouped)
         // The default on macOS is a checkbox; settings use the switch.
@@ -314,11 +313,14 @@ struct AppInfoView: View {
                     PTTSettings.liveVoiceEnabled = newValue
                 }
             )) {
-                Text("app_info.voice.live.title")
-                Text("app_info.voice.live.description")
+                SettingsRowLabel(systemImage: "waveform", color: .pink) {
+                    Text("app_info.voice.live.title")
+                }
             }
         } header: {
             sectionHeader(Strings.Voice.title)
+        } footer: {
+            Text("app_info.voice.live.description")
         }
     }
 
@@ -328,9 +330,12 @@ struct AppInfoView: View {
     private var bridgeSection: some View {
         Section {
             Toggle(isOn: bridgeToggleBinding) {
-                Text(Strings.Settings.bridgeTitle)
-                if bridgeService.isEnabled {
-                    Text(bridgeService.activeCell.map(Strings.Settings.bridgeCell) ?? Strings.Settings.bridgeNoCell)
+                SettingsRowLabel(systemImage: "network", color: .teal) {
+                    Text(Strings.Settings.bridgeTitle)
+                } subtitle: {
+                    if bridgeService.isEnabled {
+                        Text(bridgeService.activeCell.map(Strings.Settings.bridgeCell) ?? Strings.Settings.bridgeNoCell)
+                    }
                 }
             }
         } header: {
@@ -343,7 +348,9 @@ struct AppInfoView: View {
     private var torSection: some View {
         Section {
             Toggle(isOn: torToggleBinding) {
-                Text(Strings.Settings.torTitle)
+                SettingsRowLabel(systemImage: "shield.lefthalf.filled", color: .purple) {
+                    Text(Strings.Settings.torTitle)
+                }
             }
             // Turning tor off is not a location-channels-only choice, so say
             // what it costs while it is off, in the section, rather than in
@@ -384,7 +391,8 @@ struct AppInfoView: View {
                     Button(role: .destructive) {
                         removeRelay(relay)
                     } label: {
-                        Image(systemName: "minus.circle")
+                        Image(systemName: "minus.circle.fill")
+                            .symbolRenderingMode(.multicolor)
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel(Strings.Settings.relayRemove)
@@ -401,9 +409,9 @@ struct AppInfoView: View {
                 HStack {
                     TextField(
                         text: $relayInput,
-                        prompt: Text(Strings.Settings.relayPlaceholder)
+                        prompt: Text(verbatim: Strings.Settings.relayPlaceholder)
                     ) {
-                        Text(Strings.Settings.relayPlaceholder)
+                        Text(verbatim: Strings.Settings.relayPlaceholder)
                     }
                     .labelsHidden()
                     .textFieldStyle(.plain)
@@ -420,9 +428,13 @@ struct AppInfoView: View {
             }
 
             if let relayError {
-                Text(verbatim: relayError)
-                    .font(.footnote)
-                    .foregroundStyle(palette.alertRed)
+                Label {
+                    Text(verbatim: relayError)
+                } icon: {
+                    Image(systemName: "exclamationmark.circle.fill")
+                }
+                .font(.footnote)
+                .foregroundStyle(palette.alertRed)
             }
         } header: {
             sectionHeader(Strings.Settings.relaysTitle)
@@ -463,8 +475,9 @@ struct AppInfoView: View {
                     }
                 }
             )) {
-                Strings.Location.notes.title
-                Strings.Location.notes.description
+                SettingsRowLabel(systemImage: "mappin.and.ellipse", color: .green) {
+                    Strings.Location.notes.title
+                }
             }
 
             switch locationChannelsModel.permissionState {
@@ -477,18 +490,25 @@ struct AppInfoView: View {
                     Text("location_channels.action.request_permissions")
                 }
             case .denied, .restricted:
-                Text("location_channels.permission_denied")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                Label {
+                    Text("location_channels.permission_denied")
+                } icon: {
+                    Image(systemName: "location.slash.fill")
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
                 Button("location_channels.action.open_settings", action: SystemSettings.location.open)
             }
+        } footer: {
+            Strings.Location.notes.description
         }
     }
 
     /// Privacy: what a locked, seized, or borrowed phone gives away without
     /// being unlocked, which images show without the blur, and whether
-    /// messages outlive leaving the app. Several rows share the section, so
-    /// each explanation is its row's secondary text.
+    /// messages outlive leaving the app. Each switch has a section of its
+    /// own, so its explanation sits right under it as the footer.
+    @ViewBuilder
     private var privacySection: some View {
         Section {
             Toggle(isOn: Binding(
@@ -498,10 +518,17 @@ struct AppInfoView: View {
                     NotificationPrivacySettings.hideMessagePreviews = newValue
                 }
             )) {
-                Text(verbatim: Strings.Settings.hidePreviewsTitle)
-                Text(verbatim: Strings.Settings.hidePreviewsSubtitle)
+                SettingsRowLabel(systemImage: "bell.badge.fill", color: .red) {
+                    Text(verbatim: Strings.Settings.hidePreviewsTitle)
+                }
             }
+        } header: {
+            sectionHeader(Strings.Settings.privacyTitle)
+        } footer: {
+            Text(verbatim: Strings.Settings.hidePreviewsSubtitle)
+        }
 
+        Section {
             Toggle(isOn: Binding(
                 get: { autoRevealFavoriteImages },
                 set: { newValue in
@@ -509,10 +536,15 @@ struct AppInfoView: View {
                     MediaRevealSettings.autoRevealFavorites = newValue
                 }
             )) {
-                Text(verbatim: Strings.Settings.autoRevealFavoritesTitle)
-                Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle)
+                SettingsRowLabel(systemImage: "star.fill", color: .orange) {
+                    Text(verbatim: Strings.Settings.autoRevealFavoritesTitle)
+                }
             }
+        } footer: {
+            Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle)
+        }
 
+        Section {
             // Turning the mode on decides to delete conversations for good,
             // so it asks first; the switch stays off until confirmed.
             // Turning it off needs no confirmation.
@@ -527,8 +559,9 @@ struct AppInfoView: View {
                     }
                 }
             )) {
-                Text(verbatim: Strings.Settings.extremeSecurityTitle)
-                Text(verbatim: Strings.Settings.extremeSecuritySubtitle)
+                SettingsRowLabel(systemImage: "lock.shield.fill", color: .indigo) {
+                    Text(verbatim: Strings.Settings.extremeSecurityTitle)
+                }
             }
             .confirmationDialog(
                 Strings.Settings.extremeSecurityConfirmTitle,
@@ -543,32 +576,25 @@ struct AppInfoView: View {
             } message: {
                 Text(verbatim: Strings.Settings.extremeSecurityConfirmMessage)
             }
+        } footer: {
+            Text(verbatim: Strings.Settings.extremeSecuritySubtitle)
+        }
 
-            if let blockedAccountsProvider, let onUnblock {
-                Button {
-                    showBlockedAccounts = true
-                } label: {
-                    HStack {
+        if let blockedAccountsProvider, let onUnblock {
+            Section {
+                SettingsLinkRow(action: { showBlockedAccounts = true }) {
+                    SettingsRowLabel(systemImage: "hand.raised.fill", color: .gray) {
                         Text(verbatim: BlockedAccountsSheet.Strings.title)
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.tertiary)
                     }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
                 .sheet(isPresented: $showBlockedAccounts) {
                     BlockedAccountsSheet(load: blockedAccountsProvider, onUnblock: onUnblock)
                 }
             }
-        } header: {
-            sectionHeader(Strings.Settings.privacyTitle)
         }
     }
 
-    private var bubbleAppearanceSection: some View {
+    private var appearanceSection: some View {
         Section {
             MessageBubbleColorPicker(selection: Binding(
                 get: { MessageBubbleColorSettings.selected.rawValue },
@@ -578,25 +604,34 @@ struct AppInfoView: View {
                     }
                 }
             ))
-            Picker(String(localized: "appearance.default_chat_background", defaultValue: "Default Chat Background"), selection: Binding(
+            Picker(selection: Binding(
                 get: { DefaultChatBackgroundSettings.selected },
                 set: { DefaultChatBackgroundSettings.selected = $0 }
             )) {
                 ForEach(ChatBackgroundOption.allCases.filter { $0 != .image }) { option in
                     Text(option.displayName).tag(option)
                 }
+            } label: {
+                // No icon tile: the swatch row above has no room for one,
+                // and the two rows line up.
+                Text(String(localized: "appearance.default_chat_background", defaultValue: "Default Chat Background"))
             }
+            .pickerStyle(.menu)
         } header: {
             sectionHeader(String(localized: "app_info.settings.appearance.title", defaultValue: "Appearance", comment: "Settings section for chat appearance defaults"))
         }
     }
 
+    /// The panic wipe, as a destructive row. It asks before it erases.
     private var dangerSection: some View {
         Section {
             Button(role: .destructive) {
                 showPanicConfirmation = true
             } label: {
-                Text(Strings.Settings.panicButton)
+                SettingsRowLabel(systemImage: "exclamationmark.triangle.fill", color: .red) {
+                    Text(Strings.Settings.panicButton)
+                        .foregroundStyle(palette.alertRed)
+                }
             }
             .confirmationDialog(
                 Strings.Settings.panicConfirmTitle,
@@ -658,18 +693,8 @@ struct AppInfoView: View {
     private var infoContent: some View {
         Form {
             Section {
-                VStack(spacing: 4) {
-                    Text(Strings.appName)
-                        .font(.largeTitle.bold())
-                    Text(Strings.tagline)
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .accessibilityElement(children: .combine)
-                .accessibilityAddTraits(.isHeader)
-                .listRowBackground(Color.clear)
+                aboutHeader
+                    .listRowBackground(Color.clear)
             }
 
             if topologyProvider != nil {
@@ -681,32 +706,34 @@ struct AppInfoView: View {
             }
 
             Section {
-                FeatureRow(info: Strings.Features.offlineComm)
-                FeatureRow(info: Strings.Features.encryption)
-                FeatureRow(info: Strings.Features.extendedRange)
-                FeatureRow(info: Strings.Features.bridge)
-                FeatureRow(info: Strings.Features.favorites)
-                FeatureRow(info: Strings.Features.geohash)
-                FeatureRow(info: Strings.Features.mentions)
+                FeatureRow(info: Strings.Features.offlineComm, color: .blue)
+                FeatureRow(info: Strings.Features.encryption, color: .green)
+                FeatureRow(info: Strings.Features.extendedRange, color: .orange)
+                FeatureRow(info: Strings.Features.bridge, color: .teal)
+                FeatureRow(info: Strings.Features.favorites, color: .yellow)
+                FeatureRow(info: Strings.Features.geohash, color: .purple)
+                FeatureRow(info: Strings.Features.mentions, color: .pink)
             } header: {
                 sectionHeader(Strings.Features.title)
             }
 
             Section {
-                FeatureRow(info: Strings.Privacy.noTracking)
-                FeatureRow(info: Strings.Privacy.ephemeral)
-                FeatureRow(info: Strings.Privacy.panic)
+                FeatureRow(info: Strings.Privacy.noTracking, color: .indigo)
+                FeatureRow(info: Strings.Privacy.ephemeral, color: .gray)
+                FeatureRow(info: Strings.Privacy.panic, color: .red)
             } header: {
                 sectionHeader(Strings.Privacy.title)
             }
 
             Section {
                 ForEach(Strings.Legend.items, id: \.icon) { item in
+                    // The glyph as the lists draw it, not in a tile.
                     Label {
                         Text(verbatim: item.text)
                     } icon: {
                         Image(systemName: item.icon)
                             .foregroundStyle(item.color ?? Color.primary)
+                            .frame(minWidth: 29)
                     }
                 }
             } header: {
@@ -716,27 +743,45 @@ struct AppInfoView: View {
         .formStyle(.grouped)
     }
 
+    /// The app's mark, name and version, as at the top of an About page.
+    private var aboutHeader: some View {
+        VStack(spacing: 8) {
+            Image("LaunchMark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 72, height: 72)
+                .accessibilityHidden(true)
+            Text(Strings.appName)
+                .font(.title2.bold())
+            if let version = Self.versionText {
+                Text(verbatim: version)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    /// "Version 1.8.0 (42)", from the bundle.
+    private static var versionText: String? {
+        let info = Bundle.main.infoDictionary
+        guard let version = info?["CFBundleShortVersionString"] as? String else { return nil }
+        let build = info?["CFBundleVersion"] as? String
+        let number = build.map { "\(version) (\($0))" } ?? version
+        return String(
+            format: String(localized: "app_info.version", defaultValue: "Version %@", comment: "The app version under the app name in the info pane; %@ is the version number, such as 1.8.0 (42)"),
+            locale: .current,
+            number
+        )
+    }
+
     /// Opens the mesh topology map in a sheet of its own.
     private var topologyRow: some View {
-        Button {
-            showTopology = true
-        } label: {
-            HStack {
-                FeatureRow(info: Strings.Network.topology)
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .contentShape(Rectangle())
+        SettingsLinkRow(action: { showTopology = true }) {
+            FeatureRow(info: Strings.Network.topology, color: .teal)
         }
-        #if os(macOS)
-        // A macOS form draws a push button; this is a row.
-        .buttonStyle(.plain)
-        #else
-        // A row, not an accent-colored action.
-        .tint(.primary)
-        #endif
         .accessibilityHint(Text("app_info.network.topology.hint"))
     }
 }
@@ -763,21 +808,109 @@ struct AppInfoFeatureInfo {
 }
 
 /// A feature or fact in the info pane: a label row with the title and its
-/// description as secondary text, in system text styles.
+/// description as secondary text, beside a Settings-style icon tile.
 struct FeatureRow: View {
     let info: AppInfoFeatureInfo
+    var color: Color = .blue
+
+    var body: some View {
+        SettingsRowLabel(systemImage: info.icon, color: color) {
+            info.title
+        } subtitle: {
+            info.description
+        }
+    }
+}
+
+/// A settings row's label, as in the system Settings app: the title, an
+/// optional status line under it, and a white symbol on a colored rounded
+/// square in front.
+struct SettingsRowLabel<Title: View, Subtitle: View>: View {
+    let systemImage: String
+    let color: Color
+    let title: Title
+    let subtitle: Subtitle
+
+    init(
+        systemImage: String,
+        color: Color,
+        @ViewBuilder title: () -> Title,
+        @ViewBuilder subtitle: () -> Subtitle = { EmptyView() }
+    ) {
+        self.systemImage = systemImage
+        self.color = color
+        self.title = title()
+        self.subtitle = subtitle()
+    }
 
     var body: some View {
         Label {
             VStack(alignment: .leading, spacing: 2) {
-                info.title
-                info.description
-                    .font(.subheadline)
+                title
+                subtitle
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         } icon: {
-            Image(systemName: info.icon)
+            SettingsIconTile(systemImage: systemImage, color: color)
         }
+    }
+}
+
+/// A white SF Symbol on a colored rounded square, the icon of a row in the
+/// system Settings app. Decorative: the row's title names it.
+struct SettingsIconTile: View {
+    let systemImage: String
+    let color: Color
+
+    #if os(macOS)
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 20
+    #else
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 29
+    #endif
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: size * 0.55, weight: .semibold))
+            .symbolRenderingMode(.monochrome)
+            .foregroundStyle(.white)
+            .frame(width: size, height: size)
+            .background(color.gradient, in: RoundedRectangle(cornerRadius: size * 0.25, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+/// A row that opens another screen, with the trailing chevron of a
+/// navigation row. The screen opens as a sheet, so the row works the same
+/// in the iOS sheet and the macOS one, which has no navigation stack.
+struct SettingsLinkRow<Content: View>: View {
+    let action: () -> Void
+    let content: Content
+
+    init(action: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+        self.action = action
+        self.content = content()
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                content
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.forward")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        #if os(macOS)
+        // A macOS form draws a push button; this is a row.
+        .buttonStyle(.plain)
+        #else
+        // A row, not an accent-colored action.
+        .tint(.primary)
+        #endif
     }
 }
 

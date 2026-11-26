@@ -1,6 +1,192 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "app_info.version" : {
+      "comment" : "The app version under the app name in the info pane; %@ is the version number, such as 1.8.0 (42)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الإصدار %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "সংস্করণ %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versión %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نسخهٔ %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bersyon %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "גרסה %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "संस्करण %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versi %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versione %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バージョン %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "버전 %@"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versi %@"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "संस्करण %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versie %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wersja %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versão %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versão %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версия %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "பதிப்பு %@"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เวอร์ชัน %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüm %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версія %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ورژن %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phiên bản %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本 %@"
+          }
+        }
+      }
+    },
     "chat.background.choose_image" : {
       "comment" : "Choose a local chat background photo",
       "localizations" : {
@@ -5946,19 +6132,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "fa" : {
@@ -5970,13 +6156,13 @@
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "he" : {
@@ -5994,13 +6180,13 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "ja" : {
@@ -6018,7 +6204,7 @@
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "ne" : {
@@ -6030,37 +6216,37 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "ta" : {
@@ -6078,13 +6264,13 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "ur" : {
@@ -6096,7 +6282,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wss://relay.example.com"
+            "value" : "wss://relay.example.com"
           }
         },
         "zh-Hans" : {
@@ -32709,181 +32895,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "انقر ثلاث مرات على الشعار لمسح جميع البيانات (مع تأكيد)"
+            "value" : "امسح كل البيانات دفعة واحدة من الإعدادات"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "সব ডেটা মুছতে লোগোতে তিনবার ট্যাপ করুন (নিশ্চিতকরণসহ)"
+            "value" : "সেটিংস থেকে একবারে সব ডেটা মুছুন"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dreimal aufs logo tippen, um alle daten zu löschen (mit bestätigung)"
+            "value" : "Alle Daten auf einmal in den Einstellungen löschen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Triple-tap logo to wipe all data (asks to confirm)"
+            "value" : "Wipe all data at once from Settings"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toca tres veces el logo para borrar todos los datos (con confirmación)"
+            "value" : "Borra todos los datos de una vez desde Ajustes"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "برای پاک کردن همه داده‌ها سه بار روی لوگو بزنید (با تأیید)"
+            "value" : "همهٔ داده‌ها را یک‌جا از تنظیمات پاک کنید"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I-tap nang tatlong beses ang logo para burahin ang lahat ng data (may kumpirmasyon)"
+            "value" : "Burahin ang lahat ng data nang sabay-sabay mula sa Settings"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Touchez trois fois le logo pour effacer toutes les données (avec confirmation)"
+            "value" : "Effacez toutes les données d'un coup depuis les Réglages"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הקישו שלוש פעמים על הלוגו כדי למחוק את כל הנתונים (עם אישור)"
+            "value" : "מחיקת כל הנתונים בבת אחת מההגדרות"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "सारा डेटा मिटाने के लिए लोगो पर तीन बार टैप करें (पुष्टि के साथ)"
+            "value" : "सेटिंग्स से एक साथ सारा डेटा मिटाएँ"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ketuk logo tiga kali untuk menghapus semua data (dengan konfirmasi)"
+            "value" : "Hapus semua data sekaligus dari Pengaturan"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocca tre volte il logo per cancellare tutti i dati (con conferma)"
+            "value" : "Cancella tutti i dati in una volta dalle Impostazioni"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ロゴを3回タップですべてのデータを消去（確認あり）"
+            "value" : "設定からすべてのデータを一度に消去"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "로고를 세 번 탭하면 모든 데이터 삭제 (확인 후 진행)"
+            "value" : "설정에서 모든 데이터를 한 번에 삭제"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ketik logo tiga kali untuk memadamkan semua data (dengan pengesahan)"
+            "value" : "Padam semua data sekali gus dari Tetapan"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "सबै डेटा मेटाउन लोगोमा तीन पटक ट्याप गर्नुहोस् (पुष्टिसहित)"
+            "value" : "सेटिङबाट एकैपटक सबै डेटा मेटाउनुहोस्"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tik drie keer op het logo om alle gegevens te wissen (met bevestiging)"
+            "value" : "Wis alle gegevens in één keer via Instellingen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stuknij logo trzy razy, aby wymazać wszystkie dane (z potwierdzeniem)"
+            "value" : "Wymaż wszystkie dane naraz w Ustawieniach"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toque três vezes no logótipo para apagar todos os dados (com confirmação)"
+            "value" : "Apague todos os dados de uma vez nas Definições"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toque três vezes no logo para apagar todos os dados (com confirmação)"
+            "value" : "Apague todos os dados de uma vez nos Ajustes"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Трижды коснитесь логотипа, чтобы стереть все данные (с подтверждением)"
+            "value" : "Сотрите все данные разом в настройках"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trippeltryck på loggan för att radera all data (med bekräftelse)"
+            "value" : "Radera all data på en gång i Inställningar"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "எல்லா தரவையும் அழிக்க லோகோவை மூன்று முறை தட்டவும் (உறுதிப்படுத்தலுடன்)"
+            "value" : "அமைப்புகளிலிருந்து எல்லா தரவையும் ஒரே நேரத்தில் அழிக்கவும்"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "แตะโลโก้สามครั้งเพื่อล้างข้อมูลทั้งหมด (มีการยืนยัน)"
+            "value" : "ลบข้อมูลทั้งหมดในครั้งเดียวจากการตั้งค่า"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tüm verileri silmek için logoya üç kez dokunun (onaylı)"
+            "value" : "Tüm verileri Ayarlar'dan tek seferde silin"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Тричі торкніться логотипа, щоб стерти всі дані (з підтвердженням)"
+            "value" : "Зітріть усі дані за раз у налаштуваннях"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تمام ڈیٹا مٹانے کے لیے لوگو پر تین بار ٹیپ کریں (تصدیق کے ساتھ)"
+            "value" : "ترتیبات سے تمام ڈیٹا ایک ساتھ مٹائیں"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chạm ba lần vào logo để xoá toàn bộ dữ liệu (có xác nhận)"
+            "value" : "Xoá toàn bộ dữ liệu cùng lúc trong Cài đặt"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连点三次标志以清除所有数据（需确认）"
+            "value" : "在设置中一次清除所有数据"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "連點三次標誌以清除所有資料（需確認）"
+            "value" : "在設定中一次清除所有資料"
           }
         }
       }
@@ -34951,7 +35137,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Panic wipe"
+            "value" : "Panic Wipe"
           }
         },
         "es" : {
@@ -35488,181 +35674,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يمسح جميع الرسائل والمفاتيح والهوية. النقر ثلاث مرات على شعار bitchat/ يفعل الشيء نفسه."
+            "value" : "يمسح جميع الرسائل والمفاتيح والهوية."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "সব বার্তা, কী এবং পরিচয় মুছে ফেলে। bitchat/ লোগোতে তিনবার ট্যাপ করলেও একই কাজ হয়।"
+            "value" : "সব বার্তা, কী এবং পরিচয় মুছে ফেলে।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Löscht alle nachrichten, schlüssel und die identität. dreimaliges tippen aufs bitchat/-logo macht dasselbe."
+            "value" : "Löscht alle Nachrichten, Schlüssel und die Identität."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erases all messages, keys, and identity. Triple-tapping the bitchat/ logo does the same."
+            "value" : "Erases all messages, keys, and identity."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Borra todos los mensajes, claves e identidad. tocar tres veces el logo de bitchat/ hace lo mismo."
+            "value" : "Borra todos los mensajes, claves e identidad."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "همه پیام‌ها، کلیدها و هویت را پاک می‌کند. سه بار زدن روی لوگوی bitchat/ همین کار را می‌کند."
+            "value" : "همه پیام‌ها، کلیدها و هویت را پاک می‌کند."
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Binubura ang lahat ng mensahe, key, at pagkakakilanlan. ganoon din ang mangyayari kapag na-tap nang tatlong beses ang bitchat/ logo."
+            "value" : "Binubura ang lahat ng mensahe, key, at pagkakakilanlan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Efface tous les messages, les clés et l'identité. toucher trois fois le logo bitchat/ fait la même chose."
+            "value" : "Efface tous les messages, les clés et l'identité."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "מוחק את כל ההודעות, המפתחות והזהות. הקשה משולשת על הלוגו של bitchat/ עושה את אותו הדבר."
+            "value" : "מוחק את כל ההודעות, המפתחות והזהות."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "सभी संदेश, कुंजियाँ और पहचान मिटा देता है। bitchat/ लोगो पर तीन बार टैप करने से भी यही होता है।"
+            "value" : "सभी संदेश, कुंजियाँ और पहचान मिटा देता है।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Menghapus semua pesan, kunci, dan identitas. mengetuk logo bitchat/ tiga kali melakukan hal yang sama."
+            "value" : "Menghapus semua pesan, kunci, dan identitas."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancella tutti i messaggi, le chiavi e l'identità. toccare tre volte il logo bitchat/ fa lo stesso."
+            "value" : "Cancella tutti i messaggi, le chiavi e l'identità."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのメッセージ・鍵・アイデンティティを消去します。bitchat/ ロゴの3回タップでも同じことができます。"
+            "value" : "すべてのメッセージ・鍵・アイデンティティを消去します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "모든 메시지, 키, 신원을 지웁니다. bitchat/ 로고를 세 번 탭해도 동일합니다."
+            "value" : "모든 메시지, 키, 신원을 지웁니다."
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memadamkan semua mesej, kunci dan identiti. mengetik logo bitchat/ tiga kali melakukan perkara yang sama."
+            "value" : "Memadamkan semua mesej, kunci dan identiti."
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "सबै सन्देश, कुञ्जी र परिचय मेटाउँछ। bitchat/ लोगोमा तीन पटक ट्याप गर्दा पनि त्यही हुन्छ।"
+            "value" : "सबै सन्देश, कुञ्जी र परिचय मेटाउँछ।"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wist alle berichten, sleutels en identiteit. drie keer tikken op het bitchat/-logo doet hetzelfde."
+            "value" : "Wist alle berichten, sleutels en identiteit."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wymazuje wszystkie wiadomości, klucze i tożsamość. trzykrotne stuknięcie logo bitchat/ robi to samo."
+            "value" : "Wymazuje wszystkie wiadomości, klucze i tożsamość."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apaga todas as mensagens, chaves e identidade. tocar três vezes no logótipo bitchat/ faz o mesmo."
+            "value" : "Apaga todas as mensagens, chaves e identidade."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apaga todas as mensagens, chaves e identidade. tocar três vezes no logo bitchat/ faz o mesmo."
+            "value" : "Apaga todas as mensagens, chaves e identidade."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Стирает все сообщения, ключи и идентичность. тройное касание логотипа bitchat/ делает то же самое."
+            "value" : "Стирает все сообщения, ключи и идентичность."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raderar alla meddelanden, nycklar och identitet. att trippeltrycka på bitchat/-loggan gör samma sak."
+            "value" : "Raderar alla meddelanden, nycklar och identitet."
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "எல்லா செய்திகள், விசைகள் மற்றும் அடையாளத்தை அழிக்கிறது. bitchat/ லோகோவை மூன்று முறை தட்டினாலும் இதுவே நடக்கும்."
+            "value" : "எல்லா செய்திகள், விசைகள் மற்றும் அடையாளத்தை அழிக்கிறது."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ลบข้อความ กุญแจ และตัวตนทั้งหมด การแตะโลโก้ bitchat/ สามครั้งให้ผลเหมือนกัน"
+            "value" : "ลบข้อความ กุญแจ และตัวตนทั้งหมด"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tüm mesajları, anahtarları ve kimliği siler. bitchat/ logosuna üç kez dokunmak da aynısını yapar."
+            "value" : "Tüm mesajları, anahtarları ve kimliği siler."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Стирає всі повідомлення, ключі та ідентичність. потрійне торкання логотипа bitchat/ робить те саме."
+            "value" : "Стирає всі повідомлення, ключі та ідентичність."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تمام پیغامات، کلیدیں اور شناخت مٹا دیتا ہے۔ bitchat/ لوگو پر تین بار ٹیپ کرنے سے بھی یہی ہوتا ہے۔"
+            "value" : "تمام پیغامات، کلیدیں اور شناخت مٹا دیتا ہے۔"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Xoá toàn bộ tin nhắn, khoá và danh tính. chạm ba lần vào logo bitchat/ cũng làm điều tương tự."
+            "value" : "Xoá toàn bộ tin nhắn, khoá và danh tính."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除所有消息、密钥和身份。连点三次 bitchat/ 标志效果相同。"
+            "value" : "清除所有消息、密钥和身份。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除所有訊息、金鑰和身分。連點三次 bitchat/ 標誌效果相同。"
+            "value" : "清除所有訊息、金鑰和身分。"
           }
         }
       }

@@ -29,8 +29,9 @@ struct LocationProofOfWorkSection: View {
     private var sendSection: some View {
         Section {
             Toggle(isOn: enabledBinding) {
-                Text(verbatim: Strings.title)
-                Text(verbatim: Strings.subtitle)
+                SettingsRowLabel(systemImage: "hammer.fill", color: .brown) {
+                    Text(verbatim: Strings.title)
+                }
             }
 
             if isEnabled {
@@ -46,8 +47,11 @@ struct LocationProofOfWorkSection: View {
         } header: {
             Text(verbatim: Strings.header)
         } footer: {
-            if isEnabled {
-                Text(verbatim: Strings.footer)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(verbatim: Strings.subtitle)
+                if isEnabled {
+                    Text(verbatim: Strings.footer)
+                }
             }
         }
     }
@@ -63,7 +67,9 @@ struct LocationProofOfWorkSection: View {
                     LocationProofOfWorkSettings.hidesMessagesWithoutWork = newValue
                 }
             )) {
-                Text(verbatim: Strings.hideUnprovenTitle)
+                SettingsRowLabel(systemImage: "line.3.horizontal.decrease", color: .gray) {
+                    Text(verbatim: Strings.hideUnprovenTitle)
+                }
             }
         } footer: {
             Text(verbatim: Strings.hideUnprovenFooter)
