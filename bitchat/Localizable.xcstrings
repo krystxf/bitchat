@@ -2620,7 +2620,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No notices yet"
+            "value" : "No Notices Yet"
           }
         },
         "es" : {
@@ -61808,7 +61808,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable location"
+            "value" : "Enable Location"
           }
         },
         "es" : {
@@ -62548,7 +62548,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Location unavailable"
+            "value" : "Location Unavailable"
           }
         },
         "es" : {
@@ -79504,7 +79504,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No geo relays nearby"
+            "value" : "No Geo Relays Nearby"
           }
         },
         "es" : {

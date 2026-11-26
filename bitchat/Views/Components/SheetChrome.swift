@@ -350,3 +350,58 @@ private struct SheetTopBar: Layout {
     }
 }
 #endif
+
+/// An empty, error or permission state that fills a sheet: the system
+/// `ContentUnavailableView` where the OS has it (iOS 17, macOS 14), and
+/// the same layout by hand before.
+struct SheetEmptyState<Actions: View>: View {
+    let title: String
+    let systemImage: String
+    var message: String?
+    let actions: Actions
+
+    init(
+        title: String,
+        systemImage: String,
+        message: String? = nil,
+        @ViewBuilder actions: () -> Actions = { EmptyView() }
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        self.message = message
+        self.actions = actions()
+    }
+
+    var body: some View {
+        if #available(iOS 17.0, macOS 14.0, *) {
+            ContentUnavailableView {
+                Label(title, systemImage: systemImage)
+            } description: {
+                if let message {
+                    Text(verbatim: message)
+                }
+            } actions: {
+                actions
+            }
+        } else {
+            VStack(spacing: 8) {
+                Image(systemName: systemImage)
+                    .font(.largeTitle)
+                    .foregroundStyle(.novaSecondaryText)
+                    .padding(.bottom, 4)
+                Text(verbatim: title)
+                    .font(.title3.bold())
+                if let message {
+                    Text(verbatim: message)
+                        .font(.subheadline)
+                        .foregroundStyle(.novaSecondaryText)
+                }
+                actions
+                    .padding(.top, 8)
+            }
+            .multilineTextAlignment(.center)
+            .padding(24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}

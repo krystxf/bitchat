@@ -241,7 +241,7 @@ struct NoticesView: View {
         // translations carry over.
         static let geoDescription = String(localized: "location_notes.description", comment: "Explainer for the geo tab of the notices sheet")
         static let meshDescription = String(localized: "notices.description.mesh", defaultValue: "Pin short notices for people around you. They hop phone to phone, even offline, and disappear on their own after a few days.", comment: "Explainer for the mesh tab of the notices sheet")
-        static let emptyTitle = String(localized: "board.empty_title", defaultValue: "No notices yet", comment: "Title shown when the board has no posts")
+        static let emptyTitle = String(localized: "board.empty_title", defaultValue: "No Notices Yet", comment: "Title shown when the board has no posts")
         static let emptySubtitle = String(localized: "board.empty_subtitle", defaultValue: "Pin the first notice for people around here.", comment: "Subtitle shown when the board has no posts")
         static let urgentBadge = String(localized: "board.urgent_badge", defaultValue: "Urgent", comment: "Badge shown on urgent board posts")
         static let urgentToggle = String(localized: "board.compose.urgent", defaultValue: "Urgent", comment: "Label for the urgent toggle in the board composer")
@@ -296,12 +296,15 @@ struct NoticesView: View {
         VStack(spacing: 0) {
             headerSection
             contentSection
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if activeGeohash != nil {
                 composer
             }
         }
         .sheetChrome(
-            title: Text(verbatim: scopeTitle),
+            title: Text(verbatim: Strings.title),
+            subtitle: scopeSubtitle.map { Text(verbatim: $0) },
             closeLabel: Text(verbatim: Strings.closeHint),
             onClose: { dismiss() }
         )
@@ -358,26 +361,25 @@ struct NoticesView: View {
                 Text(Strings.meshTab).tag(Tab.mesh)
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
             .accessibilityLabel(Strings.scopePicker)
             Text(tab == .geo ? Strings.geoDescription : Strings.meshDescription)
-                .bitchatFont(size: 12)
-                .foregroundColor(palette.secondary)
+                .font(.footnote)
+                .foregroundStyle(.novaSecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
     }
 
-    private var scopeTitle: String {
+    /// The scope under the title: the channel the notices are pinned to.
+    private var scopeSubtitle: String? {
         switch tab {
         case .mesh:
-            return "\(Strings.title) @ #mesh"
+            return "#mesh"
         case .geo:
-            if let geohash = geoGeohash {
-                return "\(Strings.title) @ #\(geohash)"
-            }
-            return Strings.title
+            return geoGeohash.map { "#\($0)" }
         }
     }
 
@@ -413,67 +415,63 @@ struct NoticesView: View {
         }
     }
 
+    /// Location notes are off: the switch that turns them on, as in
+    /// Settings.
     private var locationNotesDisabledSection: some View {
-        ScrollView {
-            Toggle(
-                isOn: Binding(
-                    get: { locationNotesEnabled },
-                    set: { enabled in
-                        locationNotesEnabled = enabled
-                        LocationNotesSettings.enabled = enabled
+        NovaForm {
+            Section {
+                Toggle(
+                    isOn: Binding(
+                        get: { locationNotesEnabled },
+                        set: { enabled in
+                            locationNotesEnabled = enabled
+                            LocationNotesSettings.enabled = enabled
+                        }
+                    )
+                ) {
+                    SettingsRowLabel(systemImage: "mappin.and.ellipse", color: .green) {
+                        Text(Strings.locationNotesTitle)
                     }
-                )
-            ) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(Strings.locationNotesTitle)
-                        .bitchatFont(size: 14)
-                    Text(Strings.locationNotesDescription)
-                        .bitchatFont(size: 12)
-                        .foregroundColor(palette.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .toggleStyle(.switch)
+            } footer: {
+                Text(Strings.locationNotesDescription)
+                    .novaSectionText()
             }
-            .toggleStyle(.switch)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var locationUnavailableSection: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(Strings.locationUnavailable)
-                    .bitchatFont(size: 14)
-                    .foregroundColor(palette.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button(Strings.enableLocation) {
-                    locationChannelsModel.enableAndRefresh()
-                }
-                .buttonStyle(.bordered)
+        SheetEmptyState(title: Strings.locationUnavailable, systemImage: "location.slash") {
+            Button(Strings.enableLocation) {
+                locationChannelsModel.enableAndRefresh()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .buttonStyle(.borderedProminent)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// The composer bar under the list: the text field and the send
+    /// button, then the urgency switch (mesh only) and the expiry.
     private var composer: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 10) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .bottom, spacing: 8) {
                 TextField(Strings.placeholder, text: $draft, axis: .vertical)
                     .textFieldStyle(.plain)
-                    .bitchatFont(size: 14)
-                    .lineLimit(maxDraftLines, reservesSpace: true)
-                    .padding(.vertical, 6)
+                    .lineLimit(1...maxDraftLines)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                    .background(Color.novaSurface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(Color.novaHairline)
+                    )
                 Button(action: send) {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.bitchatSystem(size: 20))
-                        .foregroundColor(sendEnabled ? palette.accent : .secondary)
+                        .font(.title)
+                        .foregroundStyle(sendEnabled ? Color.novaAccent : Color.novaSecondaryText.opacity(0.45))
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
-                .padding(.top, 2)
                 .buttonStyle(.plain)
                 .disabled(!sendEnabled)
                 .accessibilityLabel(Strings.send)
@@ -483,18 +481,18 @@ struct NoticesView: View {
             HStack(spacing: 12) {
                 if tab == .mesh {
                     Toggle(isOn: $urgent) {
-                        Text(Strings.urgentToggle)
-                            .bitchatFont(size: 12)
-                            .foregroundColor(urgent ? palette.alertRed : palette.secondary)
+                        Label(Strings.urgentToggle, systemImage: "exclamationmark.triangle.fill")
                     }
-                    .toggleStyle(.switch)
-                    .fixedSize()
+                    .toggleStyle(.button)
+                    // Red only while on, so off does not read as urgent.
+                    .tint(urgent ? palette.alertRed : Color.novaSecondaryText)
+                    .controlSize(.small)
                     .accessibilityLabel(Strings.urgentToggle)
                 }
-                Spacer()
+                Spacer(minLength: 0)
                 Text(Strings.expiryLabel)
-                    .bitchatFont(size: 12)
-                    .foregroundColor(palette.secondary)
+                    .font(.footnote)
+                    .foregroundStyle(.novaSecondaryText)
                 Picker(Strings.expiryLabel, selection: $expiryDays) {
                     // Mesh board posts must fade (the wire caps their
                     // lifetime); only relay-backed geo notes can be ∞.
@@ -508,17 +506,23 @@ struct NoticesView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                // macOS segmented pickers render their own label; the themed
-                // Text alongside already carries it (and accessibility keeps
-                // the explicit label below).
+                // macOS segmented pickers render their own label; the
+                // Text alongside already carries it (and accessibility
+                // keeps the explicit label below).
                 .labelsHidden()
                 .fixedSize()
                 .accessibilityLabel(Strings.expiryLabel)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .overlay(Divider(), alignment: .top)
+        .padding(.top, 10)
+        .padding(.bottom, 10)
+        .background(Color.novaBackground)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color.novaHairline)
+                .frame(height: 1)
+        }
     }
 
     private var sendEnabled: Bool {
@@ -601,39 +605,60 @@ private struct NoticesList: View {
     var body: some View {
         Group {
             if items.isEmpty {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 4) {
+                emptyContent
+            } else {
+                List {
+                    Section {
                         statusRows
-                        if showEmptyState {
-                            Text(Strings.emptyTitle)
-                                .bitchatFont(size: 13, weight: .semibold)
-                            Text(Strings.emptySubtitle)
-                                .bitchatFont(size: 12)
-                                .foregroundColor(palette.secondary)
+                    }
+                    .listRowBackground(Color.clear)
+                    Section {
+                        ForEach(items) { item in
+                            row(item)
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .novaRows()
                 }
-            } else {
-                // Clear rows over a hidden list background: the notices sit
-                // on the sheet's own surface, like the header and composer.
-                List {
-                    statusRows
-                        .listRowBackground(Color.clear)
-                        .listRowSeparatorTint(palette.divider)
-                    ForEach(items) { item in
-                        row(item)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparatorTint(palette.divider)
-                    }
-                }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+                #if os(iOS)
+                .listStyle(.insetGrouped)
+                #else
+                .listStyle(.inset)
+                #endif
+                .novaGroupedList()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// No notices: why, as a full-sheet state — still loading, no relays,
+    /// an error, or nothing pinned yet.
+    @ViewBuilder
+    private var emptyContent: some View {
+        if let notesManager, notesManager.state == .noRelays {
+            SheetEmptyState(
+                title: String(localized: "location_notes.no_relays_nearby"),
+                systemImage: "antenna.radiowaves.left.and.right.slash",
+                message: String(localized: "location_notes.relays_retry_hint")
+            ) {
+                Button(Strings.retry) { notesManager.refresh() }
+                    .buttonStyle(.bordered)
+            }
+        } else if let notesManager, let error = notesManager.errorMessage {
+            SheetEmptyState(title: error, systemImage: "exclamationmark.triangle") {
+                Button(Strings.dismissError) { notesManager.clearError() }
+                    .buttonStyle(.bordered)
+            }
+        } else if showEmptyState {
+            SheetEmptyState(title: Strings.emptyTitle, systemImage: "pin", message: Strings.emptySubtitle)
+        } else {
+            VStack(spacing: 12) {
+                ProgressView()
+                Text(notesManager?.state == .connecting ? Strings.connectingRelays : Strings.loadingNotes)
+                    .font(.subheadline)
+                    .foregroundStyle(.novaSecondaryText)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 
     /// Notes may still be loading or unreachable; only claim "no notices yet"
@@ -645,53 +670,46 @@ private struct NoticesList: View {
             && notesManager.state != .connecting
     }
 
+    /// Loading and relay state above a list that already has notices.
     @ViewBuilder
     private var statusRows: some View {
         if let notesManager {
             if notesManager.state == .loading && !notesManager.initialLoadComplete {
-                HStack(spacing: 10) {
-                    ProgressView()
+                Label {
                     Text(Strings.loadingNotes)
-                        .bitchatFont(size: 12)
-                        .foregroundColor(palette.secondary)
-                    Spacer()
-                }
-                .padding(.vertical, 8)
-            } else if notesManager.state == .connecting {
-                HStack(spacing: 10) {
+                } icon: {
                     ProgressView()
-                    Text(Strings.connectingRelays)
-                        .bitchatFont(size: 12)
-                        .foregroundColor(palette.secondary)
-                    Spacer()
                 }
-                .padding(.vertical, 8)
+                .font(.footnote)
+                .foregroundStyle(.novaSecondaryText)
+            } else if notesManager.state == .connecting {
+                Label {
+                    Text(Strings.connectingRelays)
+                } icon: {
+                    ProgressView()
+                }
+                .font(.footnote)
+                .foregroundStyle(.novaSecondaryText)
             } else if notesManager.state == .noRelays {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(Strings.noRelaysNearby)
-                        .bitchatFont(size: 13, weight: .semibold)
+                        .font(.subheadline.weight(.semibold))
                     Text(Strings.relaysRetryHint)
-                        .bitchatFont(size: 12)
-                        .foregroundColor(palette.secondary)
+                        .font(.footnote)
+                        .foregroundStyle(.novaSecondaryText)
                     Button(Strings.retry) { notesManager.refresh() }
-                        .bitchatFont(size: 12)
-                        .buttonStyle(.plain)
+                        .font(.footnote.weight(.semibold))
+                        .buttonStyle(.borderless)
                 }
-                .padding(.bottom, 8)
             } else if let error = notesManager.errorMessage {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .bitchatFont(size: 12)
-                        Text(error)
-                            .bitchatFont(size: 12)
-                        Spacer()
-                    }
+                    Label(error, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(palette.alertRed)
                     Button(Strings.dismissError) { notesManager.clearError() }
-                        .bitchatFont(size: 12)
-                        .buttonStyle(.plain)
+                        .font(.footnote.weight(.semibold))
+                        .buttonStyle(.borderless)
                 }
-                .padding(.bottom, 8)
             }
         }
     }
@@ -717,45 +735,45 @@ private struct NoticesList: View {
 
     private func row(_ item: NoticeItem) -> some View {
         let isOwn = canDelete(item)
-        return VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
                 if item.isUrgent {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.bitchatSystem(size: 11))
-                        .foregroundColor(palette.alertRed)
-                    Text(Strings.urgentBadge)
-                        .bitchatFont(size: 11, weight: .semibold)
-                        .foregroundColor(palette.alertRed)
+                    Label(Strings.urgentBadge, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(palette.alertRed)
                 }
                 Text(verbatim: "@\(item.author)")
-                    .bitchatFont(size: 12, weight: .semibold)
-                Text(Self.timestampText(for: item.createdAt))
-                    .bitchatFont(size: 11)
-                    .foregroundColor(palette.secondary)
-                if let expiresAt = item.expiresAt, expiresAt > Date() {
-                    Text(Strings.fades(expiresAt))
-                        .bitchatFont(size: 11)
-                        .foregroundColor(palette.secondary.opacity(0.8))
-                }
-                Spacer()
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                Spacer(minLength: 8)
                 if showsSource {
                     sourceBadge(item)
                 }
+                Text(Self.timestampText(for: item.createdAt))
+                    .font(.caption)
+                    .foregroundStyle(.novaSecondaryText)
                 if isOwn {
                     Button {
                         delete(item)
                     } label: {
                         Image(systemName: "trash")
-                            .font(.bitchatSystem(size: 12))
-                            .foregroundColor(palette.secondary)
+                            .font(.caption)
+                            .foregroundStyle(.novaSecondaryText)
+                            .frame(minWidth: 28, minHeight: 28)
+                            .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                     .accessibilityLabel(Strings.deleteAction)
                 }
             }
             Text(item.content)
-                .bitchatFont(size: 14)
+                .font(.body)
                 .fixedSize(horizontal: false, vertical: true)
+            if let expiresAt = item.expiresAt, expiresAt > Date() {
+                Text(Strings.fades(expiresAt))
+                    .font(.caption)
+                    .foregroundStyle(.novaSecondaryText)
+            }
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .ignore)
@@ -777,13 +795,16 @@ private struct NoticesList: View {
     }
 
     private func sourceBadge(_ item: NoticeItem) -> some View {
-        HStack(spacing: 3) {
-            Image(systemName: item.isBoardPost ? "antenna.radiowaves.left.and.right" : "globe")
-                .font(.bitchatSystem(size: 10))
-            Text(item.isBoardPost ? Strings.meshSource : Strings.nostrSource)
-                .bitchatFont(size: 10)
-        }
-        .foregroundColor(palette.secondary.opacity(0.8))
+        Label(
+            item.isBoardPost ? Strings.meshSource : Strings.nostrSource,
+            systemImage: item.isBoardPost ? "antenna.radiowaves.left.and.right" : "globe"
+        )
+        .labelStyle(.titleAndIcon)
+        .font(.caption2.weight(.medium))
+        .foregroundStyle(.novaSecondaryText)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(Color.novaSurfaceRaised, in: Capsule())
         .accessibilityLabel(item.isBoardPost ? Strings.meshSource : Strings.nostrSource)
     }
 
@@ -795,7 +816,9 @@ private struct NoticesList: View {
             // The whole "3 hr ago" phrase must come from the formatter —
             // gluing an English "ago" onto a localized duration ships the
             // wrong word order to most locales ("hace 3 h", "vor 3 Std").
-            return relativeFormatter.localizedString(for: date, relativeTo: now)
+            // A clock a little ahead says "in 0s"; a notice is never from
+            // the future.
+            return relativeFormatter.localizedString(for: min(date, now), relativeTo: now)
         }
         let sameYear = Calendar.current.isDate(date, equalTo: now, toGranularity: .year)
         return (sameYear ? absDateFormatter : absDateYearFormatter).string(from: date)
