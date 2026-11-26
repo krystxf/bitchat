@@ -41,6 +41,9 @@ struct ContentSidebarView: View {
 
     @AppStorage("sidebar.showsUnknownPeople") private var showsUnknownPeople = false
     @State private var showsProfile = false
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
 
     var body: some View {
         let people = sidebarPeople
@@ -51,6 +54,7 @@ struct ContentSidebarView: View {
             } header: {
                 sectionHeader(Strings.channels)
             }
+            .modifier(SidebarRowSurface(isOn: usesNovaSurfaces))
 
             if !groupRows.isEmpty {
                 Section {
@@ -61,6 +65,7 @@ struct ContentSidebarView: View {
                 } header: {
                     sectionHeader(Strings.groups)
                 }
+                .modifier(SidebarRowSurface(isOn: usesNovaSurfaces))
             }
 
             if !people.contacts.isEmpty || people.unknown.isEmpty {
@@ -73,21 +78,41 @@ struct ContentSidebarView: View {
                 } header: {
                     sectionHeader(Strings.contacts)
                 }
+                .modifier(SidebarRowSurface(isOn: usesNovaSurfaces))
             }
 
             if !people.unknown.isEmpty {
                 unknownSection(people.unknown)
+                    .modifier(SidebarRowSurface(isOn: usesNovaSurfaces))
             }
         }
         .listStyle(.sidebar)
+        // The iPhone list sits on Nova's warm backdrop. In a split view the
+        // sidebar keeps the system's own (glass) background.
+        .scrollContentBackground(usesNovaSurfaces ? .hidden : .automatic)
+        .background {
+            if usesNovaSurfaces {
+                Color.novaBackground.ignoresSafeArea()
+            }
+        }
         .navigationTitle(Text(verbatim: Strings.appName))
         .toolbar {
             sidebarToolbar
         }
     }
 
+    /// True when the sidebar is the iPhone's whole screen, not a column.
+    private var usesNovaSurfaces: Bool {
+        #if os(iOS)
+        horizontalSizeClass == .compact
+        #else
+        false
+        #endif
+    }
+
     private func sectionHeader(_ title: String) -> some View {
         Text(verbatim: title)
+            .foregroundStyle(.novaSecondaryText)
     }
 
     // MARK: - Toolbar
@@ -349,11 +374,12 @@ struct ContentSidebarView: View {
     private func unknownHeader(_ roster: SidebarRoster) -> some View {
         HStack(spacing: 8) {
             Text(verbatim: Strings.unknown)
+                .foregroundStyle(.novaSecondaryText)
             // Format style, not Text("\(count)"): locale digits and
             // grouping, and no letterless key for the catalog.
             Text(roster.count, format: .number)
                 .monospacedDigit()
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.novaSecondaryText)
             if roster.unreadCount > 0 {
                 PeopleUnreadIndicator()
             }
@@ -394,5 +420,16 @@ private extension ContentSidebarView {
                 count
             )
         }
+    }
+}
+
+/// Nova's cream rows and beige separators, on the iPhone list only.
+private struct SidebarRowSurface: ViewModifier {
+    let isOn: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .listRowBackground(isOn ? Color.novaSurface : nil)
+            .listRowSeparatorTint(isOn ? Color.novaHairline : nil)
     }
 }
