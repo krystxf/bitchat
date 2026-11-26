@@ -98,6 +98,8 @@ struct MessageListView: View {
     /// The message the full emoji picker reacts to: a sheet on iOS, a
     /// popover anchored to the message on macOS (from its context menu).
     @State private var reactionPickerTarget: ReactionPickerTarget?
+    /// The message whose long-press overlay is open (iOS 16.4+).
+    @State private var actionsOverlayItem: MessageActionsOverlayItem?
     @State private var lastScrollTime: Date = .distantPast
     @State private var scrollThrottleTimer: Timer?
     @State private var unseenCount = 0
@@ -230,10 +232,26 @@ struct MessageListView: View {
                             // The menu belongs to the bubble, not the empty
                             // side of the row.
                             .contentShape(Rectangle())
-                            .contextMenu {
-                                // A location message that never went out has
-                                // no event anyone could react to.
-                                if message.sender != "system" && !message.isUnsentLocationMessage {
+                            // iOS 16.4+: a long press opens the Liquid Glass
+                            // overlay; elsewhere the native context menu.
+                            .modifier(MessageMenuModifier(onLongPress: { frame in
+                                presentActionsOverlay(
+                                    for: message,
+                                    isSelf: isSelf,
+                                    frame: frame,
+                                    reactions: reactionProjection.summaries(for: message.id),
+                                    content: AnyView(messageRow(
+                                        for: message,
+                                        isSelf: isSelf,
+                                        showsSenderName: item.startsRun && showsSender,
+                                        avatar: showsSender ? (item.endsRun ? .shown : .space) : .absent,
+                                        maxBubbleWidth: maxBubbleWidth,
+                                        endsRun: item.endsRun,
+                                        reactions: reactionProjection.summaries(for: message.id)
+                                    ))
+                                )
+                            }) {
+                                if canReact(to: message) {
                                     Section {
                                         ReactionMenuRow(
                                             selected: ownReactionEmojis(in: reactionProjection.summaries(for: message.id)),
@@ -248,44 +266,21 @@ struct MessageListView: View {
                                 Section {
                                     Text(verbatim: MessageTimeLabel.exactLabel(for: message.timestamp))
                                 }
-                                let showsUserActions = message.sender != "system" && !isSelf
-                                if showsUserActions {
-                                    // Mention and DM are redundant inside a 1:1 conversation:
-                                    // mentioning the only other participant is noise, and "DM"
-                                    // would just reopen the conversation that is already open.
-                                    if privatePeer == nil {
-                                        Button("content.actions.mention") {
-                                            insertMention(message.sender)
-                                        }
-                                        if let peerID = message.senderPeerID {
-                                            Button("content.actions.direct_message") {
-                                                privateConversationModel.openConversation(for: peerID)
-                                            }
-                                        }
+                                MessageActionMenuItems(actions: messageActions(for: message, isSelf: isSelf))
+                            })
+                            // VoiceOver reaches every action and the quick
+                            // reactions without the overlay or the menu.
+                            .accessibilityActions {
+                                if canReact(to: message) {
+                                    ForEach(MessageReaction.emojis, id: \.self) { emoji in
+                                        Button(emoji) { toggleReaction(emoji, on: message) }
+                                    }
+                                    Button(String(localized: "content.reaction.add", comment: "Menu item or title for adding a reaction to a message")) {
+                                        openReactionPicker(for: message)
                                     }
                                 }
-                                Button("content.message.copy") {
-                                    #if os(iOS)
-                                    UIPasteboard.general.string = message.content
-                                    #else
-                                    let pb = NSPasteboard.general
-                                    pb.clearContents()
-                                    pb.setString(message.content, forType: .string)
-                                    #endif
-                                }
-                                if isResendableFailedMessage(message) {
-                                    Button("content.actions.resend") {
-                                        if message.isPrivate {
-                                            conversationUIModel.resendFailedPrivateMessage(message)
-                                        } else {
-                                            conversationUIModel.resendFailedLocationMessage(message)
-                                        }
-                                    }
-                                }
-                                if showsUserActions {
-                                    Button("content.actions.block", role: .destructive) {
-                                        conversationUIModel.block(peerID: message.senderPeerID, displayName: message.sender)
-                                    }
+                                ForEach(messageActions(for: message, isSelf: isSelf)) { action in
+                                    Button(action.title, action: action.perform)
                                 }
                             }
 #if os(macOS)
@@ -358,6 +353,9 @@ struct MessageListView: View {
             .sheet(item: $reactionPickerTarget) { target in
                 reactionPicker(for: target)
                     .presentationDetents([.medium, .large])
+            }
+            .fullScreenCover(item: $actionsOverlayItem) { item in
+                actionsOverlay(for: item)
             }
 #endif
             .onTapGesture(count: 3) {
@@ -934,9 +932,110 @@ private extension MessageListView {
         conversationUIModel.sendMessage(MessageReaction.format(emoji: emoji, target: message, removes: active))
     }
 
+    /// Whether a message takes reactions: not a system line, and not a
+    /// location message that never went out (it has no event to react to).
+    func canReact(to message: BitchatMessage) -> Bool {
+        message.sender != "system" && !message.isUnsentLocationMessage
+    }
+
+    /// What I can do with a message, in menu order.
+    func messageActions(for message: BitchatMessage, isSelf: Bool) -> [MessageAction] {
+        var actions: [MessageAction] = []
+        if isResendableFailedMessage(message) {
+            actions.append(MessageAction(kind: .resend) {
+                if message.isPrivate {
+                    conversationUIModel.resendFailedPrivateMessage(message)
+                } else {
+                    conversationUIModel.resendFailedLocationMessage(message)
+                }
+            })
+        }
+        let showsUserActions = message.sender != "system" && !isSelf
+        // Mention and DM are redundant inside a 1:1 conversation:
+        // mentioning the only other participant is noise, and "DM" would
+        // just reopen the conversation that is already open.
+        if showsUserActions && privatePeer == nil {
+            actions.append(MessageAction(kind: .mention) { insertMention(message.sender) })
+            if let peerID = message.senderPeerID {
+                actions.append(MessageAction(kind: .directMessage) {
+                    privateConversationModel.openConversation(for: peerID)
+                })
+            }
+        }
+        actions.append(MessageAction(kind: .copy) {
+            #if os(iOS)
+            UIPasteboard.general.string = message.content
+            #else
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(message.content, forType: .string)
+            #endif
+        })
+        if showsUserActions {
+            actions.append(MessageAction(kind: .block) {
+                conversationUIModel.block(peerID: message.senderPeerID, displayName: message.sender)
+            })
+        }
+        return actions
+    }
+
+    /// Opens the long-press overlay (iOS 16.4+) with a light tap.
+    func presentActionsOverlay(
+        for message: BitchatMessage,
+        isSelf: Bool,
+        frame: CGRect,
+        reactions: [MessageReactionSummary],
+        content: AnyView
+    ) {
+        #if os(iOS)
+        guard frame.width > 0 else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        let item = MessageActionsOverlayItem(
+            message: message,
+            messageFrame: frame,
+            isSelf: isSelf,
+            canReact: canReact(to: message),
+            selectedReactions: ownReactionEmojis(in: reactions),
+            actions: messageActions(for: message, isSelf: isSelf),
+            content: content
+        )
+        // The overlay animates itself; the cover appears and goes at once.
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { actionsOverlayItem = item }
+        #endif
+    }
+
     func openReactionPicker(for message: BitchatMessage) {
         reactionPickerTarget = ReactionPickerTarget(message: message)
     }
+
+#if os(iOS)
+    @ViewBuilder
+    func actionsOverlay(for item: MessageActionsOverlayItem) -> some View {
+        if #available(iOS 16.4, *) {
+            MessageActionsOverlay(
+                item: item,
+                tint: messageBubbleColor,
+                onReact: { emoji in toggleReaction(emoji, on: item.message) },
+                onOpenPicker: {
+                    // After the cover is gone, so the sheet can present.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        openReactionPicker(for: item.message)
+                    }
+                },
+                onDismiss: {
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) { actionsOverlayItem = nil }
+                }
+            )
+            .environmentObject(conversationUIModel)
+            .environment(\.resolvedMessageBubbleColor, messageBubbleColor)
+            .presentationBackground(.clear)
+        }
+    }
+#endif
 
     /// Whether the picker popover shows on `message`'s row (macOS).
     func reactionPickerBinding(for message: BitchatMessage) -> Binding<Bool> {

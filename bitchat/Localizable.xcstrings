@@ -292,6 +292,42 @@
         }
       }
     },
+    "content.actions.more" : {
+      "comment" : "Row in the message actions that shows the remaining actions",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المزيد" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "আরও" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Mehr" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "More" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Más" } },
+        "fa" : { "stringUnit" : { "state" : "translated", "value" : "بیشتر" } },
+        "fil" : { "stringUnit" : { "state" : "translated", "value" : "Higit Pa" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Plus" } },
+        "he" : { "stringUnit" : { "state" : "translated", "value" : "עוד" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "और" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Lainnya" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Altro" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "その他" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "더 보기" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Lagi" } },
+        "ne" : { "stringUnit" : { "state" : "translated", "value" : "थप" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Meer" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Więcej" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Mais" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Mais" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ещё" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Mer" } },
+        "ta" : { "stringUnit" : { "state" : "translated", "value" : "மேலும்" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เพิ่มเติม" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Daha Fazla" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Більше" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "مزید" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Thêm" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更多" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "更多" } }
+      }
+    },
     "content.drop.image_hint" : {
       "comment" : "Hint shown while an image is dragged over the chat on macOS",
       "localizations" : {
