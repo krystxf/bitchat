@@ -211,6 +211,9 @@ struct MessageReactionsView: View {
     let maxWidth: CGFloat
     let tint: MessageBubbleColor
     let onToggle: (String) -> Void
+    /// iOS: opens the full emoji picker in a sheet. macOS anchors it to the
+    /// add pill instead.
+    var onOpenPicker: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -222,7 +225,12 @@ struct MessageReactionsView: View {
                 }
                 .transition(MessageReactionStyle.transition(reduceMotion: reduceMotion))
             }
-            ReactionAddPill(selected: Set(summaries.filter(\.includesMe).map(\.emoji)), tint: tint, onSelect: onToggle)
+            ReactionAddPill(
+                selected: Set(summaries.filter(\.includesMe).map(\.emoji)),
+                tint: tint,
+                onSelect: onToggle,
+                onOpenPicker: onOpenPicker
+            )
         }
         .animation(MessageReactionStyle.animation(reduceMotion: reduceMotion), value: summaries)
     }
@@ -288,19 +296,25 @@ struct ReactionPill: View {
     }
 }
 
-/// The pill that opens the reaction choices: a popover anchored to it.
+/// The pill that opens the full emoji picker: a sheet on iOS, a popover
+/// anchored to the pill on macOS.
 struct ReactionAddPill: View {
     let selected: Set<String>
     let tint: MessageBubbleColor
     let onSelect: (String) -> Void
+    let onOpenPicker: () -> Void
 
     @ScaledMetric(relativeTo: .subheadline) private var height: CGFloat = 26
-    @State private var showsChoices = false
+    @State private var showsPicker = false
     @State private var isHovered = false
 
     var body: some View {
         Button {
-            showsChoices = true
+            #if os(macOS)
+            showsPicker = true
+            #else
+            onOpenPicker()
+            #endif
         } label: {
             // A smiley with a small plus at its shoulder, the usual "add
             // reaction" sign; the plus sits clear of the face.
@@ -325,10 +339,9 @@ struct ReactionAddPill: View {
         .onHover { isHovered = $0 }
         #endif
         .accessibilityLabel(String(localized: "content.accessibility.add_reaction", comment: "Accessibility label for opening the emoji reaction picker"))
-        .reactionChoicesPopover(isPresented: $showsChoices, selected: selected, tint: tint) { emoji in
-            showsChoices = false
-            onSelect(emoji)
-        }
+        #if os(macOS)
+        .reactionPickerPopover(isPresented: $showsPicker, selected: selected, tint: tint, onSelect: onSelect)
+        #endif
     }
 }
 
@@ -406,76 +419,67 @@ private struct ReactionChoiceButton: View {
     }
 }
 
-private extension View {
-    /// The reaction choices in a popover anchored to the view. An iPhone
-    /// keeps it a popover from iOS 16.4; before that it becomes a short
-    /// sheet with the shared sheet chrome.
-    func reactionChoicesPopover(
+#if os(macOS)
+extension View {
+    /// The full emoji picker in a popover anchored to the view. Choosing an
+    /// emoji closes it.
+    func reactionPickerPopover(
         isPresented: Binding<Bool>,
         selected: Set<String>,
         tint: MessageBubbleColor,
         onSelect: @escaping (String) -> Void
     ) -> some View {
         popover(isPresented: isPresented, arrowEdge: .bottom) {
-            ReactionChoicesPopoverContent(isPresented: isPresented, selected: selected, tint: tint, onSelect: onSelect)
+            EmojiPickerView(selected: selected, tint: tint) { emoji in
+                isPresented.wrappedValue = false
+                onSelect(emoji)
+            }
         }
     }
 }
-
-private struct ReactionChoicesPopoverContent: View {
-    @Binding var isPresented: Bool
-    let selected: Set<String>
-    let tint: MessageBubbleColor
-    let onSelect: (String) -> Void
-
-    var body: some View {
-        #if os(iOS)
-        if #available(iOS 16.4, *) {
-            row
-                .padding(8)
-                .presentationCompactAdaptation(.popover)
-        } else {
-            row
-                .padding()
-                .sheetChrome(
-                    title: Text("content.reaction.add", comment: "Menu item or title for adding a reaction to a message"),
-                    onClose: { isPresented = false }
-                )
-                .presentationDetents([.height(150)])
-        }
-        #else
-        row.padding(8)
-        #endif
-    }
-
-    private var row: some View {
-        ReactionChoicesRow(selected: selected, tint: tint, onSelect: onSelect)
-            .fixedSize()
-    }
-}
+#endif
 
 // MARK: - macOS quick bar
 
 #if os(macOS)
 /// The bar that floats beside a hovered message: a Liquid Glass capsule
-/// with the reactions, my current ones marked. Where there is no room for
-/// it beside the bubble, a single add button stands in and opens the same
-/// choices in a popover, so the bar never covers message text.
+/// with the quick reactions, my current ones marked, and a "+" that opens
+/// the full emoji picker. Where there is no room for it beside the bubble,
+/// a single add button stands in and opens the picker, so the bar never
+/// covers message text.
 struct ReactionQuickBar: View {
     let selected: Set<String>
     let tint: MessageBubbleColor
-    /// True while the compact button's popover is open; the list keeps the
-    /// bar for it.
+    /// True while the picker popover is open; the list keeps the bar for it.
     @Binding var isPresentingChoices: Bool
     let onSelect: (String) -> Void
 
+    @State private var isHoveringMore = false
+
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            ReactionChoicesRow(selected: selected, tint: tint, emojiSize: 18, onSelect: onSelect)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
-                .glassSurface(in: Capsule())
-                .fixedSize()
+            HStack(spacing: 0) {
+                ReactionChoicesRow(selected: selected, tint: tint, emojiSize: 18, onSelect: onSelect)
+                Button {
+                    isPresentingChoices = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(Color.primary.opacity(isHoveringMore ? 0.1 : 0)))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .onHover { isHoveringMore = $0 }
+                .help(String(localized: "content.reaction.add", comment: "Menu item or title for adding a reaction to a message"))
+                .accessibilityLabel(String(localized: "content.reaction.add", comment: "Menu item or title for adding a reaction to a message"))
+                .reactionPickerPopover(isPresented: $isPresentingChoices, selected: selected, tint: tint, onSelect: onSelect)
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .reactionGlassSurface(in: Capsule(), interactive: true)
+            .fixedSize()
             Button {
                 isPresentingChoices = true
             } label: {
@@ -483,16 +487,13 @@ struct ReactionQuickBar: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(.secondary)
                     .frame(width: 32, height: 32)
-                    .glassSurface(in: Circle())
+                    .reactionGlassSurface(in: Circle(), interactive: true)
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .help(String(localized: "content.accessibility.add_reaction", comment: "Accessibility label for opening the emoji reaction picker"))
             .accessibilityLabel(String(localized: "content.accessibility.add_reaction", comment: "Accessibility label for opening the emoji reaction picker"))
-            .reactionChoicesPopover(isPresented: $isPresentingChoices, selected: selected, tint: tint) { emoji in
-                isPresentingChoices = false
-                onSelect(emoji)
-            }
+            .reactionPickerPopover(isPresented: $isPresentingChoices, selected: selected, tint: tint, onSelect: onSelect)
         }
         .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
     }
@@ -566,12 +567,14 @@ extension View {
 
 /// The reaction row at the top of a message's context menu. From iOS 17
 /// (and on macOS) it is a palette, the native row of round choices closest
-/// to the Messages tapback row; my current reactions are marked. Before
-/// iOS 17 it is a control group.
+/// to the Messages tapback row; my current reactions are marked, and a
+/// last "+" opens the full emoji picker. Before iOS 17 it is a control
+/// group.
 struct ReactionMenuRow: View {
     let selected: Set<String>
     let tint: MessageBubbleColor
     let onSelect: (String) -> Void
+    let onOpenPicker: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -581,9 +584,12 @@ struct ReactionMenuRow: View {
             palette
         } else {
             ControlGroup {
-                ForEach(MessageReaction.emojis, id: \.self) { emoji in
+                ForEach(MessageReaction.emojis.prefix(3), id: \.self) { emoji in
                     Button(emoji) { onSelect(emoji) }
                 }
+            }
+            Button(action: onOpenPicker) {
+                Label(String(localized: "content.reaction.add", comment: "Menu item or title for adding a reaction to a message"), systemImage: "face.smiling")
             }
         }
         #else
@@ -604,6 +610,9 @@ struct ReactionMenuRow: View {
                         EmojiMenuImage.image(for: emoji, isSelected: selected.contains(emoji), tint: tint, colorScheme: colorScheme)
                     }
                 }
+            }
+            Button(action: onOpenPicker) {
+                Label(String(localized: "content.reaction.add", comment: "Menu item or title for adding a reaction to a message"), systemImage: "plus")
             }
         }
         .controlGroupStyle(.palette)

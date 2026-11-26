@@ -27,8 +27,9 @@ struct MessageWipeOperations {
     /// Removes delivered and queued notifications, which can quote messages.
     let removeNotifications: () -> Void
     /// Empties the decoded image thumbnails kept in memory, the GIF cache
-    /// in memory and on disk (loads in flight are cancelled), and the GIF
-    /// picker's Recent list.
+    /// in memory and on disk (loads in flight are cancelled), the GIF
+    /// picker's Recent list, and the reaction picker's Frequently Used and
+    /// skin tones.
     let clearMediaCaches: () -> Void
 
     static let live = MessageWipeOperations(
@@ -44,6 +45,7 @@ struct MessageWipeOperations {
             ChatImageCache.removeAll()
             GifMediaStore.shared.removeAll()
             GifRecentsStore.shared.removeAll()
+            ReactionEmojiPreferences.shared.removeAll()
         }
     )
 

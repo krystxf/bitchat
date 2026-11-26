@@ -51,6 +51,12 @@ private struct TimelineSignature: Equatable {
     }
 }
 
+/// The message the full emoji picker is open for.
+struct ReactionPickerTarget: Identifiable {
+    let message: BitchatMessage
+    var id: String { message.id }
+}
+
 struct MessageListView: View {
     @EnvironmentObject private var publicChatModel: PublicChatModel
     @EnvironmentObject private var privateInboxModel: PrivateInboxModel
@@ -89,6 +95,9 @@ struct MessageListView: View {
     /// The quick bar's own popover is open, so the bar stays.
     @State private var isReactionBarPinned = false
     @State private var isListScrolling = false
+    /// The message the full emoji picker reacts to: a sheet on iOS, a
+    /// popover anchored to the message on macOS (from its context menu).
+    @State private var reactionPickerTarget: ReactionPickerTarget?
     @State private var lastScrollTime: Date = .distantPast
     @State private var scrollThrottleTimer: Timer?
     @State private var unseenCount = 0
@@ -228,10 +237,10 @@ struct MessageListView: View {
                                     Section {
                                         ReactionMenuRow(
                                             selected: ownReactionEmojis(in: reactionProjection.summaries(for: message.id)),
-                                            tint: messageBubbleColor
-                                        ) { emoji in
-                                            toggleReaction(emoji, on: message)
-                                        }
+                                            tint: messageBubbleColor,
+                                            onSelect: { emoji in toggleReaction(emoji, on: message) },
+                                            onOpenPicker: { openReactionPicker(for: message) }
+                                        )
                                     }
                                 }
                                 // The exact time, which no longer sits beside
@@ -280,6 +289,13 @@ struct MessageListView: View {
                                 }
                             }
 #if os(macOS)
+                            // The context menu's "+" opens the full picker
+                            // anchored to the message.
+                            .popover(isPresented: reactionPickerBinding(for: message), arrowEdge: .bottom) {
+                                if let target = reactionPickerTarget {
+                                    reactionPicker(for: target)
+                                }
+                            }
                             // The bar sits in the free space beside the
                             // bubble, so hovering anywhere on the row (bar
                             // included) keeps it.
@@ -338,6 +354,12 @@ struct MessageListView: View {
                 }
             }
             .onOpenURL(perform: handleOpenURL)
+#if os(iOS)
+            .sheet(item: $reactionPickerTarget) { target in
+                reactionPicker(for: target)
+                    .presentationDetents([.medium, .large])
+            }
+#endif
             .onTapGesture(count: 3) {
                 showClearConfirmation = true
             }
@@ -806,10 +828,10 @@ private extension MessageListView {
                         summaries: reactions,
                         isSelf: isSelf,
                         maxWidth: maxBubbleWidth,
-                        tint: messageBubbleColor
-                    ) { emoji in
-                        toggleReaction(emoji, on: message)
-                    }
+                        tint: messageBubbleColor,
+                        onToggle: { emoji in toggleReaction(emoji, on: message) },
+                        onOpenPicker: { openReactionPicker(for: message) }
+                    )
                     .transition(MessageReactionStyle.transition(reduceMotion: reduceMotion))
                 }
             }
@@ -906,7 +928,49 @@ private extension MessageListView {
         let ownEvents = MessageReaction.resolvedEvents(in: conversationMessages(for: privatePeer))
             .filter { $0.event.targetID == message.id && conversationUIModel.isSentByCurrentUser($0.message) }
         let active = ownEvents.last(where: { $0.event.emoji == emoji })?.event.removes == false
+        if !active {
+            ReactionEmojiPreferences.shared.recordUse(emoji)
+        }
         conversationUIModel.sendMessage(MessageReaction.format(emoji: emoji, target: message, removes: active))
+    }
+
+    func openReactionPicker(for message: BitchatMessage) {
+        reactionPickerTarget = ReactionPickerTarget(message: message)
+    }
+
+    /// Whether the picker popover shows on `message`'s row (macOS).
+    func reactionPickerBinding(for message: BitchatMessage) -> Binding<Bool> {
+        Binding(
+            get: { reactionPickerTarget?.message.id == message.id },
+            set: { isPresented in
+                if !isPresented, reactionPickerTarget?.message.id == message.id {
+                    reactionPickerTarget = nil
+                }
+            }
+        )
+    }
+
+    /// My current reactions on a message, for marking them in a picker.
+    func ownReactionEmojis(on message: BitchatMessage) -> Set<String> {
+        let projection = MessageReactionProjection(
+            messages: conversationMessages(for: privatePeer),
+            isMine: conversationUIModel.isSentByCurrentUser,
+            displayName: conversationUIModel.displayName
+        )
+        return ownReactionEmojis(in: projection.summaries(for: message.id))
+    }
+
+    /// The full emoji picker for `target`. Choosing an emoji closes it.
+    func reactionPicker(for target: ReactionPickerTarget) -> some View {
+        EmojiPickerView(
+            selected: ownReactionEmojis(on: target.message),
+            tint: messageBubbleColor,
+            onSelect: { emoji in
+                reactionPickerTarget = nil
+                toggleReaction(emoji, on: target.message)
+            },
+            onClose: { reactionPickerTarget = nil }
+        )
     }
 
     /// The avatar column of a row. A tap on the avatar opens the sender's
