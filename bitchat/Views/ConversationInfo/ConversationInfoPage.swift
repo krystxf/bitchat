@@ -39,7 +39,7 @@ struct ConversationInfoPage<Avatar: View, HeaderAction: View, QuickActions: View
     }
 
     var body: some View {
-        Form {
+        NovaForm {
             Section {
                 header
                     .listRowBackground(Color.clear)
@@ -47,7 +47,6 @@ struct ConversationInfoPage<Avatar: View, HeaderAction: View, QuickActions: View
             }
             sections
         }
-        .formStyle(.grouped)
         .navigationTitle(Text(verbatim: Strings.title))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -55,7 +54,7 @@ struct ConversationInfoPage<Avatar: View, HeaderAction: View, QuickActions: View
     }
 
     private var header: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 12) {
             avatar
             VStack(spacing: 4) {
                 title
@@ -68,23 +67,24 @@ struct ConversationInfoPage<Avatar: View, HeaderAction: View, QuickActions: View
                 if let subtitle, !subtitle.isEmpty {
                     Text(verbatim: subtitle)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.novaSecondaryText)
                         .multilineTextAlignment(.center)
                 }
             }
             headerAction
                 .font(.subheadline.weight(.semibold))
                 .buttonStyle(.borderless)
-            HStack(alignment: .top, spacing: 10) {
+            HStack(alignment: .top, spacing: 8) {
                 quickActions
             }
             // Four tiles share one row; past this size their labels have no
             // room left, as on a tab bar.
             .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-            .padding(.top, 4)
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 }
 
@@ -103,7 +103,7 @@ struct ConversationQuickAction: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Image(systemName: systemImage)
                     .font(.title3)
                     .symbolVariant(isOn ? .fill : .none)
@@ -114,11 +114,22 @@ struct ConversationQuickAction: View {
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.8)
             }
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .padding(.vertical, 4)
+            .foregroundStyle(.novaAccent)
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .padding(.vertical, 6)
+            .padding(.horizontal, 4)
+            .background(
+                Color.novaSurface,
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .glassButtonStyle()
-        .buttonBorderShape(.roundedRectangle(radius: 16))
+        // A flat tile on the page, as in Contacts and Messages: the rows'
+        // surface color, the accent for the symbol and the label.
+        .buttonStyle(QuickActionTileStyle())
+        // One or two tiles stay tile-sized instead of stretching across
+        // the page.
+        .frame(maxWidth: 120)
         .accessibilityLabel(Text(verbatim: accessibilityLabel ?? title))
         .accessibilityHint(Text(verbatim: accessibilityHint ?? ""))
         .accessibilityAddTraits(isOn ? .isSelected : [])
@@ -126,32 +137,36 @@ struct ConversationQuickAction: View {
     }
 }
 
-/// A circle with a white SF Symbol on a tint, for a conversation that has
-/// no person behind it: a channel or a group. Same shading as
+/// Dims a quick action tile while it is pressed.
+private struct QuickActionTileStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.55 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+/// A conversation's glyph on an avatar tile, for a conversation that has
+/// no person behind it: a channel. The same rounded square and tint as
 /// `InitialsAvatar`. Decorative: the name sits under it.
 struct ConversationGlyphAvatar: View {
     let systemImage: String
-    let color: Color
+    /// The hue, from the avatar palette (`AvatarIdentity.palette`).
+    let color: AvatarIdentity.RGB
     var size: CGFloat = ConversationInfoMetrics.avatarSize
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        Circle()
-            .fill(color)
-            .overlay(
-                Circle().fill(
-                    LinearGradient(
-                        colors: [.clear, .black.opacity(0.12)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-            )
+        let tile = AvatarIdentity.tile(for: color, isDark: colorScheme == .dark)
+        AvatarShape()
+            .fill(Color(avatarRGB: tile.fill))
             .overlay(
                 Image(systemName: systemImage)
-                    // A fixed size: the circle does not grow with Dynamic
+                    // A fixed size: the tile does not grow with Dynamic
                     // Type, so its glyph must not either.
                     .font(.system(size: size * 0.4, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color(avatarRGB: tile.ink))
             )
             .frame(width: size, height: size)
             .accessibilityHidden(true)

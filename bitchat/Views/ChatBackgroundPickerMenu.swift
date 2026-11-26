@@ -71,16 +71,26 @@ struct ChatBackgroundPickerRow: View {
                 }
             }
         } label: {
-            Label {
-                Text(String(localized: "chat.background.title", comment: "Menu title for choosing a chat conversation background"))
-            } icon: {
-                if selection == .image {
-                    ChatBackgroundMenuThumbnail(url: ChatBackgroundImageStore.shared.fileURL(for: conversationKey))
-                        .overlay(alignment: .bottomTrailing) { Image(systemName: "checkmark.circle.fill").font(.system(size: 9)).foregroundStyle(.green) }
-                } else {
-                    ChatBackgroundSwatch(option: selection)
-                }
+            #if os(iOS)
+            // A Settings menu row: the title in the text color and the
+            // current choice at the trailing edge, so the whole row opens
+            // the menu.
+            HStack(spacing: 6) {
+                rowLabel
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 8)
+                Text(verbatim: selection.label)
+                    .foregroundStyle(.novaSecondaryText)
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(.novaSecondaryText)
+                    .accessibilityHidden(true)
             }
+            .contentShape(Rectangle())
+            #else
+            rowLabel
+            #endif
         }
         .photosPicker(isPresented: $showsPhotoPicker, selection: $pickedPhoto, matching: .images)
         .onChange(of: selection) { option in ChatBackgroundStore.shared.set(option, for: conversationKey) }
@@ -90,6 +100,19 @@ struct ChatBackgroundPickerRow: View {
             defer { pickedPhoto = nil }
             guard let data = try? await item.loadTransferable(type: Data.self) else { return }
             useImage(data)
+        }
+    }
+
+    private var rowLabel: some View {
+        Label {
+            Text(String(localized: "chat.background.title", comment: "Menu title for choosing a chat conversation background"))
+        } icon: {
+            if selection == .image {
+                ChatBackgroundMenuThumbnail(url: ChatBackgroundImageStore.shared.fileURL(for: conversationKey))
+                    .overlay(alignment: .bottomTrailing) { Image(systemName: "checkmark.circle.fill").font(.system(size: 9)).foregroundStyle(.green) }
+            } else {
+                ChatBackgroundSwatch(option: selection)
+            }
         }
     }
 
@@ -123,6 +146,26 @@ struct ChatBackgroundPickerRow: View {
         }
     }
     #endif
+}
+
+/// The appearance rows of a conversation info page: the message color
+/// and the background, each a menu.
+struct ConversationAppearanceRows: View {
+    let conversationKey: ComposerDraftStore.Key
+    @Binding var background: ChatBackgroundOption
+
+    var body: some View {
+        ConversationMessageColorPickerRow(conversationKey: conversationKey)
+            #if os(iOS)
+            // A row title, not an accent-colored action, like the
+            // background row under it.
+            .tint(.primary)
+            #endif
+        ChatBackgroundPickerRow(conversationKey: conversationKey, selection: $background)
+            #if os(iOS)
+            .tint(.primary)
+            #endif
+    }
 }
 
 /// A small disc in a background's color, with a hairline so the black OLED

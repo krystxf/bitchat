@@ -8,6 +8,50 @@
 
 import SwiftUI
 
+/// A grouped Form in Nova's colors, for settings-like screens: the warm
+/// backdrop, cream rows with warm separators, and the blue accent on
+/// switches and buttons.
+struct NovaForm<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        Form {
+            Group {
+                content
+            }
+            .novaRows()
+        }
+        .formStyle(.grouped)
+        .novaGroupedList()
+    }
+}
+
+extension View {
+    /// Gives the rows of a grouped Form or List Nova's surface and
+    /// hairlines. Apply it to the rows or sections, inside the list. A row
+    /// that sets its own `listRowBackground` keeps it.
+    func novaRows() -> some View {
+        listRowBackground(Color.novaSurface)
+            .listRowSeparatorTint(.novaHairline)
+    }
+
+    /// A grouped Form or List on Nova's backdrop, with the blue accent on
+    /// switches (the system default is green). Apply it to the list.
+    func novaGroupedList() -> some View {
+        novaListBackground()
+            .tint(.novaAccent)
+    }
+
+    /// A section footer's or header's text in Nova's warm secondary color.
+    func novaSectionText() -> some View {
+        foregroundStyle(.novaSecondaryText)
+    }
+}
+
 extension View {
     /// The top bar of a sheet, the same on iOS and macOS: the title (and an
     /// optional subtitle) at the top, the sheet's actions beside it, and a
@@ -81,6 +125,9 @@ private struct SheetChrome<Principal: View, Leading: View, Trailing: View>: View
         #if os(iOS)
         NavigationStack {
             content
+                // Nova's backdrop for every sheet; a Form or List in it
+                // shows the same color (`novaGroupedList()`).
+                .background(Color.novaBackground.ignoresSafeArea())
                 .navigationTitle(title)
                 .navigationBarTitleDisplayMode(.inline)
                 .modifier(SheetNavigationSubtitle(subtitle: subtitle))
@@ -88,6 +135,7 @@ private struct SheetChrome<Principal: View, Leading: View, Trailing: View>: View
         }
         #else
         content
+            .background(Color.novaBackground.ignoresSafeArea())
             .safeAreaBar(edge: .top, spacing: 0) {
                 SheetTopBar(spacing: 12) {
                     HStack(spacing: 8) {

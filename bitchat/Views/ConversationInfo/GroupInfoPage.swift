@@ -98,8 +98,7 @@ struct GroupInfoPage: View {
         switch row {
         case .background:
             Section {
-                ConversationMessageColorPickerRow(conversationKey: backgroundKey)
-                ChatBackgroundPickerRow(conversationKey: backgroundKey, selection: $background)
+                ConversationAppearanceRows(conversationKey: backgroundKey, background: $background)
             }
         case .members(let canRemove):
             let rows = meshRowsByFingerprint(for: group)

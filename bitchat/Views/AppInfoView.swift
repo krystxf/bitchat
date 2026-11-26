@@ -277,6 +277,7 @@ struct AppInfoView: View {
     /// Section header supplied in title case by the localization catalog.
     private func sectionHeader(_ title: String) -> Text {
         Text(verbatim: title)
+            .foregroundColor(.novaSecondaryText)
     }
 
     // MARK: - Settings pane
@@ -285,7 +286,7 @@ struct AppInfoView: View {
     /// grouped sections, a colored icon tile on each row, and each long
     /// explanation in its section's footer rather than under the row.
     private var settingsContent: some View {
-        Form {
+        NovaForm {
             // Panic wipe first: under duress it must not need scrolling.
             if onPanicWipe != nil {
                 dangerSection
@@ -299,7 +300,6 @@ struct AppInfoView: View {
             locationSection
             LocationProofOfWorkSection()
         }
-        .formStyle(.grouped)
         // The default on macOS is a checkbox; settings use the switch.
         .toggleStyle(.switch)
     }
@@ -321,6 +321,7 @@ struct AppInfoView: View {
             sectionHeader(Strings.Voice.title)
         } footer: {
             Text("app_info.voice.live.description")
+                .novaSectionText()
         }
     }
 
@@ -342,6 +343,7 @@ struct AppInfoView: View {
             sectionHeader(Strings.Settings.connectivityTitle)
         } footer: {
             Text(Strings.Settings.bridgeSubtitle)
+                .novaSectionText()
         }
     }
 
@@ -366,6 +368,7 @@ struct AppInfoView: View {
             }
         } footer: {
             Text(verbatim: Strings.Settings.torSubtitle)
+                .novaSectionText()
         }
     }
 
@@ -440,6 +443,7 @@ struct AppInfoView: View {
             sectionHeader(Strings.Settings.relaysTitle)
         } footer: {
             Text(Strings.Settings.relaysSubtitle)
+                .novaSectionText()
         }
         // The store can change from outside this view — a panic wipe clears it —
         // so follow it rather than trusting the value read at creation.
@@ -496,11 +500,12 @@ struct AppInfoView: View {
                     Image(systemName: "location.slash.fill")
                 }
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.novaSecondaryText)
                 Button("location_channels.action.open_settings", action: SystemSettings.location.open)
             }
         } footer: {
             Strings.Location.notes.description
+                .novaSectionText()
         }
     }
 
@@ -526,6 +531,7 @@ struct AppInfoView: View {
             sectionHeader(Strings.Settings.privacyTitle)
         } footer: {
             Text(verbatim: Strings.Settings.hidePreviewsSubtitle)
+                .novaSectionText()
         }
 
         Section {
@@ -542,6 +548,7 @@ struct AppInfoView: View {
             }
         } footer: {
             Text(verbatim: Strings.Settings.autoRevealFavoritesSubtitle)
+                .novaSectionText()
         }
 
         Section {
@@ -578,6 +585,7 @@ struct AppInfoView: View {
             }
         } footer: {
             Text(verbatim: Strings.Settings.extremeSecuritySubtitle)
+                .novaSectionText()
         }
 
         if let blockedAccountsProvider, let onUnblock {
@@ -647,6 +655,7 @@ struct AppInfoView: View {
             sectionHeader(Strings.Settings.dangerTitle)
         } footer: {
             Text(Strings.Settings.panicNote)
+                .novaSectionText()
         }
     }
 
@@ -691,7 +700,7 @@ struct AppInfoView: View {
     /// section each for how to use, network diagnostics, features, privacy
     /// and the symbols legend, every entry a label row.
     private var infoContent: some View {
-        Form {
+        NovaForm {
             Section {
                 aboutHeader
                     .listRowBackground(Color.clear)
@@ -740,7 +749,6 @@ struct AppInfoView: View {
                 sectionHeader(Strings.Legend.title)
             }
         }
-        .formStyle(.grouped)
     }
 
     /// The app's mark, name and version, as at the top of an About page.
@@ -756,7 +764,7 @@ struct AppInfoView: View {
             if let version = Self.versionText {
                 Text(verbatim: version)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.novaSecondaryText)
             }
         }
         .frame(maxWidth: .infinity)
@@ -849,7 +857,7 @@ struct SettingsRowLabel<Title: View, Subtitle: View>: View {
                 title
                 subtitle
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.novaSecondaryText)
             }
         } icon: {
             SettingsIconTile(systemImage: systemImage, color: color)
@@ -899,7 +907,7 @@ struct SettingsLinkRow<Content: View>: View {
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.forward")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.novaSecondaryText.opacity(0.6))
                     .accessibilityHidden(true)
             }
             .contentShape(Rectangle())

@@ -21,7 +21,6 @@ struct ChannelInfoPage: View {
     @EnvironmentObject private var boardAlertsModel: BoardAlertsModel
     @EnvironmentObject private var privateConversationModel: PrivateConversationModel
     @ObservedObject private var bridgeService = BridgeService.shared
-    @ThemedPalette private var palette
 
     @Binding var background: ChatBackgroundOption
     let backgroundKey: ComposerDraftStore.Key
@@ -84,9 +83,9 @@ struct ChannelInfoPage: View {
     private func avatar(for channel: ChannelID) -> some View {
         switch channel {
         case .mesh:
-            return ConversationGlyphAvatar(systemImage: "antenna.radiowaves.left.and.right", color: ChannelTitle.meshBlue)
+            return ConversationGlyphAvatar(systemImage: "antenna.radiowaves.left.and.right", color: ChannelTitle.meshAvatarColor)
         case .location:
-            return ConversationGlyphAvatar(systemImage: "mappin.and.ellipse", color: palette.locationAccent)
+            return ConversationGlyphAvatar(systemImage: "mappin.and.ellipse", color: ChannelTitle.locationAvatarColor)
         }
     }
 
@@ -175,8 +174,7 @@ struct ChannelInfoPage: View {
     private func row(_ row: ConversationInfoPolicy.Row, roster: ChannelRoster) -> some View {
         switch row {
         case .background:
-            ConversationMessageColorPickerRow(conversationKey: backgroundKey)
-            ChatBackgroundPickerRow(conversationKey: backgroundKey, selection: $background)
+            ConversationAppearanceRows(conversationKey: backgroundKey, background: $background)
         case .people:
             ConversationInfoLinkRow(title: Strings.people) {
                 LabeledContent {
@@ -380,8 +378,10 @@ enum ChannelTitle {
         }
     }
 
-    /// The mesh channel's blue, as the people count in the title bar used.
-    static let meshBlue = Color(hue: 0.60, saturation: 0.85, brightness: 0.82)
+    /// The channel avatars' hues, from the avatar palette: blue for the
+    /// mesh, green for a location channel.
+    static let meshAvatarColor = AvatarIdentity.RGB(hex: 0x2563EB)
+    static let locationAvatarColor = AvatarIdentity.RGB(hex: 0x15803D)
 }
 
 private enum Strings {

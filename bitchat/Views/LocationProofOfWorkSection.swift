@@ -46,6 +46,7 @@ struct LocationProofOfWorkSection: View {
             }
         } header: {
             Text(verbatim: Strings.header)
+                .novaSectionText()
         } footer: {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: Strings.subtitle)
@@ -53,6 +54,7 @@ struct LocationProofOfWorkSection: View {
                     Text(verbatim: Strings.footer)
                 }
             }
+            .novaSectionText()
         }
     }
 
@@ -73,6 +75,7 @@ struct LocationProofOfWorkSection: View {
             }
         } footer: {
             Text(verbatim: Strings.hideUnprovenFooter)
+                .novaSectionText()
         }
     }
 
