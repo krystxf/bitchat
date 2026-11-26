@@ -112,10 +112,6 @@ final class CommandProcessor {
             return handleWho()
         case "/clear":
             return handleClear()
-        case "/hug":
-            return handleEmote(args, command: "hug", action: "hugs", emoji: "🫂")
-        case "/slap":
-            return handleEmote(args, command: "slap", action: "slaps", emoji: "🐟", suffix: " around a bit with a large trout")
         case "/block":
             return handleBlock(args)
         case "/unblock":
@@ -141,7 +137,7 @@ final class CommandProcessor {
     /// suggestion panel hides once arguments are typed, and typos used to
     /// dead-end in a bare "unknown command" — this is the way out.
     static var helpText: String {
-        String(localized: "command.help.text", defaultValue: "commands:\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list", comment: "The /help reference list; command syntax stays verbatim, only the descriptions after each dash are translated")
+        String(localized: "command.help.text", defaultValue: "commands:\n/who — list who's here\n/clear — clear this chat\n/block @name · /unblock @name\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list", comment: "The /help reference list; command syntax stays verbatim, only the descriptions after each dash are translated")
     }
 
     /// /drop <text> — a dead drop: pins a note to the current building-level
@@ -206,49 +202,6 @@ final class CommandProcessor {
         } else {
             contextProvider?.clearCurrentPublicTimeline()
         }
-        return .handled
-    }
-    
-    private func handleEmote(_ args: String, command: String, action: String, emoji: String, suffix: String = "") -> CommandResult {
-        let targetName = args.trimmed
-        guard !targetName.isEmpty else {
-            return .error(message: String(format: String(localized: "command.action.usage", defaultValue: "Usage: /%@ <nickname>", comment: "Usage hint for a command that takes a nickname; placeholder is the command name"), locale: .current, command))
-        }
-        
-        let nickname = targetName.hasPrefix("@") ? String(targetName.dropFirst()) : targetName
-        
-        guard let targetPeerID = contextProvider?.getPeerIDForNickname(nickname),
-              let myNickname = contextProvider?.nickname else {
-            return .error(message: String(format: String(localized: "command.action.not_found", defaultValue: "Cannot %1$@ %2$@: not found", comment: "Error when an action command can't resolve its target; placeholders are the command and the nickname"), locale: .current, command, nickname))
-        }
-        
-        let emoteContent = "* \(emoji) \(myNickname) \(action) \(nickname)\(suffix) *"
-        
-        if contextProvider?.selectedPrivateChatPeer != nil {
-            // In private chat
-            if let peerNickname = meshService?.peerNickname(peerID: targetPeerID) {
-                let personalMessage = "* \(emoji) \(myNickname) \(action) you\(suffix) *"
-                meshService?.sendPrivateMessage(personalMessage, to: targetPeerID,
-                                               recipientNickname: peerNickname,
-                                               messageID: UUID().uuidString)
-                // Also add a local system message so the sender sees a natural-language confirmation
-                let pastAction: String = {
-                    switch action {
-                    case "hugs": return "hugged"
-                    case "slaps": return "slapped"
-                    default: return action.hasSuffix("e") ? action + "d" : action + "ed"
-                    }
-                }()
-                let localText = "\(emoji) you \(pastAction) \(nickname)\(suffix)"
-                contextProvider?.addLocalPrivateSystemMessage(localText, to: targetPeerID)
-            }
-        } else {
-            // In public chat: send to active public channel (mesh or geohash)
-            contextProvider?.sendPublicRaw(emoteContent)
-            let publicEcho = "\(emoji) \(myNickname) \(action) \(nickname)\(suffix)"
-            contextProvider?.addPublicSystemMessage(publicEcho)
-        }
-        
         return .handled
     }
     

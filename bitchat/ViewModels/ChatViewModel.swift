@@ -53,7 +53,6 @@
 /// - `/nick <name>`: Change nickname
 /// - `/msg <user> <message>`: Send private message
 /// - `/who`: List connected peers
-/// - `/slap <user>`: Fun interaction
 /// - `/clear`: Clear message history
 /// - `/help`: Show available commands
 ///
@@ -2162,7 +2161,7 @@ final class ChatViewModel: ObservableObject, BitchatDelegate, SynchronousMessage
 
     /// Processes IRC-style commands starting with '/'.
     /// - Parameter command: The full command string including the leading slash
-    /// - Note: Supports commands like /msg, /who, /slap, /clear, /help
+    /// - Note: Supports commands like /msg, /who, /clear, /help
     @MainActor
     func handleCommand(_ command: String) {
         let result = commandProcessor.process(command)

@@ -9089,192 +9089,6 @@
         }
       }
     },
-    "command.action.not_found" : {
-      "comment" : "Error when an action command can't resolve its target; placeholders are the command and the nickname",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّر %1$@ %2$@: غير موجود"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@-কে %1$@ করা গেল না: পাওয়া যায়নি"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ %2$@ geht nicht: nicht gefunden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cannot %1$@ %2$@: not found"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede %1$@ a %2$@: no encontrado"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نمی‌توان %2$@ را %1$@ کرد: پیدا نشد"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hindi ma-%1$@ si %2$@: hindi nahanap"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de %1$@ %2$@ : introuvable"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אי אפשר לעשות %1$@ ל-%2$@: לא נמצא"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@ को %1$@ नहीं कर सकते: नहीं मिला"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tidak bisa %1$@ %2$@: tidak ditemukan"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile %1$@ %2$@: non trovato"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@ を %1$@ できない: 見つからない"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@에게 %1$@ 할 수 없어요: 찾을 수 없음"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tidak dapat %1$@ %2$@: tidak dijumpai"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@ लाई %1$@ गर्न सकिएन: फेला परेन"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kan %2$@ niet %1$@: niet gevonden"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nie można %1$@ %2$@: nie znaleziono"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não é possível %1$@ %2$@: não encontrado"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não dá para %1$@ %2$@: não encontrado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не получается %1$@ %2$@: не найден"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kan inte %1$@ %2$@: hittades inte"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@ ஐ %1$@ செய்ய முடியாது: கிடைக்கவில்லை"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ไม่สามารถ %1$@ %2$@ ได้: ไม่พบ"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@ için %1$@ yapılamıyor: bulunamadı"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не вдалося %1$@ %2$@: не знайдено"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%2$@ کو %1$@ نہیں کر سکتے: نہیں ملا"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể %1$@ %2$@: không tìm thấy"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法 %1$@ %2$@：未找到"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法 %1$@ %2$@：找不到"
-          }
-        }
-      }
-    },
     "command.action.not_found_mesh" : {
       "comment" : "Error when a mesh-only command can't resolve its target; placeholders are the command and the nickname",
       "extractionState" : "manual",
@@ -12444,181 +12258,181 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "الأوامر:\n/who — عرض من هنا\n/clear — مسح هذه المحادثة\n/hug @name — إرسال عناق\n/slap @name — صفعة بسمكة تراوت ضخمة\n/block @name · /unblock @name\n/ping @name — قياس زمن الذهاب والإياب (mesh فقط)\n/trace @name — مسار mesh المقدّر (mesh فقط)\n/pay <token> — إرسال رمز cashu (ecash) في هذه المحادثة\n/drop <message> — تثبيت ملاحظة في هذا المكان لمدة 24 ساعة (يحتاج إلى الموقع)\n/help — هذه القائمة"
+            "value" : "الأوامر:\n/who — عرض من هنا\n/clear — مسح هذه المحادثة\n/block @name · /unblock @name\n/ping @name — قياس زمن الذهاب والإياب (mesh فقط)\n/trace @name — مسار mesh المقدّر (mesh فقط)\n/pay <token> — إرسال رمز cashu (ecash) في هذه المحادثة\n/drop <message> — تثبيت ملاحظة في هذا المكان لمدة 24 ساعة (يحتاج إلى الموقع)\n/help — هذه القائمة"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "কমান্ড:\n/who — কে কে আছে দেখো\n/clear — এই চ্যাট মুছে ফেলো\n/hug @name — একটা আলিঙ্গন পাঠাও\n/slap @name — বিশাল এক ট্রাউট মাছ দিয়ে চড় মারো\n/block @name · /unblock @name\n/ping @name — রাউন্ড-ট্রিপ সময় মাপো (শুধু mesh)\n/trace @name — আনুমানিক mesh পথ (শুধু mesh)\n/pay <token> — এই চ্যাটে একটি cashu ecash টোকেন পাঠাও\n/drop <message> — এই জায়গায় ২৪ ঘণ্টার জন্য একটা নোট আটকে দাও (লোকেশন লাগবে)\n/help — এই তালিকা"
+            "value" : "কমান্ড:\n/who — কে কে আছে দেখো\n/clear — এই চ্যাট মুছে ফেলো\n/block @name · /unblock @name\n/ping @name — রাউন্ড-ট্রিপ সময় মাপো (শুধু mesh)\n/trace @name — আনুমানিক mesh পথ (শুধু mesh)\n/pay <token> — এই চ্যাটে একটি cashu ecash টোকেন পাঠাও\n/drop <message> — এই জায়গায় ২৪ ঘণ্টার জন্য একটা নোট আটকে দাও (লোকেশন লাগবে)\n/help — এই তালিকা"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Befehle:\n/who — zeigen, wer hier ist\n/clear — diesen chat leeren\n/hug @name — eine umarmung senden\n/slap @name — mit einer großen forelle ohrfeigen\n/block @name · /unblock @name\n/ping @name — round-trip-zeit messen (nur mesh)\n/trace @name — geschätzter mesh-pfad (nur mesh)\n/pay <token> — einen cashu-ecash-token in diesem chat senden\n/drop <message> — eine notiz für 24h an diesem ort anpinnen (braucht standort)\n/help — diese liste"
+            "value" : "Befehle:\n/who — zeigen, wer hier ist\n/clear — diesen chat leeren\n/block @name · /unblock @name\n/ping @name — round-trip-zeit messen (nur mesh)\n/trace @name — geschätzter mesh-pfad (nur mesh)\n/pay <token> — einen cashu-ecash-token in diesem chat senden\n/drop <message> — eine notiz für 24h an diesem ort anpinnen (braucht standort)\n/help — diese liste"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "commands:\n/who — list who's here\n/clear — clear this chat\n/hug @name — send a hug\n/slap @name — slap with a large trout\n/block @name · /unblock @name\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list"
+            "value" : "commands:\n/who — list who's here\n/clear — clear this chat\n/block @name · /unblock @name\n/ping @name — measure round-trip time (mesh only)\n/trace @name — estimated mesh path (mesh only)\n/pay <token> — send a cashu ecash token in this chat\n/drop <message> — pin a note to this place for 24h (needs location)\n/help — this list"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comandos:\n/who — listar quién está aquí\n/clear — limpiar este chat\n/hug @name — enviar un abrazo\n/slap @name — dar un golpe con una trucha enorme\n/block @name · /unblock @name\n/ping @name — medir el tiempo de ida y vuelta (solo mesh)\n/trace @name — ruta estimada por la mesh (solo mesh)\n/pay <token> — enviar un token ecash de cashu en este chat\n/drop <message> — fijar una nota en este lugar por 24h (necesita ubicación)\n/help — esta lista"
+            "value" : "Comandos:\n/who — listar quién está aquí\n/clear — limpiar este chat\n/block @name · /unblock @name\n/ping @name — medir el tiempo de ida y vuelta (solo mesh)\n/trace @name — ruta estimada por la mesh (solo mesh)\n/pay <token> — enviar un token ecash de cashu en este chat\n/drop <message> — fijar una nota en este lugar por 24h (necesita ubicación)\n/help — esta lista"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "دستورها:\n/who — فهرست کسانی که اینجا هستند\n/clear — پاک کردن این چت\n/hug @name — فرستادن یک بغل\n/slap @name — سیلی با یک قزل‌آلای گنده\n/block @name · /unblock @name\n/ping @name — اندازه‌گیری زمان رفت‌وبرگشت (فقط mesh)\n/trace @name — مسیر تخمینی mesh (فقط mesh)\n/pay <token> — ارسال توکن ecash از cashu در این چت\n/drop <message> — سنجاق کردن یادداشت به این مکان برای ۲۴ ساعت (به موقعیت نیاز دارد)\n/help — همین فهرست"
+            "value" : "دستورها:\n/who — فهرست کسانی که اینجا هستند\n/clear — پاک کردن این چت\n/block @name · /unblock @name\n/ping @name — اندازه‌گیری زمان رفت‌وبرگشت (فقط mesh)\n/trace @name — مسیر تخمینی mesh (فقط mesh)\n/pay <token> — ارسال توکن ecash از cashu در این چت\n/drop <message> — سنجاق کردن یادداشت به این مکان برای ۲۴ ساعت (به موقعیت نیاز دارد)\n/help — همین فهرست"
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mga command:\n/who — ilista kung sino ang narito\n/clear — i-clear ang chat na ito\n/hug @name — magpadala ng yakap\n/slap @name — sampalin gamit ang malaking trout\n/block @name · /unblock @name\n/ping @name — sukatin ang round-trip time (mesh lang)\n/trace @name — tinatayang mesh path (mesh lang)\n/pay <token> — magpadala ng cashu ecash token sa chat na ito\n/drop <message> — mag-pin ng note sa lugar na ito nang 24h (kailangan ng location)\n/help — ang listahang ito"
+            "value" : "Mga command:\n/who — ilista kung sino ang narito\n/clear — i-clear ang chat na ito\n/block @name · /unblock @name\n/ping @name — sukatin ang round-trip time (mesh lang)\n/trace @name — tinatayang mesh path (mesh lang)\n/pay <token> — magpadala ng cashu ecash token sa chat na ito\n/drop <message> — mag-pin ng note sa lugar na ito nang 24h (kailangan ng location)\n/help — ang listahang ito"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Commandes :\n/who — lister qui est là\n/clear — effacer ce chat\n/hug @name — envoyer un câlin\n/slap @name — mettre une claque avec une grosse truite\n/block @name · /unblock @name\n/ping @name — mesurer le temps aller-retour (mesh uniquement)\n/trace @name — chemin mesh estimé (mesh uniquement)\n/pay <token> — envoyer un token ecash cashu dans ce chat\n/drop <message> — épingler une note à cet endroit pour 24h (nécessite la localisation)\n/help — cette liste"
+            "value" : "Commandes :\n/who — lister qui est là\n/clear — effacer ce chat\n/block @name · /unblock @name\n/ping @name — mesurer le temps aller-retour (mesh uniquement)\n/trace @name — chemin mesh estimé (mesh uniquement)\n/pay <token> — envoyer un token ecash cashu dans ce chat\n/drop <message> — épingler une note à cet endroit pour 24h (nécessite la localisation)\n/help — cette liste"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "פקודות:\n/who — מי נמצא כאן\n/clear — ניקוי הצ'אט הזה\n/hug @name — שליחת חיבוק\n/slap @name — סטירה עם פורל ענק\n/block @name · /unblock @name\n/ping @name — מדידת זמן הלוך-חזור (mesh בלבד)\n/trace @name — נתיב mesh משוער (mesh בלבד)\n/pay <token> — שליחת טוקן ecash של cashu בצ'אט הזה\n/drop <message> — הצמדת הערה למקום הזה ל-24 שעות (דורש מיקום)\n/help — הרשימה הזאת"
+            "value" : "פקודות:\n/who — מי נמצא כאן\n/clear — ניקוי הצ'אט הזה\n/block @name · /unblock @name\n/ping @name — מדידת זמן הלוך-חזור (mesh בלבד)\n/trace @name — נתיב mesh משוער (mesh בלבד)\n/pay <token> — שליחת טוקן ecash של cashu בצ'אט הזה\n/drop <message> — הצמדת הערה למקום הזה ל-24 שעות (דורש מיקום)\n/help — הרשימה הזאת"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "कमांड:\n/who — देखो यहाँ कौन-कौन है\n/clear — यह चैट साफ़ करो\n/hug @name — झप्पी भेजो\n/slap @name — एक बड़ी ट्राउट मछली से थप्पड़ मारो\n/block @name · /unblock @name\n/ping @name — राउंड-ट्रिप समय मापो (सिर्फ mesh)\n/trace @name — अनुमानित mesh रास्ता (सिर्फ mesh)\n/pay <token> — इस चैट में cashu ecash टोकन भेजो\n/drop <message> — इस जगह 24 घंटे के लिए नोट पिन करो (लोकेशन चाहिए)\n/help — यही सूची"
+            "value" : "कमांड:\n/who — देखो यहाँ कौन-कौन है\n/clear — यह चैट साफ़ करो\n/block @name · /unblock @name\n/ping @name — राउंड-ट्रिप समय मापो (सिर्फ mesh)\n/trace @name — अनुमानित mesh रास्ता (सिर्फ mesh)\n/pay <token> — इस चैट में cashu ecash टोकन भेजो\n/drop <message> — इस जगह 24 घंटे के लिए नोट पिन करो (लोकेशन चाहिए)\n/help — यही सूची"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Perintah:\n/who — daftar siapa saja yang ada di sini\n/clear — bersihkan chat ini\n/hug @name — kirim pelukan\n/slap @name — tampar dengan ikan trout besar\n/block @name · /unblock @name\n/ping @name — ukur waktu bolak-balik (khusus mesh)\n/trace @name — perkiraan jalur mesh (khusus mesh)\n/pay <token> — kirim token ecash cashu di chat ini\n/drop <message> — sematkan catatan di tempat ini selama 24 jam (butuh lokasi)\n/help — daftar ini"
+            "value" : "Perintah:\n/who — daftar siapa saja yang ada di sini\n/clear — bersihkan chat ini\n/block @name · /unblock @name\n/ping @name — ukur waktu bolak-balik (khusus mesh)\n/trace @name — perkiraan jalur mesh (khusus mesh)\n/pay <token> — kirim token ecash cashu di chat ini\n/drop <message> — sematkan catatan di tempat ini selama 24 jam (butuh lokasi)\n/help — daftar ini"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comandi:\n/who — elenca chi c'è\n/clear — pulisci questa chat\n/hug @name — manda un abbraccio\n/slap @name — schiaffeggia con una grossa trota\n/block @name · /unblock @name\n/ping @name — misura il tempo di andata e ritorno (solo mesh)\n/trace @name — percorso mesh stimato (solo mesh)\n/pay <token> — invia un token ecash cashu in questa chat\n/drop <messaggio> — appunta una nota in questo posto per 24h (serve la posizione)\n/help — questa lista"
+            "value" : "Comandi:\n/who — elenca chi c'è\n/clear — pulisci questa chat\n/block @name · /unblock @name\n/ping @name — misura il tempo di andata e ritorno (solo mesh)\n/trace @name — percorso mesh stimato (solo mesh)\n/pay <token> — invia un token ecash cashu in questa chat\n/drop <messaggio> — appunta una nota in questo posto per 24h (serve la posizione)\n/help — questa lista"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コマンド:\n/who — 誰がいるか一覧表示\n/clear — このチャットをクリア\n/hug @name — ハグを送る\n/slap @name — 大きなマスでひっぱたく\n/block @name · /unblock @name\n/ping @name — 往復時間を測定 (メッシュのみ)\n/trace @name — 推定メッシュ経路 (メッシュのみ)\n/pay <トークン> — このチャットで cashu ecash トークンを送る\n/drop <メッセージ> — この場所に24時間ノートをピン留め (位置情報が必要)\n/help — この一覧"
+            "value" : "コマンド:\n/who — 誰がいるか一覧表示\n/clear — このチャットをクリア\n/block @name · /unblock @name\n/ping @name — 往復時間を測定 (メッシュのみ)\n/trace @name — 推定メッシュ経路 (メッシュのみ)\n/pay <トークン> — このチャットで cashu ecash トークンを送る\n/drop <メッセージ> — この場所に24時間ノートをピン留め (位置情報が必要)\n/help — この一覧"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "명령어:\n/who — 여기 누가 있는지 보기\n/clear — 이 채팅 지우기\n/hug @name — 포옹 보내기\n/slap @name — 큰 송어로 찰싹 때리기\n/block @name · /unblock @name\n/ping @name — 왕복 시간 측정 (메시 전용)\n/trace @name — 예상 메시 경로 (메시 전용)\n/pay <토큰> — 이 채팅에서 cashu ecash 토큰 보내기\n/drop <메시지> — 이 장소에 24시간 노트 고정 (위치 정보 필요)\n/help — 이 목록"
+            "value" : "명령어:\n/who — 여기 누가 있는지 보기\n/clear — 이 채팅 지우기\n/block @name · /unblock @name\n/ping @name — 왕복 시간 측정 (메시 전용)\n/trace @name — 예상 메시 경로 (메시 전용)\n/pay <토큰> — 이 채팅에서 cashu ecash 토큰 보내기\n/drop <메시지> — 이 장소에 24시간 노트 고정 (위치 정보 필요)\n/help — 이 목록"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arahan:\n/who — senaraikan siapa yang ada di sini\n/clear — kosongkan sembang ini\n/hug @name — hantar pelukan\n/slap @name — tampar dengan ikan trout besar\n/block @name · /unblock @name\n/ping @name — ukur masa pergi balik (mesh sahaja)\n/trace @name — laluan mesh anggaran (mesh sahaja)\n/pay <token> — hantar token ecash cashu dalam sembang ini\n/drop <mesej> — sematkan nota di tempat ini selama 24 jam (perlukan lokasi)\n/help — senarai ini"
+            "value" : "Arahan:\n/who — senaraikan siapa yang ada di sini\n/clear — kosongkan sembang ini\n/block @name · /unblock @name\n/ping @name — ukur masa pergi balik (mesh sahaja)\n/trace @name — laluan mesh anggaran (mesh sahaja)\n/pay <token> — hantar token ecash cashu dalam sembang ini\n/drop <mesej> — sematkan nota di tempat ini selama 24 jam (perlukan lokasi)\n/help — senarai ini"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "कमाण्डहरू:\n/who — यहाँ को छ भनेर हेर्नुहोस्\n/clear — यो च्याट खाली गर्नुहोस्\n/hug @name — अँगालो पठाउनुहोस्\n/slap @name — ठूलो ट्राउट माछाले हिर्काउनुहोस्\n/block @name · /unblock @name\n/ping @name — राउन्ड-ट्रिप समय नाप्नुहोस् (मेस मात्र)\n/trace @name — अनुमानित मेस बाटो (मेस मात्र)\n/pay <टोकन> — यो च्याटमा cashu ecash टोकन पठाउनुहोस्\n/drop <सन्देश> — यो ठाउँमा 24 घण्टाका लागि नोट राख्नुहोस् (स्थान चाहिन्छ)\n/help — यो सूची"
+            "value" : "कमाण्डहरू:\n/who — यहाँ को छ भनेर हेर्नुहोस्\n/clear — यो च्याट खाली गर्नुहोस्\n/block @name · /unblock @name\n/ping @name — राउन्ड-ट्रिप समय नाप्नुहोस् (मेस मात्र)\n/trace @name — अनुमानित मेस बाटो (मेस मात्र)\n/pay <टोकन> — यो च्याटमा cashu ecash टोकन पठाउनुहोस्\n/drop <सन्देश> — यो ठाउँमा 24 घण्टाका लागि नोट राख्नुहोस् (स्थान चाहिन्छ)\n/help — यो सूची"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Commando's:\n/who — toon wie er is\n/clear — wis deze chat\n/hug @name — stuur een knuffel\n/slap @name — sla met een grote forel\n/block @name · /unblock @name\n/ping @name — meet de rondreistijd (alleen mesh)\n/trace @name — geschat mesh-pad (alleen mesh)\n/pay <token> — stuur een cashu-ecash-token in deze chat\n/drop <bericht> — pin 24 uur lang een notitie op deze plek (vereist locatie)\n/help — deze lijst"
+            "value" : "Commando's:\n/who — toon wie er is\n/clear — wis deze chat\n/block @name · /unblock @name\n/ping @name — meet de rondreistijd (alleen mesh)\n/trace @name — geschat mesh-pad (alleen mesh)\n/pay <token> — stuur een cashu-ecash-token in deze chat\n/drop <bericht> — pin 24 uur lang een notitie op deze plek (vereist locatie)\n/help — deze lijst"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Polecenia:\n/who — pokaż, kto tu jest\n/clear — wyczyść ten czat\n/hug @name — wyślij przytulasa\n/slap @name — trzaśnij wielkim pstrągiem\n/block @name · /unblock @name\n/ping @name — zmierz czas podróży w obie strony (tylko mesh)\n/trace @name — szacowana ścieżka mesh (tylko mesh)\n/pay <token> — wyślij token ecash cashu na tym czacie\n/drop <wiadomość> — przypnij notkę w tym miejscu na 24 h (wymaga lokalizacji)\n/help — ta lista"
+            "value" : "Polecenia:\n/who — pokaż, kto tu jest\n/clear — wyczyść ten czat\n/block @name · /unblock @name\n/ping @name — zmierz czas podróży w obie strony (tylko mesh)\n/trace @name — szacowana ścieżka mesh (tylko mesh)\n/pay <token> — wyślij token ecash cashu na tym czacie\n/drop <wiadomość> — przypnij notkę w tym miejscu na 24 h (wymaga lokalizacji)\n/help — ta lista"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comandos:\n/who — lista quem está aqui\n/clear — limpa esta conversa\n/hug @name — envia um abraço\n/slap @name — dá uma chapada com uma truta enorme\n/block @name · /unblock @name\n/ping @name — mede o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envia um token ecash cashu nesta conversa\n/drop <mensagem> — fixa uma nota neste sítio por 24h (precisa de localização)\n/help — esta lista"
+            "value" : "Comandos:\n/who — lista quem está aqui\n/clear — limpa esta conversa\n/block @name · /unblock @name\n/ping @name — mede o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envia um token ecash cashu nesta conversa\n/drop <mensagem> — fixa uma nota neste sítio por 24h (precisa de localização)\n/help — esta lista"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comandos:\n/who — veja quem está aqui\n/clear — limpe este chat\n/hug @name — mande um abraço\n/slap @name — dê um tapa com uma truta gigante\n/block @name · /unblock @name\n/ping @name — meça o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envie um token ecash cashu neste chat\n/drop <mensagem> — fixe uma nota neste lugar por 24h (precisa de localização)\n/help — esta lista"
+            "value" : "Comandos:\n/who — veja quem está aqui\n/clear — limpe este chat\n/block @name · /unblock @name\n/ping @name — meça o tempo de ida e volta (só mesh)\n/trace @name — caminho mesh estimado (só mesh)\n/pay <token> — envie um token ecash cashu neste chat\n/drop <mensagem> — fixe uma nota neste lugar por 24h (precisa de localização)\n/help — esta lista"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Команды:\n/who — показать, кто здесь\n/clear — очистить этот чат\n/hug @name — отправить обнимашку\n/slap @name — шлёпнуть большой форелью\n/block @name · /unblock @name\n/ping @name — измерить время туда-обратно (только mesh)\n/trace @name — примерный путь по mesh (только mesh)\n/pay <токен> — отправить cashu-токен (ecash) в этот чат\n/drop <сообщение> — закрепить заметку в этом месте на 24 ч (нужна геолокация)\n/help — этот список"
+            "value" : "Команды:\n/who — показать, кто здесь\n/clear — очистить этот чат\n/block @name · /unblock @name\n/ping @name — измерить время туда-обратно (только mesh)\n/trace @name — примерный путь по mesh (только mesh)\n/pay <токен> — отправить cashu-токен (ecash) в этот чат\n/drop <сообщение> — закрепить заметку в этом месте на 24 ч (нужна геолокация)\n/help — этот список"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kommandon:\n/who — lista vilka som är här\n/clear — rensa den här chatten\n/hug @name — skicka en kram\n/slap @name — daska till med en stor forell\n/block @name · /unblock @name\n/ping @name — mät tur- och returtid (endast mesh)\n/trace @name — uppskattad mesh-väg (endast mesh)\n/pay <token> — skicka en cashu ecash-token i den här chatten\n/drop <message> — fäst en anteckning på den här platsen i 24h (kräver plats)\n/help — den här listan"
+            "value" : "Kommandon:\n/who — lista vilka som är här\n/clear — rensa den här chatten\n/block @name · /unblock @name\n/ping @name — mät tur- och returtid (endast mesh)\n/trace @name — uppskattad mesh-väg (endast mesh)\n/pay <token> — skicka en cashu ecash-token i den här chatten\n/drop <message> — fäst en anteckning på den här platsen i 24h (kräver plats)\n/help — den här listan"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "கட்டளைகள்:\n/who — இங்கு யார் இருக்கிறார்கள் என்று பட்டியலிடு\n/clear — இந்த அரட்டையை அழி\n/hug @name — ஒரு அணைப்பை அனுப்பு\n/slap @name — ஒரு பெரிய ட்ரவுட் மீனால் அறை\n/block @name · /unblock @name\n/ping @name — சுற்றுப்பயண நேரத்தை அளவிடு (mesh மட்டும்)\n/trace @name — மதிப்பிடப்பட்ட mesh பாதை (mesh மட்டும்)\n/pay <token> — இந்த அரட்டையில் cashu ecash டோக்கனை அனுப்பு\n/drop <message> — இந்த இடத்தில் 24 மணி நேரத்திற்கு ஒரு குறிப்பை பொருத்து (இருப்பிடம் தேவை)\n/help — இந்த பட்டியல்"
+            "value" : "கட்டளைகள்:\n/who — இங்கு யார் இருக்கிறார்கள் என்று பட்டியலிடு\n/clear — இந்த அரட்டையை அழி\n/block @name · /unblock @name\n/ping @name — சுற்றுப்பயண நேரத்தை அளவிடு (mesh மட்டும்)\n/trace @name — மதிப்பிடப்பட்ட mesh பாதை (mesh மட்டும்)\n/pay <token> — இந்த அரட்டையில் cashu ecash டோக்கனை அனுப்பு\n/drop <message> — இந்த இடத்தில் 24 மணி நேரத்திற்கு ஒரு குறிப்பை பொருத்து (இருப்பிடம் தேவை)\n/help — இந்த பட்டியல்"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "คำสั่ง:\n/who — ดูว่าใครอยู่ที่นี่บ้าง\n/clear — ล้างแชทนี้\n/hug @name — ส่งอ้อมกอด\n/slap @name — ตบด้วยปลาเทราต์ตัวใหญ่\n/block @name · /unblock @name\n/ping @name — วัดเวลาไปกลับ (เฉพาะ mesh)\n/trace @name — เส้นทาง mesh โดยประมาณ (เฉพาะ mesh)\n/pay <token> — ส่งโทเคน ecash ของ cashu ในแชทนี้\n/drop <message> — ปักโน้ตไว้ที่นี่นาน 24 ชม. (ต้องใช้ตำแหน่งที่ตั้ง)\n/help — รายการนี้"
+            "value" : "คำสั่ง:\n/who — ดูว่าใครอยู่ที่นี่บ้าง\n/clear — ล้างแชทนี้\n/block @name · /unblock @name\n/ping @name — วัดเวลาไปกลับ (เฉพาะ mesh)\n/trace @name — เส้นทาง mesh โดยประมาณ (เฉพาะ mesh)\n/pay <token> — ส่งโทเคน ecash ของ cashu ในแชทนี้\n/drop <message> — ปักโน้ตไว้ที่นี่นาน 24 ชม. (ต้องใช้ตำแหน่งที่ตั้ง)\n/help — รายการนี้"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Komutlar:\n/who — burada kimler var, listele\n/clear — bu sohbeti temizle\n/hug @name — sarılma gönder\n/slap @name — koca bir alabalıkla tokat at\n/block @name · /unblock @name\n/ping @name — gidiş-dönüş süresini ölç (sadece mesh)\n/trace @name — tahmini mesh yolu (sadece mesh)\n/pay <token> — bu sohbette cashu ecash token'ı gönder\n/drop <message> — buraya 24 saatliğine not sabitle (konum gerekli)\n/help — bu liste"
+            "value" : "Komutlar:\n/who — burada kimler var, listele\n/clear — bu sohbeti temizle\n/block @name · /unblock @name\n/ping @name — gidiş-dönüş süresini ölç (sadece mesh)\n/trace @name — tahmini mesh yolu (sadece mesh)\n/pay <token> — bu sohbette cashu ecash token'ı gönder\n/drop <message> — buraya 24 saatliğine not sabitle (konum gerekli)\n/help — bu liste"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Команди:\n/who — показати, хто тут є\n/clear — очистити цей чат\n/hug @name — надіслати обійми\n/slap @name — ляснути великою фореллю\n/block @name · /unblock @name\n/ping @name — виміряти час проходження туди й назад (лише mesh)\n/trace @name — орієнтовний шлях у mesh (лише mesh)\n/pay <token> — надіслати cashu ecash-токен у цей чат\n/drop <message> — закріпити нотатку в цьому місці на 24 год (потрібна геолокація)\n/help — цей список"
+            "value" : "Команди:\n/who — показати, хто тут є\n/clear — очистити цей чат\n/block @name · /unblock @name\n/ping @name — виміряти час проходження туди й назад (лише mesh)\n/trace @name — орієнтовний шлях у mesh (лише mesh)\n/pay <token> — надіслати cashu ecash-токен у цей чат\n/drop <message> — закріпити нотатку в цьому місці на 24 год (потрібна геолокація)\n/help — цей список"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "کمانڈز:\n/who — دیکھیں یہاں کون کون ہے\n/clear — یہ چیٹ صاف کریں\n/hug @name — جھپی بھیجیں\n/slap @name — ایک بڑی ٹراؤٹ مچھلی سے تھپڑ ماریں\n/block @name · /unblock @name\n/ping @name — راؤنڈ ٹرپ وقت ناپیں (صرف mesh)\n/trace @name — تخمینی mesh راستہ (صرف mesh)\n/pay <token> — اس چیٹ میں cashu ای کیش ٹوکن بھیجیں\n/drop <message> — اس جگہ 24 گھنٹے کے لیے نوٹ لگائیں (مقام درکار)\n/help — یہ فہرست"
+            "value" : "کمانڈز:\n/who — دیکھیں یہاں کون کون ہے\n/clear — یہ چیٹ صاف کریں\n/block @name · /unblock @name\n/ping @name — راؤنڈ ٹرپ وقت ناپیں (صرف mesh)\n/trace @name — تخمینی mesh راستہ (صرف mesh)\n/pay <token> — اس چیٹ میں cashu ای کیش ٹوکن بھیجیں\n/drop <message> — اس جگہ 24 گھنٹے کے لیے نوٹ لگائیں (مقام درکار)\n/help — یہ فہرست"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Các lệnh:\n/who — xem ai đang ở đây\n/clear — xóa cuộc trò chuyện này\n/hug @name — gửi một cái ôm\n/slap @name — tát bằng một con cá hồi vân to\n/block @name · /unblock @name\n/ping @name — đo thời gian khứ hồi (chỉ mesh)\n/trace @name — đường đi mesh ước tính (chỉ mesh)\n/pay <token> — gửi token ecash cashu trong cuộc trò chuyện này\n/drop <message> — ghim ghi chú tại nơi này trong 24 giờ (cần vị trí)\n/help — danh sách này"
+            "value" : "Các lệnh:\n/who — xem ai đang ở đây\n/clear — xóa cuộc trò chuyện này\n/block @name · /unblock @name\n/ping @name — đo thời gian khứ hồi (chỉ mesh)\n/trace @name — đường đi mesh ước tính (chỉ mesh)\n/pay <token> — gửi token ecash cashu trong cuộc trò chuyện này\n/drop <message> — ghim ghi chú tại nơi này trong 24 giờ (cần vị trí)\n/help — danh sách này"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "命令：\n/who — 列出谁在这里\n/clear — 清空当前聊天\n/hug @name — 送出一个拥抱\n/slap @name — 用一条大鳟鱼拍过去\n/block @name · /unblock @name\n/ping @name — 测量往返时间（仅 mesh）\n/trace @name — 估计的 mesh 路径（仅 mesh）\n/pay <token> — 在当前聊天发送 cashu ecash 代币\n/drop <message> — 在这个地方钉一条便签，保留 24 小时（需要位置）\n/help — 本列表"
+            "value" : "命令：\n/who — 列出谁在这里\n/clear — 清空当前聊天\n/block @name · /unblock @name\n/ping @name — 测量往返时间（仅 mesh）\n/trace @name — 估计的 mesh 路径（仅 mesh）\n/pay <token> — 在当前聊天发送 cashu ecash 代币\n/drop <message> — 在这个地方钉一条便签，保留 24 小时（需要位置）\n/help — 本列表"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "指令：\n/who — 列出誰在這裡\n/clear — 清除這個聊天\n/hug @name — 送出一個擁抱\n/slap @name — 用一條大鱒魚巴下去\n/block @name · /unblock @name\n/ping @name — 測量來回時間（僅限 mesh）\n/trace @name — 估計的 mesh 路徑（僅限 mesh）\n/pay <token> — 在這個聊天中傳送 cashu ecash 代幣\n/drop <message> — 在這個地方釘一張便箋 24 小時（需要位置）\n/help — 這份清單"
+            "value" : "指令：\n/who — 列出誰在這裡\n/clear — 清除這個聊天\n/block @name · /unblock @name\n/ping @name — 測量來回時間（僅限 mesh）\n/trace @name — 估計的 mesh 路徑（僅限 mesh）\n/pay <token> — 在這個聊天中傳送 cashu ecash 代幣\n/drop <message> — 在這個地方釘一張便箋 24 小時（需要位置）\n/help — 這份清單"
           }
         }
       }
@@ -53991,191 +53805,6 @@
         }
       }
     },
-    "content.commands.hug" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إرسال عناق دافئ"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "কাউকে উষ্ণ আলিঙ্গন পাঠান"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eine warme umarmung senden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send someone a warm hug"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviar un abrazo caluroso"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "فرستادن یک بغل گرم برای کسی"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Magpadala ng mainit na yakap"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoyer un câlin chaleureux"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שלח חיבוק חם"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "किसी को गर्म आलिंगन भेजें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kirim pelukan hangat"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invia un caldo abbraccio"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "あたたかいハグを送る"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "따뜻한 포옹 보내기"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hantar pelukan hangat"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "न्यानो अँगालो पठाउ"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stuur iemand een warme knuffel"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wyślij komuś ciepły uścisk"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviar um abraço caloroso"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviar um abraço quente"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отправить тёплое объятие"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skicka en varm kram"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ஒருவருக்கு வெப்பமான அணைப்பை அனுப்பவும்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ส่งกอดอุ่น ๆ ให้ใครสักคน"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Birine sıcak bir sarılma gönder"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Відправити теплі обійми"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "کسی کو گرمجوشی سے گلے لگائیں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gửi một cái ôm ấm áp"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "送出温暖拥抱"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "送出溫暖擁抱"
-          }
-        }
-      }
-    },
     "content.commands.pay" : {
       "comment" : "Autocomplete description for the /pay command that sends a Cashu ecash token",
       "extractionState" : "manual",
@@ -54544,191 +54173,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "測量到 mesh 同伴的往返時間"
-          }
-        }
-      }
-    },
-    "content.commands.slap" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "صفع شخص بسمكة تراوت"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "কারওকে ট্রাউট মাছ দিয়ে চপেটাঘাত করুন"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jemandem eine forelle um die ohren schlagen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slap someone with a trout"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abofetear a alguien con una trucha"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "سیلی زدن به کسی با ماهی قزل‌آلا"
-          }
-        },
-        "fil" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sampalin ang isang tao gamit ang trout"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gifler quelqu'un avec une truite"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "תן למישהו סטירת פורל"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "किसी को ट्राउट से थप्पड़ मारें"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tampar seseorang dengan ikan trout"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schiaffeggia qualcuno con una trota"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "誰かをトラウトでたたく"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "송어로 때리기"
-          }
-        },
-        "ms" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tampar seseorang dengan ikan trout"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "कसैलाई ट्राउटले थप्पड दे"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geef iemand een mep met een forel"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spoliczkuj kogoś trocią"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dar uma chapada a alguém com uma truta"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dar um tapa em alguém com uma truta"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дать кому-то пощёчину форелью"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Smäll någon med en öring"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ஒருவரை trout மீனால் அடிக்கவும்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ตบใครสักคนด้วยปลาเทราต์"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Birine alabalıkla tokat at"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Лупнути когось фореллю"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "کسی کو ٹراؤٹ سے تھپڑ ماریں"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tát ai đó bằng cá hồi"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用鳟鱼拍某人"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用鱒魚拍某人"
           }
         }
       }

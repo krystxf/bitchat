@@ -7,42 +7,22 @@ import BitFoundation
 struct CommandProcessorTests {
 
     @MainActor
-    @Test func slapNotFoundGrammar() {
+    @Test func hugAndSlapAreNoLongerCommands() {
         let identityManager = MockIdentityManager(MockKeychain())
         let processor = CommandProcessor(contextProvider: nil, meshService: nil, identityManager: identityManager)
-        let result = processor.process("/slap @system")
-        switch result {
-        case .error(let message):
-            #expect(message == "Cannot slap system: not found")
-        default:
-            Issue.record("Expected error result")
+        for command in ["/hug @bob", "/slap @bob"] {
+            switch processor.process(command) {
+            case .error(let message):
+                #expect(message.hasPrefix("Unknown command: /"))
+            default:
+                Issue.record("Expected \(command) to be an unknown command")
+            }
         }
-    }
-
-    @MainActor
-    @Test func hugNotFoundGrammar() {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let processor = CommandProcessor(contextProvider: nil, meshService: nil, identityManager: identityManager)
-        let result = processor.process("/hug @system")
-        switch result {
-        case .error(let message):
-            #expect(message == "Cannot hug system: not found")
-        default:
-            Issue.record("Expected error result")
-        }
-    }
-    
-    @MainActor
-    @Test func slapUsageMessage() {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let processor = CommandProcessor(contextProvider: nil, meshService: nil, identityManager: identityManager)
-        let result = processor.process("/slap")
-        switch result {
-        case .error(let message):
-            #expect(message == "Usage: /slap <nickname>")
-        default:
-            Issue.record("Expected error result for usage message")
-        }
+        let suggested = CommandInfo.all(isGeoPublic: false, isGeoDM: false).map(\.alias)
+        #expect(!suggested.contains("/hug"))
+        #expect(!suggested.contains("/slap"))
+        #expect(!CommandProcessor.helpText.contains("/hug"))
+        #expect(!CommandProcessor.helpText.contains("/slap"))
     }
 
     @MainActor
@@ -138,55 +118,6 @@ struct CommandProcessorTests {
             Issue.record("Expected handled result")
         }
         #expect(context.clearCurrentPublicTimelineCallCount == 1)
-    }
-
-    @MainActor
-    @Test func hugInPrivateChatSendsPersonalizedMessageAndLocalEcho() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider(nickname: "me")
-        let transport = MockTransport()
-        let peerID = PeerID(str: "abcd1234abcd1234")
-        context.selectedPrivateChatPeer = peerID
-        context.nicknameToPeerID["bob"] = peerID
-        transport.peerNicknames[peerID] = "Bob"
-        let processor = CommandProcessor(contextProvider: context, meshService: transport, identityManager: identityManager)
-
-        let result = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/hug @bob")
-        }
-
-        switch result {
-        case .handled:
-            break
-        default:
-            Issue.record("Expected handled result")
-        }
-        #expect(transport.sentPrivateMessages.count == 1)
-        #expect(transport.sentPrivateMessages.first?.content == "* 🫂 me hugs you *")
-        #expect(context.localPrivateSystemMessages.first?.content == "🫂 you hugged bob")
-        #expect(context.localPrivateSystemMessages.first?.peerID == peerID)
-    }
-
-    @MainActor
-    @Test func slapInPublicChatSendsPublicRawAndEcho() async {
-        let identityManager = MockIdentityManager(MockKeychain())
-        let context = MockCommandContextProvider(nickname: "me")
-        let peerID = PeerID(str: "abcd1234abcd1234")
-        context.nicknameToPeerID["bob"] = peerID
-        let processor = CommandProcessor(contextProvider: context, meshService: MockTransport(), identityManager: identityManager)
-
-        let result = await withSelectedChannel(.mesh, context: context) {
-            processor.process("/slap @bob")
-        }
-
-        switch result {
-        case .handled:
-            break
-        default:
-            Issue.record("Expected handled result")
-        }
-        #expect(context.sentPublicRawMessages == ["* 🐟 me slaps bob around a bit with a large trout *"])
-        #expect(context.publicSystemMessages == ["🐟 me slaps bob around a bit with a large trout"])
     }
 
     @MainActor
