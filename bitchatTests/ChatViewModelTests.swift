@@ -8,6 +8,7 @@
 
 import Testing
 import Foundation
+import SwiftUI
 import BitFoundation
 @testable import bitchat
 
@@ -803,9 +804,15 @@ struct ChatViewModelFormattingTests {
         // The same link the name in the full text carries, so a tap still
         // opens the sender's action sheet.
         #expect(name.runs.allSatisfy { $0.link == URL(string: "bitchat://user/\(senderPeerID.id)") })
-        // The secondary label color, never a palette hue: dark purples are
-        // unreadable on the dark backdrop.
-        #expect(name.runs.first?.swiftUI.foregroundColor == .secondary)
+        // Nova's secondary text color, never a palette hue: dark purples are
+        // unreadable on the dark backdrop. The token is a dynamic color, so
+        // compare what both resolve to.
+        if #available(iOS 17.0, macOS 14.0, *) {
+            var environment = EnvironmentValues()
+            environment.colorScheme = .light
+            let resolved = name.runs.first?.swiftUI.foregroundColor?.resolve(in: environment)
+            #expect(resolved == Color.novaSecondaryText.resolve(in: environment))
+        }
     }
 
     @Test @MainActor
