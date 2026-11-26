@@ -222,6 +222,9 @@ private struct SheetCloseButton: View {
 
     var body: some View {
         closeButton
+            // The text color, as in the system sheets, also when the
+            // sheet opens from a view tinted with the accent.
+            .tint(.primary)
             .keyboardShortcut(.cancelAction)
             .accessibilityLabel(label ?? defaultLabel)
     }
