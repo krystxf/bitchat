@@ -18,7 +18,6 @@ import SwiftUI
 struct GifPickerView: View {
     @StateObject private var model: GifPickerModel
     @Environment(\.dismiss) private var dismiss
-    @ThemedPalette private var palette
 
     /// Search words that find good reactions in the Nostr index, which is
     /// English. They are search text, not interface copy.
@@ -68,8 +67,8 @@ struct GifPickerView: View {
                         .padding(.top, 10)
                 }
                 Text(verbatim: Strings.relaysCaption(NostrGIFSource.searchRelays.compactMap(\.host).joined(separator: ", ")))
-                    .bitchatFont(size: 11)
-                    .foregroundColor(palette.secondary)
+                    .font(.caption)
+                    .foregroundStyle(.novaSecondaryText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -123,11 +122,11 @@ struct GifPickerView: View {
     private var searchField: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(palette.secondary)
+                .foregroundStyle(.novaSecondaryText)
                 .accessibilityHidden(true)
             TextField(Strings.searchPrompt, text: $model.query)
                 .textFieldStyle(.plain)
-                .bitchatFont(size: 15)
+                .font(.body)
                 .autocorrectionDisabled(true)
                 #if os(iOS)
                 .textInputAutocapitalization(.never)
@@ -138,7 +137,7 @@ struct GifPickerView: View {
                     model.query = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(palette.secondary)
+                        .foregroundStyle(.novaSecondaryText)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Strings.clearSearch)
@@ -157,8 +156,8 @@ struct GifPickerView: View {
                         model.query = term
                     } label: {
                         Text(verbatim: term)
-                            .bitchatFont(size: 13, weight: .medium)
-                            .foregroundColor(palette.primary)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                             .glassSurface(in: Capsule())
@@ -220,36 +219,20 @@ struct GifPickerView: View {
     }
 
     private func stateView(symbol: String, title: String, message: String? = nil, showsRetry: Bool = false) -> some View {
-        VStack(spacing: 10) {
-            Image(systemName: symbol)
-                .font(.bitchatSystem(size: 28, weight: .semibold))
-                .foregroundColor(palette.secondary)
-                .accessibilityHidden(true)
-            Text(verbatim: title)
-                .bitchatFont(size: 15, weight: .semibold)
-                .foregroundColor(palette.primary)
-            if let message {
-                Text(verbatim: message)
-                    .bitchatFont(size: 13)
-                    .foregroundColor(palette.secondary)
-            }
+        SheetEmptyState(title: title, systemImage: symbol, message: message) {
             if showsRetry {
                 Button(Strings.retry) {
                     Task { await model.reload() }
                 }
-                .glassButtonStyle()
-                .padding(.top, 4)
+                .buttonStyle(.bordered)
             }
         }
-        .multilineTextAlignment(.center)
-        .padding(24)
     }
 }
 
 /// One GIF in the picker: its small rendition, looping while on screen
 /// (held still under Reduce Motion). A tap sends it.
 private struct GifPickerCell: View {
-    @ThemedPalette private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
 
@@ -280,7 +263,7 @@ private struct GifPickerCell: View {
     var body: some View {
         Button(action: onSend) {
             shape
-                .fill(palette.secondary.opacity(0.12))
+                .fill(Color.novaSurfaceRaised)
                 .aspectRatio(1, contentMode: .fit)
                 .overlay {
                     if let asset {
@@ -291,7 +274,7 @@ private struct GifPickerCell: View {
                         )
                     } else if failed {
                         Image(systemName: "photo")
-                            .foregroundColor(palette.secondary)
+                            .foregroundStyle(.novaSecondaryText)
                     } else {
                         ProgressView()
                             .controlSize(.small)

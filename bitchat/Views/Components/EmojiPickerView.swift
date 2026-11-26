@@ -124,8 +124,8 @@ struct EmojiPickerView: View {
                         let results = catalog.search(query)
                         if results.isEmpty {
                             Text("emoji.picker.no_results", comment: "Shown when an emoji search finds nothing")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
+                                .font(.headline)
+                                .foregroundStyle(.novaSecondaryText)
                                 .frame(maxWidth: .infinity)
                                 .padding(.top, 40)
                                 .gridCellColumns(8)
@@ -154,11 +154,13 @@ struct EmojiPickerView: View {
         } header: {
             Text(title)
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.novaSecondaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 6)
-                .background(.bar)
+                // The sheet's own backdrop, so a pinned header does not
+                // show as a gray band.
+                .background(Color.novaBackground)
                 .id(id.id)
                 .accessibilityAddTraits(.isHeader)
         }
