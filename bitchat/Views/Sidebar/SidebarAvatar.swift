@@ -99,14 +99,14 @@ struct SidebarAvatar<Avatar: View>: View {
 
 /// A white hairline around the avatar on a selected row. The avatar's
 /// color can match the selection highlight (blue on blue), and the outline
-/// keeps the circle's edge visible.
+/// keeps the tile's edge visible.
 @available(iOS 17, macOS 14, *)
 private struct SelectedAvatarOutline: View {
     @Environment(\.backgroundProminence) private var prominence
 
     var body: some View {
         if prominence == .increased {
-            Circle()
+            AvatarShape()
                 .strokeBorder(Color.white.opacity(0.85), lineWidth: 1)
         }
     }

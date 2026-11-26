@@ -176,6 +176,26 @@ struct AvatarIdentityTests {
         }
     }
 
+    @Test(arguments: [false, true])
+    func tileInkMeetsWCAGAAOnEveryPaletteColor(isDark: Bool) {
+        for color in AvatarIdentity.palette {
+            let tile = AvatarIdentity.tile(for: color, isDark: isDark)
+            let ratio = contrastRatio(luminance(of: tile.ink), luminance(of: tile.fill))
+            #expect(ratio >= 4.5, "\(hex(tile.ink)) on \(hex(tile.fill)) is \(ratio):1 (dark: \(isDark))")
+        }
+    }
+
+    @Test(arguments: [false, true])
+    func tileKeepsTheColorsHue(isDark: Bool) {
+        for color in AvatarIdentity.palette {
+            let tile = AvatarIdentity.tile(for: color, isDark: isDark)
+            for shade in [tile.fill, tile.ink] {
+                let gap = abs(hue(of: shade) - hue(of: color))
+                #expect(min(gap, 360 - gap) <= 20, "\(hex(shade)) strays from \(hex(color))")
+            }
+        }
+    }
+
     // MARK: - Helpers
 
     /// WCAG 2 relative luminance.

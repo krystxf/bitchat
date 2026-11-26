@@ -9,9 +9,9 @@
 import BitFoundation
 import SwiftUI
 
-/// A private group's avatar: the group glyph in white on the group's own
-/// color. `AvatarIdentity` picks the color from the group ID, as it does
-/// for a person, so a group keeps its color when it is renamed.
+/// A private group's avatar: the group glyph on the group's own tile.
+/// `AvatarIdentity` picks the color from the group ID, as it does for a
+/// person, so a group keeps its color when it is renamed.
 ///
 /// A glyph, not initials, so a group never looks like a person.
 ///
@@ -22,17 +22,16 @@ struct GroupAvatar: View {
     var size: CGFloat = InitialsAvatar.defaultSize
 
     var body: some View {
-        AvatarDisc(seed: AvatarIdentity.seed(for: groupID, nickname: ""))
-            .overlay(
-                Image(systemName: "person.3.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .font(.system(size: size, weight: .semibold))
-                    .foregroundColor(.white)
-                    .padding(size * 0.22)
-            )
-            .frame(width: size, height: size)
-            .accessibilityHidden(true)
+        AvatarTile(seed: AvatarIdentity.seed(for: groupID, nickname: "")) { ink in
+            Image(systemName: "person.3.fill")
+                .resizable()
+                .scaledToFit()
+                .font(.system(size: size, weight: .semibold))
+                .foregroundColor(ink)
+                .padding(size * 0.22)
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
     }
 }
 
@@ -44,5 +43,6 @@ struct GroupAvatar: View {
         }
     }
     .padding()
+    .background(Color.novaBackground)
 }
 #endif

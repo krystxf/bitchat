@@ -7,6 +7,114 @@
 //
 
 import SwiftUI
+#if os(iOS)
+import UIKit
+#else
+import AppKit
+#endif
+
+// MARK: - Nova palette
+
+/// Nova's colors: warm neutrals with one vivid blue. Each swatch has a light
+/// and a dark value; `Color` resolves them per color scheme (see the
+/// `ShapeStyle` tokens below).
+///
+/// Contrast (WCAG 2, checked by `NovaPaletteTests`):
+/// - `secondaryText` and `accent` reach AA (4.5:1) as text on `background`,
+///   `surface` and `surfaceRaised`, except `accent` on `surfaceRaised` in
+///   dark mode; bubbles use their own link color there.
+/// - White on `accent` reaches AA in light mode. In dark mode it reaches
+///   3:1, which suits icons and bold labels, as the system blue does.
+enum NovaPalette {
+    struct Swatch: Equatable {
+        let light: UInt32
+        let dark: UInt32
+    }
+
+    /// The window and list backdrop: warm off-white, soft charcoal.
+    static let background = Swatch(light: 0xFBF9F4, dark: 0x1F2022)
+    /// Cards and grouped rows: cream, warm gray.
+    static let surface = Swatch(light: 0xF5F0E4, dark: 0x2A2B30)
+    /// Fills on a surface: chips, pills, other people's bubbles.
+    static let surfaceRaised = Swatch(light: 0xEDE5D2, dark: 0x3C3E43)
+    /// Separators and chip borders: soft beige, subtle gray.
+    static let hairline = Swatch(light: 0xE4DBC7, dark: 0x3A3C41)
+    /// De-emphasized text: warm gray, light gray.
+    static let secondaryText = Swatch(light: 0x6A665D, dark: 0xA8AEB3)
+    /// Primary actions, links and selection: a vivid blue.
+    static let accent = Swatch(light: 0x0062D1, dark: 0x3796FF)
+    /// Small highlights such as unread dots and badges: gold.
+    static let highlight = Swatch(light: 0xB07A00, dark: 0xFBD740)
+}
+
+extension ShapeStyle where Self == Color {
+    /// Window and list backdrop (`NovaPalette.background`).
+    static var novaBackground: Color { Color(NovaPalette.background) }
+    /// Cards and grouped rows (`NovaPalette.surface`).
+    static var novaSurface: Color { Color(NovaPalette.surface) }
+    /// Chips, pills and other people's bubbles (`NovaPalette.surfaceRaised`).
+    static var novaSurfaceRaised: Color { Color(NovaPalette.surfaceRaised) }
+    /// Separators and chip borders (`NovaPalette.hairline`).
+    static var novaHairline: Color { Color(NovaPalette.hairline) }
+    /// De-emphasized text (`NovaPalette.secondaryText`).
+    static var novaSecondaryText: Color { Color(NovaPalette.secondaryText) }
+    /// Primary actions and links (`NovaPalette.accent`). It is also the
+    /// app's tint (the `AccentColor` asset).
+    static var novaAccent: Color { Color(NovaPalette.accent) }
+    /// Unread dots and badges (`NovaPalette.highlight`).
+    static var novaHighlight: Color { Color(NovaPalette.highlight) }
+}
+
+extension Color {
+    /// A dynamic color: the swatch's light or dark value, by the color
+    /// scheme of the view that draws it.
+    init(_ swatch: NovaPalette.Swatch) {
+        #if os(iOS)
+        self.init(uiColor: UIColor { traits in
+            UIColor(novaHex: traits.userInterfaceStyle == .dark ? swatch.dark : swatch.light)
+        })
+        #else
+        self.init(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            return NSColor(novaHex: isDark ? swatch.dark : swatch.light)
+        })
+        #endif
+    }
+}
+
+#if os(iOS)
+private extension UIColor {
+    convenience init(novaHex hex: UInt32) {
+        self.init(
+            red: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+}
+#else
+private extension NSColor {
+    convenience init(novaHex hex: UInt32) {
+        self.init(
+            srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+}
+#endif
+
+extension View {
+    /// Nova's backdrop behind a List or Form: hides the system's grouped
+    /// gray so `novaBackground` shows. Give rows `novaSurface` with
+    /// `.listRowBackground(Color.novaSurface)`.
+    func novaListBackground() -> some View {
+        scrollContentBackground(.hidden)
+            .background(Color.novaBackground.ignoresSafeArea())
+    }
+}
 
 /// Semantic colors for the app's Liquid Glass look.
 /// Views should consume these via `@ThemedPalette` rather than computing colors inline.
@@ -29,31 +137,15 @@ struct ThemePalette {
     let divider: Color
 
     static let liquidGlass = ThemePalette(
-        background: systemBackground,
+        background: .novaBackground,
         primary: .primary,
-        secondary: .secondary,
-        accent: .blue,
+        secondary: .novaSecondaryText,
+        accent: .novaAccent,
         locationAccent: .green,
-        accentBlue: .blue,
+        accentBlue: .novaAccent,
         alertRed: .red,
-        divider: separator
+        divider: .novaHairline
     )
-
-    private static var systemBackground: Color {
-        #if os(iOS)
-        Color(UIColor.systemBackground)
-        #else
-        Color(NSColor.windowBackgroundColor)
-        #endif
-    }
-
-    private static var separator: Color {
-        #if os(iOS)
-        Color(UIColor.separator)
-        #else
-        Color(NSColor.separatorColor)
-        #endif
-    }
 }
 
 /// Resolves the app's color palette. The colors are dynamic system colors,
@@ -68,39 +160,16 @@ struct ThemedPalette: DynamicProperty {
 
 // MARK: - Themed view helpers
 
-/// Root backdrop: a subtle static gradient with a soft tinted glow. Glass
-/// panels need visual texture behind them to refract, and collapse to flat
-/// gray over a solid color.
+/// Root backdrop: Nova's flat warm background, full-bleed. Liquid Glass
+/// controls float over it, as they float over the plain backdrop in
+/// Messages.
 struct ThemedRootBackground: View {
-    @Environment(\.colorScheme) private var colorScheme
-
     var body: some View {
-        let isDark = colorScheme == .dark
-        ZStack {
-            LinearGradient(
-                colors: isDark
-                    ? [Color(red: 0.09, green: 0.10, blue: 0.15), Color(red: 0.04, green: 0.04, blue: 0.07)]
-                    : [Color(red: 0.93, green: 0.95, blue: 1.0), Color(red: 0.98, green: 0.97, blue: 0.99)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            RadialGradient(
-                colors: [Color.blue.opacity(isDark ? 0.22 : 0.12), .clear],
-                center: .topLeading,
-                startRadius: 0,
-                endRadius: 600
-            )
-            RadialGradient(
-                colors: [Color.purple.opacity(isDark ? 0.14 : 0.08), .clear],
-                center: .bottomTrailing,
-                startRadius: 0,
-                endRadius: 500
-            )
-        }
         // Full-bleed: passed to .background(_:) as a view, a backdrop stops
         // at the safe area. In a sheet, the sheet's own background would then
         // show through the home-indicator inset.
-        .ignoresSafeArea()
+        Color.novaBackground
+            .ignoresSafeArea()
     }
 }
 

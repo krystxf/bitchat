@@ -151,6 +151,43 @@ enum AvatarIdentity {
         palette[paletteIndex(forSeed: seed)]
     }
 
+    // MARK: - Tile
+
+    /// An avatar tile's two colors: the tile's fill, and the ink of the
+    /// initials or glyph on it.
+    struct Tile: Equatable {
+        let fill: RGB
+        let ink: RGB
+    }
+
+    /// The tile for `color`. Light mode puts the color, a shade deeper, on
+    /// a light tint of it; dark mode puts a lighter shade on a deep tint
+    /// over the charcoal backdrop. The ink reaches WCAG AA (4.5:1) on the
+    /// fill for every palette entry (`AvatarIdentityTests`).
+    static func tile(for color: RGB, isDark: Bool) -> Tile {
+        if isDark {
+            let charcoal = RGB(hex: NovaPalette.background.dark)
+            return Tile(
+                fill: mix(charcoal, color, amount: 0.28),
+                ink: mix(color, RGB(hex: 0xFFFFFF), amount: 0.45)
+            )
+        }
+        return Tile(
+            fill: mix(RGB(hex: 0xFFFFFF), color, amount: 0.14),
+            ink: mix(color, RGB(hex: 0x000000), amount: 0.12)
+        )
+    }
+
+    /// `base` moved toward `other` by `amount` (0 keeps `base`).
+    private static func mix(_ base: RGB, _ other: RGB, amount: Double) -> RGB {
+        func channel(_ a: UInt8, _ b: UInt8) -> UInt32 {
+            UInt32((Double(a) * (1 - amount) + Double(b) * amount).rounded())
+        }
+        return RGB(hex: channel(base.red, other.red) << 16
+            | channel(base.green, other.green) << 8
+            | channel(base.blue, other.blue))
+    }
+
     static func paletteIndex(forSeed seed: String) -> Int {
         Int(finalMix(fnv1a64(seed)) % UInt64(palette.count))
     }
