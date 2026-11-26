@@ -99,13 +99,17 @@ struct EmojiPickerView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: EmojiGridCell.side, maximum: EmojiGridCell.side + 6), spacing: 2)],
+                    columns: [GridItem(.adaptive(minimum: EmojiGridCell.side - 2, maximum: EmojiGridCell.side + 8), spacing: 0)],
                     spacing: 2,
                     pinnedViews: [.sectionHeaders]
                 ) {
                     if query.isEmpty {
                         section(.frequent, title: String(localized: "emoji.picker.frequent", comment: "Title of the recently and often used emoji in the reaction picker")) {
-                            ForEach(preferences.frequentWithDefaults, id: \.self) { emoji in
+                            // Their own identities: the same emoji shows
+                            // again in its category, and one grid cannot
+                            // hold two views with one identity.
+                            ForEach(preferences.frequentWithDefaults.map { "frequent|" + $0 }, id: \.self) { key in
+                                let emoji = String(key.dropFirst("frequent|".count))
                                 cell(emoji: emoji, entry: catalog.entry(for: emoji))
                             }
                         }
@@ -356,6 +360,9 @@ struct EmojiGridCell: View {
                         .accessibilityHidden(true)
                 }
             }
+            // Fills its grid column, so a column narrower than the cell
+            // (a scroller taking room) never cuts the last one off.
+            .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
     }
 }
