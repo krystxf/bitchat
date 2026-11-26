@@ -72,19 +72,3 @@ enum GeohashMapGeometry {
         return Geohash.encode(latitude: latitude, longitude: longitude, precision: precision)
     }
 }
-
-/// Small, deterministic camera-to-sky mapping. Longitude and heading wrap seamlessly.
-enum GlobeParallax {
-    static func offset(longitude: Double, latitude: Double, heading: Double, size: CGSize, reduceMotion: Bool) -> CGSize {
-        guard !reduceMotion, size.width.isFinite, size.height.isFinite else { return .zero }
-        let x = wrapped(longitude + heading) / 360 * Double(size.width)
-        let y = min(max(-latitude / 180 * Double(size.height), -Double(size.height) / 2), Double(size.height) / 2)
-        return CGSize(width: -x, height: y)
-    }
-
-    static func wrapped(_ degrees: Double) -> Double {
-        guard degrees.isFinite else { return 0 }
-        let value = degrees.truncatingRemainder(dividingBy: 360)
-        return value < 0 ? value + 360 : value
-    }
-}

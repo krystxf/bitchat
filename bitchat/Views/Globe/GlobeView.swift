@@ -133,7 +133,6 @@ private struct GlobeStarfield: View, Equatable {
         Canvas { context, size in
             let offset = GlobeParallax.offset(longitude: centerLon,
                                               latitude: centerLat,
-                                              heading: 0,
                                               size: size,
                                               reduceMotion: reduceMotion)
             for star in Self.stars {

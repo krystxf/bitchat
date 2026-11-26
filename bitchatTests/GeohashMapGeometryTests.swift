@@ -22,16 +22,4 @@ struct GeohashMapGeometryTests {
         #expect(hash == "9q8yyk")
         #expect(GeohashMapGeometry.geohash(latitude: .nan, longitude: 0, precision: 6).isEmpty)
     }
-
-    @Test func parallaxWrapsAndMovesOppositeTheCamera() {
-        let size = CGSize(width: 400, height: 800)
-        let east = GlobeParallax.offset(longitude: 90, latitude: 45, heading: 0, size: size, reduceMotion: false)
-        let wrapped = GlobeParallax.offset(longitude: 450, latitude: 45, heading: 0, size: size, reduceMotion: false)
-        let motionless = GlobeParallax.offset(longitude: 90, latitude: 45, heading: 0, size: size, reduceMotion: true)
-
-        #expect(east == wrapped)
-        #expect(east.width < 0)
-        #expect(east.height < 0)
-        #expect(motionless == .zero)
-    }
 }
