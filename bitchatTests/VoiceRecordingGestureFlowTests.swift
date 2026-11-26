@@ -211,7 +211,13 @@ struct VoiceRecordingGestureFlowTests {
         #expect(viewModel.formattedElapsed(for: Date()) == "0:00")
 
         await beginHold()
-        #expect(viewModel.formattedElapsed(for: Date().addingTimeInterval(75)) == "1:15")
+        // Measure from the recording's own start: on a loaded machine the hold
+        // can take over a second, which pushed a `Date()`-based reading to 1:16.
+        guard case .recording(let startDate) = viewModel.state else {
+            Issue.record("Expected a recording after the hold")
+            return
+        }
+        #expect(viewModel.formattedElapsed(for: startDate.addingTimeInterval(75)) == "1:15")
     }
 
     @Test func handsFreeRecordingSendsItselfAtTheTimeLimit() async {
