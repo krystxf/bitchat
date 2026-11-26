@@ -28,6 +28,9 @@ struct BitchatApp: App {
         AppLanguageSettings.clearLegacyOverride()
         _runtime = StateObject(wrappedValue: AppRuntime())
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+        #if os(iOS)
+        NovaType.applyToNavigationBars()
+        #endif
     }
 
     var body: some Scene {
@@ -63,6 +66,7 @@ struct BitchatApp: App {
                     runtime.handleMacDidBecomeActiveNotification()
                 }
                 #endif
+                .novaFontDesign()
         }
         #if os(macOS)
         .commands {

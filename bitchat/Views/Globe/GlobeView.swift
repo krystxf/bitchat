@@ -64,7 +64,7 @@ struct GlobeView: View {
                     colors: colors,
                     world: world,
                     pixel: 1 / max(displayScale, 1),
-                    fontDesign: .default
+                    fontDesign: NovaType.design
                 )
                 Canvas(rendersAsynchronously: false) { context, size in
                     renderer.draw(in: &context, size: size)

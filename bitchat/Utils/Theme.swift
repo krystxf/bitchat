@@ -47,6 +47,49 @@ enum NovaPalette {
     static let highlight = Swatch(light: 0xB07A00, dark: 0xFBD740)
 }
 
+// MARK: - Nova type
+
+/// Nova's type: SF Pro Rounded for all text, through the usual Dynamic Type
+/// styles. Only fingerprints, keys and code stay monospaced.
+enum NovaType {
+    static let design: Font.Design = .rounded
+
+    #if os(iOS)
+    /// Navigation bar titles are UIKit, so the SwiftUI font design does not
+    /// reach them. Call once at launch, before the first bar appears.
+    @MainActor
+    static func applyToNavigationBars() {
+        let bar = UINavigationBar.appearance()
+        bar.titleTextAttributes = [.font: roundedFont(.headline)]
+        bar.largeTitleTextAttributes = [.font: roundedFont(.largeTitle, bold: true)]
+    }
+
+    private static func roundedFont(_ style: UIFont.TextStyle, bold: Bool = false) -> UIFont {
+        var descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
+        if bold, let boldDescriptor = descriptor.withSymbolicTraits(.traitBold) {
+            descriptor = boldDescriptor
+        }
+        if let rounded = descriptor.withDesign(.rounded) {
+            descriptor = rounded
+        }
+        return UIFont(descriptor: descriptor, size: 0)
+    }
+    #endif
+}
+
+extension View {
+    /// Draws every text style below this view in Nova's rounded design.
+    /// iOS 16.0 keeps the default design.
+    @ViewBuilder
+    func novaFontDesign() -> some View {
+        if #available(iOS 16.1, macOS 13.0, *) {
+            fontDesign(NovaType.design)
+        } else {
+            self
+        }
+    }
+}
+
 extension ShapeStyle where Self == Color {
     /// Window and list backdrop (`NovaPalette.background`).
     static var novaBackground: Color { Color(NovaPalette.background) }

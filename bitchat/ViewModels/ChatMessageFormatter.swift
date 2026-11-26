@@ -29,7 +29,7 @@ final class ChatMessageFormatter {
     }
 
     func formatMessageAsText(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
-        let design = Font.Design.default
+        let design = NovaType.design
         let isSelf = isSelfMessage(message)
 
         let isDark = colorScheme == .dark
@@ -110,7 +110,7 @@ final class ChatMessageFormatter {
     static let headerCacheNamespace = "hdr:"
 
     func formatMessageHeader(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
-        let design = Font.Design.default
+        let design = NovaType.design
         let isSelf = isSelfMessage(message)
 
         let isDark = colorScheme == .dark
@@ -186,8 +186,8 @@ final class ChatMessageFormatter {
             of: message,
             to: &result,
             style: ContentStyle(
-                textFont: .body,
-                emphasisFont: .body.weight(.semibold),
+                textFont: .system(.body, design: NovaType.design),
+                emphasisFont: .system(.body, design: NovaType.design).weight(.semibold),
                 textColor: isSelf ? .white : .primary,
                 linkColor: isSelf ? .white : MessageBubbleStyle.incomingLink,
                 mentionOfMeColor: isSelf ? .white : MessageBubbleStyle.incomingLink
@@ -227,7 +227,7 @@ final class ChatMessageFormatter {
         let (baseName, suffix) = petname.map { ($0, "") } ?? message.sender.splitSuffix()
         var nameStyle = AttributeContainer()
         nameStyle.foregroundColor = baseColor
-        nameStyle.font = .caption
+        nameStyle.font = .system(.caption, design: NovaType.design)
         if let spid = message.senderPeerID, let url = peerURL(for: spid) {
             nameStyle.link = url
         }
@@ -240,7 +240,7 @@ final class ChatMessageFormatter {
         }
         // Private rows show the filled seal beside the bubble instead.
         if isVerifiedSender, !message.isPrivate {
-            appendVerifiedSeal(to: &result, baseColor: baseColor, design: .default)
+            appendVerifiedSeal(to: &result, baseColor: baseColor, design: NovaType.design)
         }
         message.setCachedFormattedText(result, isDark: isDark, isSelf: false, variant: cacheVariant)
         return result
