@@ -156,10 +156,10 @@ enum MessageReactionStyle {
     }
 }
 
-/// The capsule behind a pill. Neutral pills sit on a frosted material
-/// with an opaque-enough tint that they read on every chat background:
-/// the gradients, OLED black and photos. My pills add a soft wash of the
-/// message color and a thin stroke in it.
+/// The capsule behind a pill: Nova's card surface with a hairline, opaque
+/// so it reads on every chat background (the gradients, OLED black and
+/// photos). My pills add a soft wash of the message color and a thin
+/// stroke in it.
 struct ReactionPillBackground: View {
     let isMine: Bool
     let tint: MessageBubbleColor
@@ -170,8 +170,7 @@ struct ReactionPillBackground: View {
     var body: some View {
         let isDark = colorScheme == .dark
         ZStack {
-            Capsule().fill(.regularMaterial)
-            Capsule().fill(isDark ? Color(white: 0.17).opacity(0.78) : Color.white.opacity(0.74))
+            Capsule().fill(Color.novaSurface)
             if isMine {
                 Capsule().fill(tint.color.opacity(isDark ? 0.34 : 0.14))
             }
@@ -183,10 +182,9 @@ struct ReactionPillBackground: View {
             if isMine {
                 Capsule().strokeBorder(MessageReactionStyle.ownTint(tint, colorScheme: colorScheme).opacity(0.9), lineWidth: 1)
             } else {
-                Capsule().strokeBorder(Color.primary.opacity(isDark ? 0.14 : 0.10), lineWidth: 0.5)
+                Capsule().strokeBorder(Color.novaHairline, lineWidth: 1)
             }
         }
-        .shadow(color: .black.opacity(isDark ? 0.0 : 0.06), radius: 1.5, y: 0.5)
     }
 }
 

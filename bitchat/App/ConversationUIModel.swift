@@ -192,10 +192,6 @@ final class ConversationUIModel: ObservableObject {
         chatViewModel.selectedAutocompleteIndex = next
     }
 
-    func formatMessage(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
-        chatViewModel.formatMessageAsText(message, colorScheme: colorScheme)
-    }
-
     func formatMessageBody(_ message: BitchatMessage, isSelf: Bool, colorScheme: ColorScheme) -> AttributedString {
         chatViewModel.formatMessageBody(message, isSelf: isSelf, colorScheme: colorScheme)
     }

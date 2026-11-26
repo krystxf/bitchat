@@ -105,11 +105,12 @@ struct MessageTimeHeader: View {
 
     var body: some View {
         Text(verbatim: MessageTimeLabel.label(for: date))
-            .font(.bitchatSystem(size: 11, weight: .medium))
+            .font(.caption2.weight(.medium))
             .foregroundColor(palette.secondary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
-            .padding(.top, 10)
+            .padding(.top, 16)
+            .padding(.bottom, 4)
             .accessibilityAddTraits(.isHeader)
     }
 }

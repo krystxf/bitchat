@@ -186,11 +186,11 @@ final class ChatMessageFormatter {
             of: message,
             to: &result,
             style: ContentStyle(
-                textFont: .bitchatSystem(size: 15),
-                emphasisFont: .bitchatSystem(size: 15, weight: .semibold),
+                textFont: .body,
+                emphasisFont: .body.weight(.semibold),
                 textColor: isSelf ? .white : .primary,
-                linkColor: isSelf ? .white : .blue,
-                mentionOfMeColor: isSelf ? .white : .orange
+                linkColor: isSelf ? .white : MessageBubbleStyle.incomingLink,
+                mentionOfMeColor: isSelf ? .white : MessageBubbleStyle.incomingLink
             )
         )
         if String(result.characters).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -223,11 +223,11 @@ final class ChatMessageFormatter {
             return cachedName
         }
 
-        let baseColor = Color.secondary
+        let baseColor = Color.novaSecondaryText
         let (baseName, suffix) = petname.map { ($0, "") } ?? message.sender.splitSuffix()
         var nameStyle = AttributeContainer()
         nameStyle.foregroundColor = baseColor
-        nameStyle.font = .bitchatSystem(size: 12, weight: .medium)
+        nameStyle.font = .caption
         if let spid = message.senderPeerID, let url = peerURL(for: spid) {
             nameStyle.link = url
         }
@@ -247,14 +247,11 @@ final class ChatMessageFormatter {
     }
 
     /// Formats a message ahead of display into the variant its row shows:
-    /// the full text for a system line, the bubble body for everything
-    /// else.
+    /// the bubble body. A system line shows its plain text, which needs no
+    /// formatting.
     func prewarmRow(_ message: BitchatMessage, colorScheme: ColorScheme) {
-        if message.sender == "system" {
-            _ = formatMessageAsText(message, colorScheme: colorScheme)
-        } else {
-            _ = formatMessageBody(message, isSelf: isSelfMessage(message), colorScheme: colorScheme)
-        }
+        guard message.sender != "system" else { return }
+        _ = formatMessageBody(message, isSelf: isSelfMessage(message), colorScheme: colorScheme)
     }
 
     /// Whether this device wrote the row: the one rule behind every

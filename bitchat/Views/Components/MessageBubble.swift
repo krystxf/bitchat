@@ -37,18 +37,12 @@ enum MessageBubbleStyle {
         max(0, rowWidth) * maxWidthFraction
     }
 
-    /// Fill of other people's bubbles: a translucent neutral system fill,
-    /// so the backdrop's tint shows through as it does under the chrome.
-    static var incomingFill: Color {
-        #if os(iOS)
-        return Color(UIColor.secondarySystemFill)
-        #else
-        if #available(macOS 14.0, *) {
-            return Color(NSColor.secondarySystemFill)
-        }
-        return Color(NSColor.quaternaryLabelColor)
-        #endif
-    }
+    /// Fill of other people's bubbles: the warm raised surface.
+    static var incomingFill: Color { .novaSurfaceRaised }
+
+    /// Links in other people's bubbles. The accent in light mode; in dark
+    /// mode a lighter blue that reaches WCAG AA on the raised fill.
+    static let incomingLink = Color(NovaPalette.Swatch(light: NovaPalette.accent.light, dark: 0x6DB3FF))
 }
 
 extension View {
@@ -62,35 +56,50 @@ extension View {
     }
 }
 
-/// A continuous rounded message shape with the small lower-corner tail used
-/// by Messages. The tail is part of the fill, so it remains clean on any
-/// conversation background.
+/// A continuous rounded message shape with the tail Messages draws on the
+/// last bubble of a run: the bubble's side runs straight down into its
+/// lower corner and hooks out past the edge. The tail hangs outside the
+/// view's frame by `tailOverhang`, so bubbles with and without it line up
+/// on the same edge. The row insets leave room for it.
 struct MessageBubbleShape: Shape {
+    /// How far the tail reaches past the bubble's side.
+    static let tailOverhang: CGFloat = 5
+
     var cornerRadius: CGFloat
     var isSelf: Bool
     var hasTail: Bool = true
 
     func path(in rect: CGRect) -> Path {
-        let tailHeight: CGFloat = hasTail ? 7 : 0
-        let body = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: max(0, rect.height - tailHeight))
-        let r = min(cornerRadius, min(body.width, body.height) / 2)
-        var path = Path(roundedRect: body, cornerSize: CGSize(width: r, height: r), style: .continuous)
-        if hasTail {
-            let tail = Path { tailPath in
-                if isSelf {
-                    tailPath.move(to: CGPoint(x: body.maxX - r - 10, y: body.maxY - 2))
-                    tailPath.addQuadCurve(to: CGPoint(x: body.maxX - r + 2, y: rect.maxY), control: CGPoint(x: body.maxX - r - 1, y: rect.maxY - 1))
-                    tailPath.addQuadCurve(to: CGPoint(x: body.maxX - r - 3, y: body.maxY - 1), control: CGPoint(x: body.maxX - r + 2, y: body.maxY + 1))
-                } else {
-                    tailPath.move(to: CGPoint(x: body.minX + r + 10, y: body.maxY - 2))
-                    tailPath.addQuadCurve(to: CGPoint(x: body.minX + r - 2, y: rect.maxY), control: CGPoint(x: body.minX + r + 1, y: rect.maxY - 1))
-                    tailPath.addQuadCurve(to: CGPoint(x: body.minX + r + 3, y: body.maxY - 1), control: CGPoint(x: body.minX + r - 2, y: body.maxY + 1))
-                }
-                tailPath.closeSubpath()
-            }
-            path.addPath(tail)
+        let r = min(cornerRadius, min(rect.width, rect.height) / 2)
+        let body = Path(roundedRect: rect, cornerSize: CGSize(width: r, height: r), style: .continuous)
+        guard hasTail, rect.width > 2 * r, rect.height >= 2 * r - 1 else { return body }
+        // Drawn for the trailing corner, then mirrored for other people's.
+        let edge = rect.maxX
+        let bottom = rect.maxY
+        let overhang = Self.tailOverhang
+        var tail = Path()
+        tail.move(to: CGPoint(x: edge, y: bottom - r))
+        // Down the side, then out to the tip just past the edge.
+        tail.addCurve(
+            to: CGPoint(x: edge + overhang, y: bottom),
+            control1: CGPoint(x: edge, y: bottom - r * 0.35),
+            control2: CGPoint(x: edge + overhang * 0.2, y: bottom - 0.5)
+        )
+        // Back under the corner, curving up into the bubble's bottom edge.
+        tail.addCurve(
+            to: CGPoint(x: edge - r * 0.75, y: bottom - 2),
+            control1: CGPoint(x: edge - overhang * 0.6, y: bottom + 0.5),
+            control2: CGPoint(x: edge - r * 0.45, y: bottom - 0.5)
+        )
+        tail.addLine(to: CGPoint(x: edge - r * 0.75, y: bottom - r))
+        tail.closeSubpath()
+        if !isSelf {
+            tail = tail.applying(
+                CGAffineTransform(translationX: rect.minX + rect.maxX, y: 0).scaledBy(x: -1, y: 1)
+            )
         }
-        return path
+        // One outline, whatever the subpaths' directions.
+        return Path(body.cgPath.union(tail.cgPath))
     }
 }
 
@@ -167,6 +176,8 @@ struct MessageBubbleLayout: Layout {
 /// The status is tappable: `.help()` tooltips only exist on macOS, so iOS
 /// users get its description as a caption under the bubble instead.
 struct MessageMetaView: View {
+    @ThemedPalette private var palette
+
     let message: BitchatMessage
     let showsVerifiedSeal: Bool
     /// The delivery status to show, or nil for none.
@@ -177,22 +188,19 @@ struct MessageMetaView: View {
         HStack(spacing: 3) {
             if message.isPrivate {
                 Image(systemName: "lock.fill")
-                    .font(.bitchatSystem(size: 8))
-                    .foregroundColor(Color.orange.opacity(0.75))
+                    .foregroundColor(palette.secondary)
                     .accessibilityHidden(true)
             }
             if showsVerifiedSeal {
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.bitchatSystem(size: 9))
-                    .foregroundColor(Color.green.opacity(0.85))
+                    .foregroundColor(.green)
                     .accessibilityLabel(
                         String(localized: "content.accessibility.verified_sender", defaultValue: "Verified sender", comment: "Accessibility label for the seal next to a verified peer's name on a private message")
                     )
             }
             if message.isBridged {
                 Image(systemName: "network")
-                    .font(.bitchatSystem(size: 8))
-                    .foregroundColor(Color.cyan.opacity(0.75))
+                    .foregroundColor(palette.secondary)
                     .accessibilityLabel(
                         String(localized: "content.accessibility.bridged_message", defaultValue: "Arrived across a mesh bridge", comment: "Accessibility label for the glyph marking a message that arrived across a mesh bridge")
                     )
@@ -210,6 +218,8 @@ struct MessageMetaView: View {
                 )
             }
         }
+        .font(.caption2)
+        .imageScale(.small)
         .padding(.bottom, 2)
     }
 }
@@ -245,7 +255,7 @@ struct MessageDeliveryCaption: View {
 
     var body: some View {
         if case .failed = status {
-            caption(color: Color.red.opacity(0.9))
+            caption(color: palette.alertRed)
         } else if showsDetail {
             caption(color: palette.secondary)
         }
@@ -253,7 +263,7 @@ struct MessageDeliveryCaption: View {
 
     private func caption(color: Color) -> some View {
         Text(verbatim: status.bitchatDescription)
-            .bitchatFont(size: 11)
+            .font(.caption2)
             .foregroundColor(color)
             .multilineTextAlignment(.trailing)
             .fixedSize(horizontal: false, vertical: true)

@@ -1093,12 +1093,16 @@ private extension MessageListView {
         .accessibilityHidden(true)
     }
 
-    /// Status lines ("* you're on #mesh *") stay plain, without a bubble.
+    /// Status lines ("You're on #mesh") stay plain, without a bubble:
+    /// centered secondary text, as Messages shows its own notices.
     func systemMessageRow(_ message: BitchatMessage) -> some View {
-        Text(conversationUIModel.formatMessage(message, colorScheme: colorScheme))
+        Text(verbatim: message.content)
+            .font(.footnote)
+            .foregroundColor(palette.secondary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.vertical, 2)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 4)
     }
 
     func expandWindow(ifNeededFor message: BitchatMessage,

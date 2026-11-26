@@ -132,21 +132,21 @@ struct TextMessageView: View {
                     if isExpanded { expandedMessageIDs.remove(message.id) }
                     else { expandedMessageIDs.insert(message.id) }
                 }
-                .bitchatFont(size: 11, weight: .medium)
-                .foregroundColor(isSelf ? Color.white.opacity(0.85) : palette.accentBlue)
+                .font(.footnote.weight(.semibold))
+                .foregroundColor(isSelf ? Color.white.opacity(0.85) : MessageBubbleStyle.incomingLink)
+                .buttonStyle(.plain)
             }
         }
         .frame(minWidth: 44, alignment: .leading)
         .padding(MessageBubbleStyle.textInsets)
-        .padding(.bottom, hasTail ? 7 : 0)
         .messageBubbleBackground(
             isSelf: isSelf,
             palette: palette,
             hasTail: hasTail,
             selfFill: bubbleColor.color
         )
-        // Links take the tint: white on my accent bubble.
-        .tint(isSelf ? .white : palette.accentBlue)
+        // Links take the tint: white on my colored bubble.
+        .tint(isSelf ? .white : MessageBubbleStyle.incomingLink)
     }
 
     private func gifCard(_ link: GifLink, isSelf: Bool) -> some View {
