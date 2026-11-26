@@ -107,6 +107,26 @@ struct MessageActionsOverlay: View {
     @State private var barSize = CGSize(width: 324, height: 56)
     @State private var cardSize = CGSize(width: 250, height: 200)
 
+    init(
+        item: MessageActionsOverlayItem,
+        tint: MessageBubbleColor,
+        onReact: @escaping (String) -> Void,
+        onOpenPicker: @escaping () -> Void,
+        onDismiss: @escaping () -> Void,
+        safeArea: EdgeInsets? = nil,
+        startsShown: Bool = false
+    ) {
+        self.item = item
+        self.tint = tint
+        self.onReact = onReact
+        self.onOpenPicker = onOpenPicker
+        self.onDismiss = onDismiss
+        self.safeArea = safeArea
+        self.startsShown = startsShown
+        // Shown from the first frame, so no opening animation runs.
+        _isShown = State(initialValue: startsShown)
+    }
+
     var body: some View {
         GeometryReader { proxy in
             let screen = CGRect(origin: .zero, size: proxy.size)
@@ -145,11 +165,8 @@ struct MessageActionsOverlay: View {
         .gesture(swipeDown)
         .accessibilityAction(.escape) { close() }
         .onAppear {
-            if startsShown {
-                isShown = true
-            } else {
-                withAnimation(openingAnimation) { isShown = true }
-            }
+            guard !isShown else { return }
+            withAnimation(openingAnimation) { isShown = true }
         }
     }
 
