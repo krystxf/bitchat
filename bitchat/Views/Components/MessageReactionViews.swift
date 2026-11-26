@@ -247,13 +247,14 @@ struct ReactionPill: View {
     @Environment(\.colorScheme) private var colorScheme
     @ScaledMetric(relativeTo: .subheadline) private var height: CGFloat = 26
     @ScaledMetric(relativeTo: .subheadline) private var horizontalPadding: CGFloat = 8
+    /// The emoji's square: every emoji fits it, a wide family or flag too.
+    @ScaledMetric(relativeTo: .subheadline) private var emojiSide: CGFloat = 18
     @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Text(verbatim: summary.emoji)
-                    .font(.subheadline)
+                EmojiGlyph(emoji: summary.emoji, side: emojiSide)
                 Text(summary.count, format: .number)
                     .font(.caption.weight(.semibold).monospacedDigit())
                     .foregroundStyle(summary.includesMe ? MessageReactionStyle.ownTint(tint, colorScheme: colorScheme) : Color.secondary)
@@ -396,8 +397,7 @@ private struct ReactionChoiceButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(verbatim: emoji)
-                .font(.system(size: size))
+            EmojiGlyph(emoji: emoji, side: size * 1.2)
                 .frame(width: size + 14, height: size + 14)
                 .background {
                     if isSelected {
@@ -655,13 +655,23 @@ enum EmojiMenuImage {
 
     #if os(iOS)
     private static func draw(_ emoji: String, fontSize: CGFloat, side: CGFloat, font: UIFont) {
-        let text = NSAttributedString(string: emoji, attributes: [.font: font])
+        var text = NSAttributedString(string: emoji, attributes: [.font: font])
+        // A wide emoji (or one drawn as several glyphs) shrinks to fit.
+        let width = text.size().width
+        if width > side - 2 {
+            text = NSAttributedString(string: emoji, attributes: [.font: font.withSize(fontSize * (side - 2) / width)])
+        }
         let size = text.size()
         text.draw(at: CGPoint(x: (side - size.width) / 2, y: (side - size.height) / 2))
     }
     #else
     private static func draw(_ emoji: String, fontSize: CGFloat, side: CGFloat, font: NSFont) {
-        let text = NSAttributedString(string: emoji, attributes: [.font: font])
+        var text = NSAttributedString(string: emoji, attributes: [.font: font])
+        // A wide emoji (or one drawn as several glyphs) shrinks to fit.
+        let width = text.size().width
+        if width > side - 2 {
+            text = NSAttributedString(string: emoji, attributes: [.font: font.withSize(fontSize * (side - 2) / width)])
+        }
         let size = text.size()
         text.draw(at: CGPoint(x: (side - size.width) / 2, y: (side - size.height) / 2))
     }
