@@ -62,10 +62,13 @@ struct SidebarAvatar<Avatar: View>: View {
 
     var body: some View {
         let size = self.size
-        let badgeSize = (size * 0.42).rounded()
+        let badgeSize = (size * 0.38).rounded()
         // The clear ring between the badge and the avatar. A cut-out, not a
         // stroke in the list's color: the selection highlight shows through.
         let gap = max(1.5, (size * 0.05).rounded())
+        // The badge hangs past the corner, so it covers the corner and
+        // not the initials.
+        let outset = (size * 0.08).rounded()
 
         avatar(size)
             .overlay {
@@ -79,7 +82,7 @@ struct SidebarAvatar<Avatar: View>: View {
                         Rectangle()
                         Circle()
                             .frame(width: badgeSize + 2 * gap, height: badgeSize + 2 * gap)
-                            .offset(x: gap, y: gap)
+                            .offset(x: gap + outset, y: gap + outset)
                             .blendMode(.destinationOut)
                     }
                     .compositingGroup()
@@ -90,6 +93,7 @@ struct SidebarAvatar<Avatar: View>: View {
             .overlay(alignment: .bottomTrailing) {
                 if let presence {
                     PresenceBadge(presence: presence, size: badgeSize)
+                        .offset(x: outset, y: outset)
                 }
             }
             .frame(width: size, height: size)
@@ -126,7 +130,7 @@ struct PresenceBadge: View {
                     .resizable()
                     .scaledToFit()
                     .font(.system(size: size, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .padding(size * 0.2)
             )
             .frame(width: size, height: size)

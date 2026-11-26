@@ -47,9 +47,9 @@ private struct SidebarMeshPeerRow: View {
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")
         static let blocked = String(localized: "mesh_peers.state.blocked", comment: "State label for a blocked peer")
         static let vouched = String(localized: "mesh_peers.state.vouched", comment: "State label for a peer vouched for by someone the user verified")
-        static let vouchedTooltip = String(localized: "mesh_peers.tooltip.vouched", comment: "Tooltip for the vouched (unfilled seal) badge next to a peer")
-        static let addFavorite = String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
-        static let removeFavorite = String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")
+        static let addFavorite = String(localized: "conversation_info.person.favorite", defaultValue: "Add to Favorites", comment: "Menu action on a person in a channel's or group's people list, and on a DM's details page, that adds them to favorites")
+        static let removeFavorite = String(localized: "conversation_info.person.unfavorite", defaultValue: "Remove from Favorites", comment: "Menu action on a person in a channel's or group's people list, and on a DM's details page, that removes them from favorites")
+        static let verified = String(localized: "app_info.legend.verified", comment: "Legend entry for the verified seal glyph")
         static let showFingerprint = String(localized: "mesh_peers.action.fingerprint", comment: "Context menu action that shows a peer's fingerprint/verification screen")
         static let openDMHint = String(localized: "mesh_peers.accessibility.open_dm_hint", comment: "Accessibility hint on a peer row explaining activation opens a private chat")
         static let directMessage = String(localized: "content.actions.direct_message", comment: "Action that opens a private chat with the person")
@@ -144,33 +144,25 @@ private struct SidebarMeshPeerRow: View {
         return PeopleRow(subtitle: presence.label) {
             SidebarPersonAvatar(name: peer.displayName, peerID: peer.peerID, presence: presence)
         } title: {
-            PeopleRowName(name: peer.displayName)
+            PeopleRowName(name: peer.displayName, seal: seal)
         } accessories: {
             if peer.isBlocked {
                 Image(systemName: "nosign")
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red)
                     .help(Strings.blockedTooltip)
             }
-            if let icon = encryptionIcon {
-                Image(systemName: icon)
+            if let lockIcon {
+                Image(systemName: lockIcon)
                     // Optical centering: lock glyph ink is bottom-heavy, so
                     // geometric centering reads low.
-                    .offset(y: icon.hasPrefix("lock") ? -0.5 : 0)
-                    .foregroundStyle(.secondary)
+                    .offset(y: -0.5)
+                    .rowColor(.secondary)
             }
-            // Vouched (transitively verified): the unfilled seal, distinct
-            // from verified's filled one. Never shown with a verified badge.
-            if peer.showsVouchedBadge {
-                Image(systemName: "checkmark.seal")
-                    .foregroundStyle(.secondary)
-                    .help(Strings.vouchedTooltip)
+            if peer.isFavorite {
+                SidebarFavoriteStar()
             }
             if peer.hasUnread {
                 PeopleUnreadIndicator()
-            }
-            if peer.isFavorite {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow)
             }
         }
     }
@@ -185,10 +177,25 @@ private struct SidebarMeshPeerRow: View {
         return peer.encryptionStatus.icon
     }
 
+    /// The verified seal sits after the name. Vouched (transitively
+    /// verified) is the outline seal, never shown with the verified one.
+    private var seal: PeopleRowSeal? {
+        if encryptionIcon == "checkmark.seal.fill" { return .verified }
+        if peer.showsVouchedBadge { return .vouched }
+        return nil
+    }
+
+    /// The session's lock, at the end of the row, when there is no seal.
+    private var lockIcon: String? {
+        guard let icon = encryptionIcon, icon != "checkmark.seal.fill" else { return nil }
+        return icon
+    }
+
     /// One spoken sentence per row: name, how they're reachable, and any
     /// state badges. The visual row is icon soup for VoiceOver otherwise.
     private var accessibilityDescription: String {
         var parts: [String] = [peer.displayName, peer.presence.label]
+        if seal == .verified { parts.append(Strings.verified) }
         if peer.showsVouchedBadge { parts.append(Strings.vouched) }
         if peer.isFavorite { parts.append(Strings.favorite) }
         if peer.hasUnread { parts.append(Strings.unread) }
@@ -242,7 +249,7 @@ private struct SidebarGeohashPersonRow: View {
         } accessories: {
             if person.isBlocked {
                 Image(systemName: "nosign")
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red)
                     .help(Strings.blockedTooltip)
             }
         }
@@ -321,8 +328,9 @@ private struct SidebarChatRow: View {
         static let favorite = String(localized: "mesh_peers.state.favorite", comment: "State label for a favorited peer")
         static let openChatHint = String(localized: "chats.accessibility.open_hint", defaultValue: "Opens this conversation", comment: "Accessibility hint on a recent chat row explaining activation opens the direct conversation")
         static let directMessage = String(localized: "content.actions.direct_message", comment: "Action that opens a private chat with the person")
-        static let addFavorite = String(localized: "content.accessibility.add_favorite", comment: "Accessibility label to add a favorite")
-        static let removeFavorite = String(localized: "content.accessibility.remove_favorite", comment: "Accessibility label to remove a favorite")
+        static let addFavorite = String(localized: "conversation_info.person.favorite", defaultValue: "Add to Favorites", comment: "Menu action on a person in a channel's or group's people list, and on a DM's details page, that adds them to favorites")
+        static let removeFavorite = String(localized: "conversation_info.person.unfavorite", defaultValue: "Remove from Favorites", comment: "Menu action on a person in a channel's or group's people list, and on a DM's details page, that removes them from favorites")
+        static let verified = String(localized: "app_info.legend.verified", comment: "Legend entry for the verified seal glyph")
         static let showFingerprint = String(localized: "mesh_peers.action.fingerprint", comment: "Context menu action that shows a peer's fingerprint/verification screen")
         static let block = String(localized: "geohash_people.action.block", comment: "Context menu action to block a person")
     }
@@ -343,14 +351,13 @@ private struct SidebarChatRow: View {
         PeopleRow(subtitle: lastActivityText) {
             SidebarPersonAvatar(name: chat.displayName, peerID: chat.peerID)
         } title: {
-            PeopleRowName(name: chat.displayName)
+            PeopleRowName(name: chat.displayName, seal: chat.isVerified ? .verified : nil)
         } accessories: {
+            if chat.isFavorite {
+                SidebarFavoriteStar()
+            }
             if chat.hasUnread {
                 PeopleUnreadIndicator()
-            }
-            if chat.isFavorite {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow)
             }
         }
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
@@ -434,6 +441,7 @@ private struct SidebarChatRow: View {
 
     private var accessibilityDescription: String {
         var parts: [String] = [chat.displayName, lastActivityText]
+        if chat.isVerified { parts.append(Strings.verified) }
         if chat.isFavorite { parts.append(Strings.favorite) }
         if chat.hasUnread { parts.append(Strings.unread) }
         return parts.joined(separator: ", ")
@@ -474,7 +482,7 @@ struct SidebarGroupRow: View {
         static let creator = String(localized: "groups.state.creator", comment: "State label for a group the user created")
         static let unread = String(localized: "mesh_peers.state.unread", comment: "State label for a peer with unread private messages")
         static let openGroupHint = String(localized: "groups.accessibility.open_group_hint", comment: "Accessibility hint on a group row explaining activation opens the group chat")
-        static let memberCountFormat = String(localized: "groups.member_count %@", comment: "Member count shown next to a group name; placeholder is the count")
+        static let memberCountFormat = String(localized: "content.accessibility.people_count", comment: "Accessibility label announcing number of people in header")
     }
 
     var body: some View {
@@ -488,8 +496,8 @@ struct SidebarGroupRow: View {
                 .truncationMode(.tail)
         } accessories: {
             if group.isCreator {
-                Image(systemName: "crown.fill")
-                    .foregroundColor(.yellow)
+                Image(systemName: "crown")
+                    .rowColor(.secondary)
                     .help(Strings.creator)
             }
             if group.hasUnread {
@@ -502,7 +510,7 @@ struct SidebarGroupRow: View {
     }
 
     private var memberCount: String {
-        String(format: Strings.memberCountFormat, locale: .current, "\(group.memberCount)")
+        String(format: Strings.memberCountFormat, locale: .current, group.memberCount)
     }
 
     /// "#name", not localized: there is nothing to translate, and a
@@ -521,5 +529,16 @@ struct SidebarGroupRow: View {
         if group.isCreator { parts.append(Strings.creator) }
         if group.hasUnread { parts.append(Strings.unread) }
         return parts.joined(separator: ", ")
+    }
+}
+
+/// The favorite star at the end of a person's row.
+struct SidebarFavoriteStar: View {
+    private static let label = String(localized: "mesh_peers.state.favorite", comment: "State label for a favorited peer")
+
+    var body: some View {
+        Image(systemName: "star.fill")
+            .rowColor(.highlight)
+            .help(Self.label)
     }
 }
