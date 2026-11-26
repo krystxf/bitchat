@@ -30,8 +30,8 @@ struct GeohashPickerView: View {
         static let noSelection = String(localized: "geohash_picker.no_selection", defaultValue: "Select location", comment: "Shown in the globe geohash picker before a geohash is under the crosshair")
         static let select = String(localized: "geohash_picker.select", defaultValue: "Select", comment: "Button in the globe geohash picker that teleports to the geohash under the crosshair")
         static let selectHint = String(localized: "geohash_picker.accessibility.select", defaultValue: "Select Geohash", comment: "Accessibility label for the globe picker's select button")
-        static let decreasePrecision = String(localized: "geohash_picker.accessibility.decrease_precision", defaultValue: "Decrease precision", comment: "Accessibility label for the globe picker button that zooms out to a larger geohash cell")
-        static let increasePrecision = String(localized: "geohash_picker.accessibility.increase_precision", defaultValue: "Increase precision", comment: "Accessibility label for the globe picker button that zooms in to a smaller geohash cell")
+        static let decreasePrecision = String(localized: "geohash_picker.accessibility.decrease_precision", defaultValue: "Decrease Precision", comment: "Accessibility label for the globe picker button that zooms out to a larger geohash cell")
+        static let increasePrecision = String(localized: "geohash_picker.accessibility.increase_precision", defaultValue: "Increase Precision", comment: "Accessibility label for the globe picker button that zooms in to a smaller geohash cell")
     }
 
     /// - Parameters:
@@ -122,70 +122,31 @@ struct GeohashPickerView: View {
 
     private var instructionPanel: some View {
         Text(Strings.instruction)
-            .bitchatFont(size: 12)
-            .foregroundColor(palette.primary)
+            .font(.footnote)
+            .foregroundStyle(.primary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity)
-            .themedOverlayPanel()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .glassSurface(in: Capsule())
     }
 
     private var bottomControls: some View {
-        VStack(spacing: 10) {
-            VStack(spacing: 2) {
-                Text(verbatim: hasSelection ? "#\(state.selectedGeohash)" : Strings.noSelection)
-                    .bitchatFont(size: 14, weight: .medium)
-                    .foregroundColor(palette.primary)
-                if hasSelection {
-                    Text(verbatim: "\(GeohashCoverage.level(forLength: state.precision).displayName) • \(GeohashCoverage.string(forPrecision: state.precision))")
-                        .bitchatFont(size: 10)
-                        .foregroundColor(palette.secondary)
-                }
+        GlobePickerControls(
+            title: hasSelection ? "#\(state.selectedGeohash)" : Strings.noSelection,
+            subtitle: hasSelection ? "\(GeohashCoverage.level(forLength: state.precision).displayName) • \(GeohashCoverage.string(forPrecision: state.precision))" : nil,
+            selectTitle: Strings.select,
+            selectLabel: Strings.selectHint,
+            decreaseLabel: Strings.decreasePrecision,
+            increaseLabel: Strings.increasePrecision,
+            canSelect: hasSelection,
+            onDecrease: { state.animatePrecision(state.precision - 1) },
+            onIncrease: { state.animatePrecision(state.precision + 1) },
+            onSelect: {
+                guard hasSelection else { return }
+                onSelect(state.selectedGeohash)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .themedOverlayPanel()
-            .accessibilityElement(children: .combine)
-
-            HStack(spacing: 10) {
-                precisionButton(systemImage: "minus", label: Strings.decreasePrecision) {
-                    state.animatePrecision(state.precision - 1)
-                }
-                precisionButton(systemImage: "plus", label: Strings.increasePrecision) {
-                    state.animatePrecision(state.precision + 1)
-                }
-                Button {
-                    guard hasSelection else { return }
-                    onSelect(state.selectedGeohash)
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark")
-                            .font(.bitchatSystem(size: 14, weight: .semibold))
-                        Text(verbatim: Strings.select)
-                            .bitchatFont(size: 12)
-                    }
-                    .foregroundColor(palette.primary)
-                    .pickerCapsule(fill: palette.accentBlue.opacity(0.12))
-                }
-                .buttonStyle(.plain)
-                .disabled(!hasSelection)
-                .opacity(hasSelection ? 1 : 0.38)
-                .accessibilityLabel(Strings.selectHint)
-            }
-        }
-    }
-
-    private func precisionButton(systemImage: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.bitchatSystem(size: 16, weight: .semibold))
-                .foregroundColor(palette.locationAccent)
-                .pickerCapsule(fill: palette.locationAccent.opacity(0.12))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        )
     }
 
     private var hasSelection: Bool { !state.selectedGeohash.isEmpty }
@@ -234,15 +195,3 @@ struct GeohashPickerView: View {
     }
 }
 
-// MARK: - Styling
-
-private extension View {
-    /// Pill button body sized like a standard 40pt-tall button.
-    func pickerCapsule(fill: Color) -> some View {
-        self
-            .padding(.horizontal, 24)
-            .frame(minHeight: 40)
-            .background(Capsule().fill(fill))
-            .contentShape(Capsule())
-    }
-}

@@ -51,10 +51,13 @@ struct MapKitGlobePickerView: View {
             map
             VStack(spacing: 0) {
                 Text(Strings.instruction)
-                    .bitchatFont(size: 12).foregroundColor(palette.primary)
-                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: .infinity)
-                    .themedOverlayPanel()
+                    .font(.footnote)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .glassSurface(in: Capsule())
                 clusterList
                 Spacer(minLength: 0)
                 bottomControls
@@ -91,10 +94,10 @@ struct MapKitGlobePickerView: View {
                                 Image(systemName: "person.2.fill")
                                 Text("\(cluster.peopleCount)")
                             }
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(palette.primary)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.primary)
                             .padding(.horizontal, 9).padding(.vertical, 6)
-                            .background(palette.background.opacity(0.92), in: Capsule())
+                            .background(Color.novaBackground.opacity(0.92), in: Capsule())
                             .overlay(Capsule().stroke(palette.locationAccent, lineWidth: 1))
                         }
                         .buttonStyle(.plain)
@@ -131,9 +134,16 @@ struct MapKitGlobePickerView: View {
                 HStack(spacing: 8) {
                     ForEach(active) { cluster in
                         Button { select(cluster.geohash) } label: {
-                            Text(verbatim: "#\(cluster.geohash) · \(cluster.peopleCount)")
-                                .bitchatFont(size: 11, weight: .medium).foregroundColor(palette.primary)
-                                .padding(.horizontal, 10).padding(.vertical, 8).themedOverlayPanel()
+                            Label {
+                                Text(verbatim: "#\(cluster.geohash) · \(cluster.peopleCount)")
+                            } icon: {
+                                Image(systemName: "person.2.fill")
+                            }
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .glassSurface(in: Capsule())
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text(verbatim: "#\(cluster.geohash), \(cluster.peopleCount)"))
@@ -160,40 +170,24 @@ struct MapKitGlobePickerView: View {
         return GeohashMapGeometry.cells(south: south, north: north, west: left, east: right, precision: precision)
     }
 
+    /// The selection and its actions in one floating card, as Maps puts
+    /// a place's actions under it.
     private var bottomControls: some View {
-        VStack(spacing: 10) {
-            VStack(spacing: 2) {
-                Text(verbatim: selectedGeohash.isEmpty ? Strings.noSelection : "#\(selectedGeohash)")
-                    .bitchatFont(size: 14, weight: .medium).foregroundColor(palette.primary)
-                if !selectedGeohash.isEmpty {
-                    Text(verbatim: "\(GeohashCoverage.level(forLength: selectedGeohash.count).displayName) • \(GeohashCoverage.string(forPrecision: selectedGeohash.count))")
-                        .bitchatFont(size: 10).foregroundColor(palette.secondary)
-                }
+        GlobePickerControls(
+            title: selectedGeohash.isEmpty ? Strings.noSelection : "#\(selectedGeohash)",
+            subtitle: selectedGeohash.isEmpty ? nil : "\(GeohashCoverage.level(forLength: selectedGeohash.count).displayName) • \(GeohashCoverage.string(forPrecision: selectedGeohash.count))",
+            selectTitle: Strings.select,
+            selectLabel: Strings.selectHint,
+            decreaseLabel: Strings.decrease,
+            increaseLabel: Strings.increase,
+            canSelect: !selectedGeohash.isEmpty,
+            onDecrease: { adjustPrecision(-1) },
+            onIncrease: { adjustPrecision(1) },
+            onSelect: {
+                guard !selectedGeohash.isEmpty else { return }
+                onSelect(selectedGeohash)
             }
-            .padding(.horizontal, 16).padding(.vertical, 8).themedOverlayPanel()
-            .accessibilityElement(children: .combine)
-            HStack(spacing: 10) {
-                precisionButton("minus", label: Strings.decrease) { adjustPrecision(-1) }
-                precisionButton("plus", label: Strings.increase) { adjustPrecision(1) }
-                Button { guard !selectedGeohash.isEmpty else { return }; onSelect(selectedGeohash) } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark").font(.bitchatSystem(size: 14, weight: .semibold))
-                        Text(verbatim: Strings.select).bitchatFont(size: 12)
-                    }
-                    .foregroundColor(palette.primary).pickerCapsule(fill: palette.accentBlue.opacity(0.12))
-                }
-                .buttonStyle(.plain).disabled(selectedGeohash.isEmpty).opacity(selectedGeohash.isEmpty ? 0.38 : 1)
-                .accessibilityLabel(Strings.selectHint)
-            }
-        }
-    }
-
-    private func precisionButton(_ image: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: image).font(.bitchatSystem(size: 16, weight: .semibold))
-                .foregroundColor(palette.locationAccent).pickerCapsule(fill: palette.locationAccent.opacity(0.12))
-        }
-        .buttonStyle(.plain).accessibilityLabel(label)
+        )
     }
 
     private func adjustPrecision(_ delta: Int) {
@@ -213,8 +207,63 @@ struct MapKitGlobePickerView: View {
     }
 }
 
-private extension View {
-    func pickerCapsule(fill: Color) -> some View {
-        padding(.horizontal, 24).frame(minHeight: 40).background(Capsule().fill(fill)).contentShape(Capsule())
+/// The globe picker's bottom card: the cell under the crosshair, the
+/// precision steppers and the select button. Shared by the MapKit globe and
+/// the drawn one (iOS 16).
+struct GlobePickerControls: View {
+    let title: String
+    let subtitle: String?
+    let selectTitle: String
+    let selectLabel: String
+    let decreaseLabel: String
+    let increaseLabel: String
+    let canSelect: Bool
+    let onDecrease: () -> Void
+    let onIncrease: () -> Void
+    let onSelect: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            VStack(spacing: 2) {
+                Text(verbatim: title)
+                    .font(.headline)
+                if let subtitle {
+                    Text(verbatim: subtitle)
+                        .font(.footnote)
+                        .foregroundStyle(.novaSecondaryText)
+                }
+            }
+            .lineLimit(1)
+            .accessibilityElement(children: .combine)
+
+            HStack(spacing: 12) {
+                stepButton("minus", label: decreaseLabel, action: onDecrease)
+                stepButton("plus", label: increaseLabel, action: onIncrease)
+                Button(action: onSelect) {
+                    Label(selectTitle, systemImage: "checkmark")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .glassButtonStyle(prominent: true)
+                .controlSize(.large)
+                .disabled(!canSelect)
+                .accessibilityLabel(selectLabel)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: 420)
+        .glassSurface(in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+    }
+
+    private func stepButton(_ systemImage: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.headline)
+                .frame(width: 24, height: 24)
+        }
+        .glassButtonStyle()
+        .circularButtonShape()
+        .controlSize(.large)
+        .accessibilityLabel(label)
     }
 }
