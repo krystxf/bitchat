@@ -293,5 +293,10 @@ struct FingerprintSheet: View {
     var body: some View {
         FingerprintView(peerID: peerID)
             .sheetChrome(title: Text("fingerprint.title"), onClose: { dismiss() })
+            #if os(macOS)
+            // A form has no ideal height of its own; without a size the
+            // sheet opens too small to show both fingerprints.
+            .frame(minWidth: 420, idealWidth: 460, minHeight: 520, idealHeight: 620)
+            #endif
     }
 }
